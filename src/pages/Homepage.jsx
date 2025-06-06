@@ -201,7 +201,7 @@ const Homepage = () => {
                             />
                         </div>
 
-                        <div className="grid gap-6">
+                        <div className="!space-y-3">
                             {filteredUniversities.map(university => (
                                 <UniversityCard
                                     key={university.id}

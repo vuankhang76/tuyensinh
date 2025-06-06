@@ -48,7 +48,7 @@ const NewsSection = () => {
   ]
 
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-8 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -68,44 +68,43 @@ const NewsSection = () => {
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Main News */}
-          <div className="space-y-6">
+          <div className="space-y-5">
             {news.slice(0, 2).map((article) => (
-              <Card 
+              <div 
                 key={article.id}
-                className="hover:shadow-lg transition-shadow overflow-hidden"
+                className="bg-white rounded-lg p-6 border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all duration-300 cursor-pointer"
               >
-                <div className="flex gap-4">
-                  <div className="w-32 h-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex-shrink-0 flex items-center justify-center">
-                    <span className="text-white text-2xl">📰</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Tag color={article.urgent ? 'red' : 'blue'}>
-                        {article.urgent ? 'KHẨN CẤP' : article.category}
-                      </Tag>
-                      <span className="text-xs text-gray-500 flex items-center">
-                        <CalendarOutlined className="mr-1" />
-                        {article.date}
-                      </span>
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">
-                      {article.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-                      {article.excerpt}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-500 flex items-center">
-                        <EyeOutlined className="mr-1" />
-                        {article.views.toLocaleString()} lượt xem
-                      </span>
-                      <Button type="link" size="small">
-                        Đọc thêm →
-                      </Button>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-3 mb-3">
+                  <Tag 
+                    color={article.urgent ? 'red' : 'blue'}
+                    className="rounded-full px-3 py-1"
+                  >
+                    {article.urgent ? 'KHẨN CẤP' : article.category}
+                  </Tag>
+                  <span className="text-sm text-gray-500 flex items-center">
+                    <CalendarOutlined className="mr-1.5" />
+                    {article.date}
+                  </span>
+                  <span className="text-sm text-gray-400 flex items-center ml-auto">
+                    <EyeOutlined className="mr-1.5" />
+                    {article.views.toLocaleString()}
+                  </span>
                 </div>
-              </Card>
+                
+                <h3 className="text-xl font-bold text-gray-900 mb-3 leading-tight hover:text-blue-600 transition-colors">
+                  {article.title}
+                </h3>
+                
+                <p className="text-gray-600 leading-relaxed line-clamp-2">
+                  {article.excerpt}
+                </p>
+                
+                <div className="mt-4 pt-3 border-t border-gray-50">
+                  <span className="text-blue-600 font-medium text-sm hover:text-blue-700 transition-colors">
+                    Đọc thêm →
+                  </span>
+                </div>
+              </div>
             ))}
           </div>
 
@@ -114,7 +113,7 @@ const NewsSection = () => {
             <h3 className="text-xl font-semibold text-gray-800 mb-4">
               Tin tức khác
             </h3>
-            <div className="space-y-4">
+            <div className="!space-y-4">
               {news.slice(2).map((article) => (
                 <Card key={article.id} size="small" className="hover:shadow-md transition-shadow">
                   <div className="flex justify-between items-start mb-2">
@@ -140,28 +139,6 @@ const NewsSection = () => {
             </div>
           </div>
         </div>
-
-        {/* Newsletter Signup */}
-        <Card className="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 border-0">
-          <div className="text-center">
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              Đăng ký nhận tin tức
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Nhận thông báo về tin tức tuyển sinh mới nhất qua email
-            </p>
-            <div className="flex gap-2 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Nhập email của bạn"
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <Button type="primary">
-                Đăng ký
-              </Button>
-            </div>
-          </div>
-        </Card>
       </div>
     </section>
   )
