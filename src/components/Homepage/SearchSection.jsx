@@ -49,7 +49,7 @@ const SearchSection = ({ searchTerm, setSearchTerm, selectedRegion, setSelectedR
       if (params.toString()) {
         navigate(`/search?${params.toString()}`)
       }
-    }, 500), // 500ms delay
+    }, 1000), // 1000ms delay
     [navigate]
   )
 
@@ -76,7 +76,7 @@ const SearchSection = ({ searchTerm, setSearchTerm, selectedRegion, setSelectedR
           <div>
             <div className="space-y-4">
               {/* Search Input */}
-              <div className="relative">
+              <div className="relative sticky">
                 <Input
                   size="large"
                   placeholder="Nhập tên trường đại học, ngành học... (tự động tìm kiếm)"

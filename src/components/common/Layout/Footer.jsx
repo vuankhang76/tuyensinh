@@ -30,11 +30,6 @@ const Footer = () => {
             <p className="text-gray-400 text-sm mb-4">
               Nền tảng cung cấp thông tin tuyển sinh đại học chính xác và cập nhật nhất tại Việt Nam.
             </p>
-            <div className="flex space-x-3">
-              <Button type="text" icon={<FacebookOutlined />} className="text-white hover:text-blue-500" />
-              <Button type="text" icon={<YoutubeOutlined />} className="text-white hover:text-red-500" />
-              <Button type="text" icon={<MailOutlined />} className="text-white hover:text-green-500" />
-            </div>
           </div>
 
           {/* Contact Info */}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { Input, Select, Button, Card, Pagination, Empty, Spin, Tag, Breadcrumb } from 'antd'
+import { Input, Select, Button, Card, Pagination, Empty, Tag, Breadcrumb } from 'antd'
 import { 
   SearchOutlined, 
   FilterOutlined, 
@@ -10,6 +10,7 @@ import {
 } from '@ant-design/icons'
 import UniversityCard from '../components/Homepage/UniversityCard'
 import FilterSection from '../components/Homepage/FilterSection'
+import Loading from '../components/common/Loading/LoadingSkeleton'
 
 const { Option } = Select
 
@@ -371,9 +372,12 @@ const SearchResults = () => {
 
             {/* Loading State */}
             {loading && (
-              <div className="text-center py-12">
-                <Spin size="large" />
-                <div className="mt-4 text-gray-600">Đang tìm kiếm...</div>
+              <div className="space-y-0">
+                <Loading type="university" />
+                <Loading type="university" />
+                <Loading type="university" />
+                <Loading type="university" />
+                <Loading type="university" />
               </div>
             )}
 

@@ -10,6 +10,7 @@ import {
   HeartOutlined,
   ShareAltOutlined
 } from '@ant-design/icons'
+import Loading from '../components/common/Loading/LoadingSkeleton'
 
 const UniversityDetail = () => {
   const { slug } = useParams()
@@ -113,10 +114,12 @@ const UniversityDetail = () => {
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p>Đang tải thông tin...</p>
-      </div>
+      <Loading 
+        type="spinner" 
+        size="large" 
+        tip="Đang tải thông tin..."
+        className="py-8"
+      />
     </div>
   }
 
