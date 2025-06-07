@@ -249,7 +249,7 @@ const SearchResults = () => {
       {/* Search Bar */}
       <div className="bg-white">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex flex-col lg:flex-row gap-3">
             <div className="flex-1">
               <Input
                 placeholder="Tìm kiếm trường đại học, ngành học... (tự động tìm kiếm)"
@@ -260,8 +260,7 @@ const SearchResults = () => {
                 }}
                 size="large"
                 prefix={<SearchOutlined />}
-                className="h-12"
-                style={{ borderRadius: '8px' }}
+                className="h-10"
               />
             </div>
             
@@ -414,7 +413,7 @@ const SearchResults = () => {
             {/* Results List */}
             {!loading && totalResults > 0 && (
               <>
-                <div className="space-y-6 mb-8">
+                <div className="!space-y-4 mb-8">
                   {paginatedResults.map((university) => (
                     <UniversityCard 
                       key={university.id} 

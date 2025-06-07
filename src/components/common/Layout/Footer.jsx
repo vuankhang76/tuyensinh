@@ -1,25 +1,26 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from 'antd'
-import { 
-  FacebookOutlined, 
-  YoutubeOutlined, 
+import {
+  FacebookOutlined,
+  YoutubeOutlined,
   MailOutlined,
   PhoneOutlined,
-  EnvironmentOutlined 
+  EnvironmentOutlined
 } from '@ant-design/icons'
+import logo from '../../../assets/images/logo/logo_full.png'
 
 const Footer = () => {
   return (
     <footer className="bg-gray-900 text-white">
       {/* Main Footer */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-8">
+      <div className="container mx-auto p-12">
+        <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8 ">
           {/* Company Info */}
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">TS</span>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center">
+                <img src={logo} alt="logo" className="w-10 h-10" />
               </div>
               <div>
                 <div className="font-bold text-xl">TuyenSinh.edu</div>
@@ -34,30 +35,6 @@ const Footer = () => {
               <Button type="text" icon={<YoutubeOutlined />} className="text-white hover:text-red-500" />
               <Button type="text" icon={<MailOutlined />} className="text-white hover:text-green-500" />
             </div>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h3 className="font-semibold text-lg mb-4">Liên kết nhanh</h3>
-            <ul className="space-y-2">
-              <li><Link to="/" className="text-gray-400 hover:text-white text-sm">Trang chủ</Link></li>
-              <li><Link to="/search" className="text-gray-400 hover:text-white text-sm">Tìm kiếm trường</Link></li>
-              <li><Link to="/compare" className="text-gray-400 hover:text-white text-sm">So sánh trường</Link></li>
-              <li><Link to="/news" className="text-gray-400 hover:text-white text-sm">Tin tức</Link></li>
-              <li><Link to="/tools" className="text-gray-400 hover:text-white text-sm">Công cụ hỗ trợ</Link></li>
-            </ul>
-          </div>
-
-          {/* Categories */}
-          <div>
-            <h3 className="font-semibold text-lg mb-4">Danh mục</h3>
-            <ul className="space-y-2">
-              <li><Link to="/universities?type=public" className="text-gray-400 hover:text-white text-sm">Trường công lập</Link></li>
-              <li><Link to="/universities?type=private" className="text-gray-400 hover:text-white text-sm">Trường tư thục</Link></li>
-              <li><Link to="/majors?category=it" className="text-gray-400 hover:text-white text-sm">Công nghệ thông tin</Link></li>
-              <li><Link to="/majors?category=business" className="text-gray-400 hover:text-white text-sm">Kinh tế - Kinh doanh</Link></li>
-              <li><Link to="/majors?category=medicine" className="text-gray-400 hover:text-white text-sm">Y - Dược</Link></li>
-            </ul>
           </div>
 
           {/* Contact Info */}
@@ -77,20 +54,21 @@ const Footer = () => {
                 contact@tuyensinh.edu.vn
               </div>
             </div>
-            
-            {/* Newsletter */}
-            <div className="mt-6">
-              <h4 className="font-medium mb-2">Đăng ký nhận tin</h4>
-              <div className="flex">
-                <input
-                  type="email"
-                  placeholder="Email của bạn"
-                  className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-l-lg text-sm focus:outline-none focus:border-blue-500"
-                />
-                <Button type="primary" className="rounded-l-none">
-                  Đăng ký
-                </Button>
-              </div>
+          </div>
+
+          {/* Newsletter */}
+          <div className="mt-6">
+            <h4 className="font-medium mb-2">Đăng ký nhận tin</h4>
+            <div className="flex">
+              <input
+                type="email"
+                placeholder="Email của bạn"
+                className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-l-lg text-sm focus:outline-none focus:border-blue-500"
+                size="large"
+              />
+              <Button type="primary" className="!rounded-l-none" size="large">
+                Đăng ký
+              </Button>
             </div>
           </div>
         </div>
@@ -99,14 +77,9 @@ const Footer = () => {
       {/* Bottom Footer */}
       <div className="border-t border-gray-800">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col md:flex-row justify-between items-center">
+          <div className="flex flex-col md:flex-row justify-center items-center">
             <div className="text-sm text-gray-400">
               © 2025 TuyenSinh.edu. Tất cả quyền được bảo lưu.
-            </div>
-            <div className="flex space-x-6 mt-2 md:mt-0">
-              <Link to="/privacy" className="text-sm text-gray-400 hover:text-white">Chính sách bảo mật</Link>
-              <Link to="/terms" className="text-sm text-gray-400 hover:text-white">Điều khoản sử dụng</Link>
-              <Link to="/contact" className="text-sm text-gray-400 hover:text-white">Liên hệ</Link>
             </div>
           </div>
         </div>

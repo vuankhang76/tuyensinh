@@ -14,6 +14,7 @@ import {
   LoginOutlined,
   UserAddOutlined
 } from '@ant-design/icons'
+import logo from '../../../assets/images/logo/logo_full.png'
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -83,8 +84,8 @@ const Navbar = () => {
           <div className="flex justify-between items-center py-4">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-3 group">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
-                <span className="text-white font-bold text-lg">TS</span>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center">
+                <img src={logo} alt="logo" className="w-10 h-10" />
               </div>
               <div className="hidden md:block">
                 <div className="font-bold text-xl text-gray-800">TuyenSinh.edu</div>

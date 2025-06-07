@@ -173,50 +173,52 @@ const UniversityDetail = () => {
       </div>
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col lg:flex-row items-start gap-6">
+      < div className="bg-white">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex flex-col lg:flex-row items-start gap-8">
             {/* University Logo */}
-            <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
-              <span className="text-2xl font-bold text-blue-600">{university.code}</span>
+            <div className="w-20 h-20 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="text-lg font-bold text-white">{university.code}</span>
             </div>
 
             {/* University Info */}
             <div className="flex-1">
-              <div className="flex flex-wrap gap-2 mb-3">
+              <div className="flex flex-wrap gap-2 mb-4">
                 {university.tags.slice(0, 4).map(tag => (
-                  <Tag key={tag} color="blue">{tag}</Tag>
+                  <span key={tag} className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                    {tag}
+                  </span>
                 ))}
               </div>
               
-              <h1 className="text-3xl lg:text-4xl font-bold mb-2">{university.name}</h1>
-              <p className="text-xl opacity-90 mb-4">{university.shortName}</p>
+              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">{university.name}</h1>
+              <p className="text-lg text-gray-600 mb-6">{university.shortName}</p>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <EnvironmentOutlined />
+              <div className="space-y-3 text-sm text-gray-600">
+                <div className="flex items-center gap-3">
+                  <EnvironmentOutlined className="text-gray-400" />
                   <span>{university.address}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <PhoneOutlined />
+                <div className="flex items-center gap-3">
+                  <PhoneOutlined className="text-gray-400" />
                   <span>{university.phone}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <GlobalOutlined />
+                <div className="flex items-center gap-3">
+                  <GlobalOutlined className="text-gray-400" />
                   <a href={university.website} target="_blank" rel="noopener noreferrer" 
-                     className="text-blue-200 hover:text-white">
-                    Website chính thức
+                     className="text-blue-600 hover:text-blue-700">
+                    {university.website}
                   </a>
                 </div>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col gap-3">
-              <Button type="primary" size="large" icon={<HeartOutlined />}>
+            <div className="flex lg:flex-col gap-3">
+              <Button type="primary" size="large" icon={<HeartOutlined />} className="min-w-[120px]">
                 Yêu thích
               </Button>
-              <Button size="large" icon={<ShareAltOutlined />}>
+              <Button size="large" icon={<ShareAltOutlined />} className="min-w-[120px]">
                 Chia sẻ
               </Button>
             </div>
@@ -225,46 +227,46 @@ const UniversityDetail = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-6">
-          <Row gutter={[16, 16]}>
-            <Col xs={12} sm={6}>
-              <Statistic 
-                title="Xếp hạng quốc gia" 
-                value={university.ranking.national} 
-                prefix={<TrophyOutlined />}
-              />
-            </Col>
-            <Col xs={12} sm={6}>
-              <Statistic 
-                title="Xếp hạng quốc tế" 
-                value={university.ranking.international} 
-                prefix={<GlobalOutlined />}
-              />
-            </Col>
-            <Col xs={12} sm={6}>
-              <Statistic 
-                title="Chỉ tiêu 2025" 
-                value={university.admissionInfo.totalQuota} 
-                prefix={<BookOutlined />}
-              />
-            </Col>
-            <Col xs={12} sm={6}>
-              <Statistic 
-                title="Thành lập" 
-                value={university.establishedYear} 
-              />
-            </Col>
-          </Row>
+      <div className="bg-gray-50 py-8">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Xếp hạng quốc gia */}
+            <div className="bg-white p-6 rounded-lg text-center hover:shadow-sm transition-shadow">
+              <TrophyOutlined className="text-2xl text-orange-500 mb-3" />
+              <div className="text-2xl font-bold text-gray-900 mb-1">#{university.ranking.national}</div>
+              <div className="text-sm text-gray-600">Xếp hạng quốc gia</div>
+            </div>
+
+            {/* Xếp hạng quốc tế */}
+            <div className="bg-white p-6 rounded-lg text-center hover:shadow-sm transition-shadow">
+              <GlobalOutlined className="text-2xl text-blue-500 mb-3" />
+              <div className="text-2xl font-bold text-gray-900 mb-1">#{university.ranking.international}</div>
+              <div className="text-sm text-gray-600">Xếp hạng quốc tế</div>
+            </div>
+
+            {/* Chỉ tiêu */}
+            <div className="bg-white p-6 rounded-lg text-center hover:shadow-sm transition-shadow">
+              <BookOutlined className="text-2xl text-green-500 mb-3" />
+              <div className="text-2xl font-bold text-gray-900 mb-1">{university.admissionInfo.totalQuota.toLocaleString()}</div>
+              <div className="text-sm text-gray-600">Chỉ tiêu 2025</div>
+            </div>
+
+            {/* Thành lập */}
+            <div className="bg-white p-6 rounded-lg text-center hover:shadow-sm transition-shadow">
+              <div className="text-2xl text-purple-500 mb-3 font-bold">EST</div>
+              <div className="text-2xl font-bold text-gray-900 mb-1">{university.establishedYear}</div>
+              <div className="text-sm text-gray-600">Năm thành lập</div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto py-8">
         <Tabs 
           items={tabItems}
           size="large"
-          className="bg-white rounded-lg shadow-sm"
+          className=""
         />
       </div>
     </div>
@@ -273,10 +275,9 @@ const UniversityDetail = () => {
 
 // Overview Tab Component
 const OverviewTab = ({ university }) => (
-  <div className="space-y-6">
+  <div className="!space-y-4">
     <Card title="Giới thiệu" className="shadow-sm">
       <p className="text-gray-700 leading-relaxed mb-4">{university.description}</p>
-      
       <h4 className="font-semibold mb-3">Điểm nổi bật:</h4>
       <ul className="space-y-2">
         {university.highlights.map((highlight, index) => (
@@ -288,7 +289,7 @@ const OverviewTab = ({ university }) => (
       </ul>
     </Card>
 
-    <div className="grid md:grid-cols-2 gap-6">
+    <div className="grid md:grid-cols-2 gap-4">
       <Card title="Xếp hạng theo ngành" className="shadow-sm">
         <div className="space-y-3">
           {university.ranking.subjects.map((subject, index) => (
@@ -332,7 +333,7 @@ const OverviewTab = ({ university }) => (
 
 // Admission Tab Component  
 const AdmissionTab = ({ university }) => (
-  <div className="space-y-6">
+  <div className="!space-y-4">
     <Alert
       message="Thông tin tuyển sinh năm 2025"
       description="Thông tin được cập nhật thường xuyên từ nguồn chính thức của trường"
@@ -411,18 +412,18 @@ const AdmissionTab = ({ university }) => (
 
 // Programs Tab Component
 const ProgramsTab = ({ university }) => (
-  <div className="space-y-6">
-    <div className="grid gap-6">
+  <div className="!space-y-4">
+    <div className="grid gap-4">
       {university.programs.map((program, index) => (
         <Card key={index} className="shadow-sm">
-          <div className="flex justify-between items-start mb-4">
+          <div className="flex justify-between">
             <div>
               <h3 className="text-lg font-semibold text-gray-800">{program.type}</h3>
               <p className="text-gray-600 mt-2">{program.description}</p>
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold text-blue-600">{program.tuition}</div>
-              <Tag color={program.language === 'Tiếng Anh' ? 'green' : 'blue'}>
+              <Tag color={program.language === 'Tiếng Anh' ? 'green' : 'blue'} className="!mt-3"> 
                 {program.language}
               </Tag>
             </div>
@@ -500,7 +501,7 @@ const MajorsTab = ({ university }) => {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="!space-y-4">
       <Alert
         message="Điểm chuẩn năm 2024 (tham khảo)"
         description="Điểm chuẩn năm 2025 sẽ được công bố sau khi kết thúc quá trình xét tuyển"
@@ -508,7 +509,7 @@ const MajorsTab = ({ university }) => {
         showIcon
       />
 
-      <Card title="Điểm chuẩn các ngành" className="shadow-sm">
+      <Card title="Điểm chuẩn các ngành">
         <Table 
           columns={columns}
           dataSource={university.majors}
@@ -549,7 +550,7 @@ const MajorsTab = ({ university }) => {
 
 // News Tab Component
 const NewsTab = ({ university }) => (
-  <div className="space-y-6">
+  <div className="!space-y-4">
     {university.news.map((news, index) => (
       <Card key={index} className="shadow-sm">
         <div className="flex justify-between items-start mb-3">
