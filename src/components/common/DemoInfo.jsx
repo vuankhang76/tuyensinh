@@ -25,6 +25,14 @@ const DemoInfo = () => {
       username: 'hust_admin',
       password: '123456',
       role: 'university'
+    },
+    {
+      key: '3',
+      type: 'Admin Hệ thống',
+      email: 'admin@system.com',
+      username: 'admin',
+      password: 'admin123',
+      role: 'admin'
     }
   ];
 
@@ -34,7 +42,7 @@ const DemoInfo = () => {
       dataIndex: 'type',
       key: 'type',
       render: (text, record) => (
-        <Tag color={record.role === 'student' ? 'blue' : 'green'}>
+        <Tag color={record.role === 'student' ? 'blue' : record.role === 'university' ? 'green' : 'red'}>
           {text}
         </Tag>
       )

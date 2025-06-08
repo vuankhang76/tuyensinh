@@ -153,7 +153,7 @@ const Homepage = () => {
                             <div className="text-3xl md:text-4xl font-bold text-black">500+</div>
                             <div className="text-sm md:text-base opacity-80 text-black">Ngành nghề</div>
                         </div>
-                        <div className="text-center">
+                        <div className="text-center col-span-2 md:col-span-1 flex flex-col items-center">
                             <div className="text-3xl md:text-4xl font-bold text-black">1M+</div>
                             <div className="text-sm md:text-base opacity-80 text-black">Chỉ tiêu</div>
                         </div>

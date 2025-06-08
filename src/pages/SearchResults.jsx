@@ -307,7 +307,7 @@ const SearchResults = () => {
       </div>
 
       {/* Results Section */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto p-4">
         <div className="flex gap-8">
           {/* Filters Sidebar */}
           {showFilters && (
@@ -324,7 +324,7 @@ const SearchResults = () => {
           {/* Results */}
           <div className="flex-1">
             {/* Results Header */}
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-6 md:flex-row flex-col gap-4">
               <div>
                 <h1 className="text-2xl font-bold text-gray-800 mb-2">
                   Kết quả tìm kiếm

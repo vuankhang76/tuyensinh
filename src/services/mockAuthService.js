@@ -20,6 +20,16 @@ const MOCK_USERS = [
     photoURL: null,
     provider: 'email',
     universityId: 1
+  },
+  {
+    id: 3,
+    username: 'admin',
+    email: 'admin@system.com',
+    password: 'admin123',
+    displayName: 'System Administrator',
+    role: 'admin',
+    photoURL: null,
+    provider: 'email'
   }
 ];
 

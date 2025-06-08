@@ -98,14 +98,14 @@ const SearchSection = ({ searchTerm, setSearchTerm, selectedRegion, setSelectedR
               </div>
 
               {/* Filters */}
-              <div className="grid md:grid-cols-2 gap-4 px-10">
+              <div className="grid grid-cols-2 gap-4 px-4">
                 <Select
                   size="large"
                   value={selectedRegion}
                   onChange={setSelectedRegion}
                   placeholder="Chọn khu vực"
                   suffixIcon={<EnvironmentOutlined />}
-                  className='h-12 shadow-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                  className='h-12 w-full shadow-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500'
                   style={{ borderRadius: '8px' }}
                 >
                   {regions.map(region => (
@@ -122,7 +122,7 @@ const SearchSection = ({ searchTerm, setSearchTerm, selectedRegion, setSelectedR
                   placeholder="Chọn ngành học"
                   suffixIcon={<BookOutlined />}
                   style={{ borderRadius: '8px' }}
-                  className='h-12 shadow-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                  className='h-12 w-full shadow-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500'
                 >
                   {popularMajors.map(major => (
                     <Option key={major.value} value={major.value}>

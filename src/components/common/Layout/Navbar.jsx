@@ -12,9 +12,11 @@ import {
   SettingOutlined,
   LogoutOutlined,
   LoginOutlined,
-  UserAddOutlined
+  UserAddOutlined,
+  DashboardOutlined
 } from '@ant-design/icons'
 import logo from '../../../assets/images/logo/logo_full.png'
+import { useAuth } from '../../../context/AuthContext'
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -22,13 +24,8 @@ const Navbar = () => {
   const [dropdownTimeout, setDropdownTimeout] = useState(null)
   const navigate = useNavigate()
 
-  // Mock user state - replace with actual auth state
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [user, setUser] = useState({
-    name: 'Nguyễn Văn A',
-    email: 'user@example.com',
-    avatar: null
-  })
+  // Use auth context
+  const { user, isAuthenticated, logout } = useAuth()
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -39,7 +36,8 @@ const Navbar = () => {
     }
   }, [dropdownTimeout])
 
-  const handleDropdownToggle = (key) => {
+  const 
+  handleDropdownToggle = (key) => {
     // Clear any existing timeout
     if (dropdownTimeout) {
       clearTimeout(dropdownTimeout)
@@ -66,15 +64,14 @@ const Navbar = () => {
   }
 
   const handleLogin = () => {
-    // Mock login
-    setIsLoggedIn(true)
+    navigate('/login')
     setActiveDropdown(null)
   }
 
-  const handleLogout = () => {
-    // Mock logout
-    setIsLoggedIn(false)
+  const handleLogout = async () => {
+    await logout()
     setActiveDropdown(null)
+    navigate('/')
   }
 
   return (
@@ -105,6 +102,7 @@ const Navbar = () => {
               </Link>
 
               {/* Universities Dropdown */}
+              {user?.role != 'admin' && (
               <div 
                 className="relative"
                 onMouseEnter={() => handleMouseEnter('universities')}
@@ -144,8 +142,10 @@ const Navbar = () => {
                   </div>
                 )}
               </div>
+              )}
 
               {/* Majors Dropdown */}
+              {user?.role != 'admin' && (
               <div 
                 className="relative"
                 onMouseEnter={() => handleMouseEnter('majors')}
@@ -191,8 +191,11 @@ const Navbar = () => {
                   </div>
                 )}
               </div>
+              )}
 
               {/* News Dropdown */}
+              {user?.role != 'admin' && (
+                
               <div 
                 className="relative"
                 onMouseEnter={() => handleMouseEnter('news')}
@@ -232,36 +235,44 @@ const Navbar = () => {
                   </div>
                 )}
               </div>
+              )}
             </div>
 
             {/* User Section & Mobile Menu */}
             <div className="flex items-center space-x-4">
               {/* User Section - Desktop */}
-              <div className="hidden lg:block">
-                {isLoggedIn ? (
+              <div className="hidden lg:flex">
+                {isAuthenticated ? (
                   <div 
                     className="relative"
                     onMouseEnter={() => handleMouseEnter('user')}
                     onMouseLeave={handleMouseLeave}
                   >
                     <button 
-                      className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors duration-200 px-3 py-2 rounded-md hover:bg-gray-50"
+                      className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors duration-200 rounded-md hover:bg-gray-50"
                       onClick={() => handleDropdownToggle('user')}
                     >
-                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                      <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
                         <UserOutlined className="text-white text-sm" />
                       </div>
-                      <span className="max-w-20 truncate">{user.name}</span>
-                      <DownOutlined className={`text-xs transition-transform duration-200 ${activeDropdown === 'user' ? 'rotate-180' : ''}`} />
                     </button>
                     
                     {activeDropdown === 'user' && (
-                      <div className="absolute w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-1">
+                      <div className="absolute w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-1 -right-20">
                         <div className="py-1 px-1">
                           <div className="px-3 py-2 border-b border-gray-100">
-                            <div className="font-medium text-gray-900">{user.name}</div>
-                            <div className="text-sm text-gray-500">{user.email}</div>
+                            <div className="font-medium text-gray-900">{user?.name || user?.email}</div>
+                            <div className="text-sm text-gray-500">{user?.email}</div>
                           </div>
+                          {user?.role === 'admin' && (
+                            <Link 
+                              to="/admin" 
+                              className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                            >
+                              <DashboardOutlined />
+                              <span>Admin Dashboard</span>
+                            </Link>
+                          )}
                           <Link 
                             to="/profile" 
                             className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
@@ -321,7 +332,7 @@ const Navbar = () => {
             <div className="lg:hidden border-t border-gray-200 py-4">
               <div className="space-y-1">
                 {/* User Section - Mobile */}
-                {isLoggedIn ? (
+                {isAuthenticated ? (
                   <div>
                     <div className="px-4 py-3 border-b border-gray-200 mb-2">
                       <div className="flex items-center space-x-3">
@@ -329,11 +340,21 @@ const Navbar = () => {
                           <UserOutlined className="text-white" />
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900">{user.name}</div>
-                          <div className="text-sm text-gray-500">{user.email}</div>
+                          <div className="font-medium text-gray-900">{user?.name || user?.email}</div>
+                          <div className="text-sm text-gray-500">{user?.email}</div>
                         </div>
                       </div>
                     </div>
+                    {user?.role === 'admin' && (
+                      <Link 
+                        to="/admin" 
+                        className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <DashboardOutlined />
+                        <span>Admin Dashboard</span>
+                      </Link>
+                    )}
                     <Link 
                       to="/profile" 
                       className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"

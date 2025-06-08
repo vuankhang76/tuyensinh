@@ -12,6 +12,14 @@ import UniversityDetail from './pages/UniversityDetail'
 import SearchResults from './pages/SearchResults'
 import CompareUniversities from './pages/CompareUniversities'
 import Login from './pages/Login'
+import AdminLayout from './pages/admin/AdminLayout'
+import Overview from './pages/admin/Dashboard/Overview'
+import UniversityManagement from './pages/admin/Universities/UniversityManagement'
+import UserManagement from './pages/admin/Users/UserManagement'
+import MajorManagement from './pages/admin/Majors/MajorManagement'
+import AdmissionNewsManagement from './pages/admin/AdmissionNews/AdmissionNewsManagement'
+import ProgramManagement from './pages/admin/Programs/ProgramManagement'
+import Unauthorized from './pages/Unauthorized'
 
 // Layout components
 import Navbar from './components/common/Layout/Navbar'
@@ -42,10 +50,28 @@ function App() {
                 } />
                 
                 <Route path="/admin" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }>
+                  <Route index element={<Overview />} />
+                  <Route path="universities" element={<UniversityManagement />} />
+                  <Route path="users" element={<UserManagement />} />
+                  <Route path="majors" element={<MajorManagement />} />
+                  <Route path="programs" element={<ProgramManagement />} />
+                  <Route path="scholarships" element={<div className="p-8">Quản lý Học bổng - Đang phát triển</div>} />
+                  <Route path="news" element={<AdmissionNewsManagement />} />
+                  <Route path="verification" element={<div className="p-8">Xác minh Thông tin - Đang phát triển</div>} />
+                  <Route path="settings" element={<div className="p-8">Cài đặt Hệ thống - Đang phát triển</div>} />
+                </Route>
+                
+                <Route path="/university-admin" element={
                   <ProtectedRoute requiredRole="university">
                     <div className="p-8">University Admin Dashboard</div>
                   </ProtectedRoute>
                 } />
+                
+                <Route path="/unauthorized" element={<Unauthorized />} />
               </Routes>
             </main>
             <Footer />
