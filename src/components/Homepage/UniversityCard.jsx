@@ -26,9 +26,9 @@ const UniversityCard = ({ university }) => {
     <Card 
       className="hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-blue-300 mb-4"
     >
-      <div className="flex items-center p-2">
+      <div className="flex flex-col md:flex-row items-start md:items-center p-4 gap-4">
         {/* Logo Section */}
-        <div className="mr-6">
+        <div className="mr-6 w-full md:w-auto flex justify-center md:justify-start mb-4 md:mb-0">
           <div className="w-24 h-24 bg-gray-50 border-2 border-gray-200 rounded-full flex items-center justify-center overflow-hidden">
             <img 
               src={university.logo || `/api/placeholder/80/80`} 
@@ -46,8 +46,8 @@ const UniversityCard = ({ university }) => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex-1 min-w-0 w-full">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             {/* University Info */}
             <div className="flex-1 lg:pr-6">
               {/* Header */}
@@ -102,7 +102,7 @@ const UniversityCard = ({ university }) => {
             </div>
 
             {/* Action Section */}
-            <div className="flex-shrink-0 flex items-center gap-1 mt-4 lg:mt-0">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-4 lg:mt-0 w-full md:w-auto">
               {/* Compare Button */}
               <Button size="middle" className="px-4">
                 So sánh
