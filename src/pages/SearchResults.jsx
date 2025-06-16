@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { Input, Select, Button, Card, Pagination, Empty, Tag, Breadcrumb } from 'antd'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
 import { 
-  SearchOutlined, 
-  FilterOutlined, 
-  SortAscendingOutlined,
-  HomeOutlined,
-  EnvironmentOutlined 
-} from '@ant-design/icons'
+  Search, 
+  Filter,
+  ArrowUpDown,
+  Home,
+  MapPin,
+  X
+} from 'lucide-react'
 import UniversityCard from '../components/Homepage/UniversityCard'
 import FilterSection from '../components/Homepage/FilterSection'
 import Loading from '../components/common/Loading/LoadingSkeleton'
-
-const { Option } = Select
 
 const SearchResults = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -229,20 +234,37 @@ const SearchResults = () => {
     currentPage * pageSize
   )
 
+  // Calculate pagination
+  const totalPages = Math.ceil(totalResults / pageSize)
+  const startResult = (currentPage - 1) * pageSize + 1
+  const endResult = Math.min(currentPage * pageSize, totalResults)
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <Breadcrumb>
-            <Breadcrumb.Item>
-              <HomeOutlined />
-              <span className="ml-1">Trang chủ</span>
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>Tìm kiếm</Breadcrumb.Item>
-            {query && (
-              <Breadcrumb.Item>{query}</Breadcrumb.Item>
-            )}
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/">
+                  <Home className="h-4 w-4" />
+                  <span className="ml-1">Trang chủ</span>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Tìm kiếm</BreadcrumbPage>
+              </BreadcrumbItem>
+              {query && (
+                <>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{query}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </>
+              )}
+            </BreadcrumbList>
           </Breadcrumb>
         </div>
       </div>
@@ -251,7 +273,8 @@ const SearchResults = () => {
       <div className="bg-white">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col lg:flex-row gap-3">
-            <div className="flex-1">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Tìm kiếm trường đại học, ngành học... (tự động tìm kiếm)"
                 value={query}
@@ -259,46 +282,41 @@ const SearchResults = () => {
                   const newQuery = e.target.value
                   updateSearchParams({ q: newQuery })
                 }}
-                size="large"
-                prefix={<SearchOutlined />}
-                className="h-10"
+                className="pl-10 h-10"
               />
             </div>
             
             <div className="flex gap-3">
-              <Select
-                value={region}
-                onChange={handleRegionChange}
-                placeholder="Khu vực"
-                size="large"
-                style={{ width: 150 }}
-                allowClear
-              >
-                <Option value="Hà Nội">Hà Nội</Option>
-                <Option value="TP. Hồ Chí Minh">TP.HCM</Option>
-                <Option value="Đà Nẵng">Đà Nẵng</Option>
-                <Option value="Khác">Khác</Option>
+              <Select value={region || undefined} onValueChange={handleRegionChange}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Khu vực" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="clear">Tất cả khu vực</SelectItem>
+                  <SelectItem value="Hà Nội">Hà Nội</SelectItem>
+                  <SelectItem value="TP. Hồ Chí Minh">TP.HCM</SelectItem>
+                  <SelectItem value="Đà Nẵng">Đà Nẵng</SelectItem>
+                  <SelectItem value="Khác">Khác</SelectItem>
+                </SelectContent>
               </Select>
               
-              <Select
-                value={type}
-                onChange={handleTypeChange}
-                placeholder="Loại hình"
-                size="large"
-                style={{ width: 120 }}
-                allowClear
-              >
-                <Option value="Công lập">Công lập</Option>
-                <Option value="Tư thục">Tư thục</Option>
-                <Option value="Dân lập">Dân lập</Option>
+              <Select value={type || undefined} onValueChange={handleTypeChange}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="Loại hình" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="clear">Tất cả loại</SelectItem>
+                  <SelectItem value="Công lập">Công lập</SelectItem>
+                  <SelectItem value="Tư thục">Tư thục</SelectItem>
+                  <SelectItem value="Dân lập">Dân lập</SelectItem>
+                </SelectContent>
               </Select>
               
               <Button
-                icon={<FilterOutlined />}
-                size="large"
+                variant={showFilters ? "default" : "outline"}
                 onClick={() => setShowFilters(!showFilters)}
-                className={showFilters ? 'bg-blue-500 text-white' : ''}
               >
+                <Filter className="h-4 w-4 mr-2" />
                 Bộ lọc
               </Button>
             </div>
@@ -338,15 +356,31 @@ const SearchResults = () => {
                     <div className="flex items-center gap-2">
                       <span>Bộ lọc:</span>
                       {region && (
-                        <Tag closable onClose={() => handleRegionChange('')}>
-                          <EnvironmentOutlined className="mr-1" />
+                        <Badge variant="secondary" className="gap-1">
+                          <MapPin className="h-3 w-3" />
                           {region}
-                        </Tag>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-auto p-0 ml-1 hover:bg-transparent"
+                            onClick={() => handleRegionChange('clear')}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </Badge>
                       )}
                       {type && (
-                        <Tag closable onClose={() => handleTypeChange('')}>
+                        <Badge variant="secondary" className="gap-1">
                           {type}
-                        </Tag>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-auto p-0 ml-1 hover:bg-transparent"
+                            onClick={() => handleTypeChange('clear')}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </Badge>
                       )}
                     </div>
                   )}
@@ -355,24 +389,25 @@ const SearchResults = () => {
               
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-600">Sắp xếp:</span>
-                <Select
-                  value={sortBy}
-                  onChange={setSortBy}
-                  style={{ width: 150 }}
-                  suffixIcon={<SortAscendingOutlined />}
-                >
-                  <Option value="relevance">Liên quan nhất</Option>
-                  <Option value="name">Tên trường</Option>
-                  <Option value="ranking">Xếp hạng</Option>
-                  <Option value="score">Điểm chuẩn</Option>
-                  <Option value="tuition">Học phí</Option>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-[150px]">
+                    <ArrowUpDown className="h-4 w-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="relevance">Liên quan nhất</SelectItem>
+                    <SelectItem value="name">Tên trường</SelectItem>
+                    <SelectItem value="ranking">Xếp hạng</SelectItem>
+                    <SelectItem value="score">Điểm chuẩn</SelectItem>
+                    <SelectItem value="tuition">Học phí</SelectItem>
+                  </SelectContent>
                 </Select>
               </div>
             </div>
 
             {/* Loading State */}
             {loading && (
-              <div className="space-y-0">
+              <div className="space-y-4">
                 <Loading type="university" />
                 <Loading type="university" />
                 <Loading type="university" />
@@ -384,40 +419,38 @@ const SearchResults = () => {
             {/* No Results */}
             {!loading && totalResults === 0 && (
               <Card className="text-center py-12">
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description={
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                        Không tìm thấy kết quả
-                      </h3>
-                      <p className="text-gray-500 mb-4">
-                        Hãy thử điều chỉnh từ khóa tìm kiếm hoặc bộ lọc
-                      </p>
-                      <div className="space-y-2">
-                        <div className="text-sm text-gray-600">Gợi ý:</div>
-                        <div className="flex flex-wrap justify-center gap-2">
-                          {['Đại học Bách khoa', 'Công nghệ thông tin', 'Y khoa', 'Kinh tế'].map(suggestion => (
-                            <Button
-                              key={suggestion}
-                              size="small"
-                              onClick={() => updateSearchParams({ q: suggestion })}
-                            >
-                              {suggestion}
-                            </Button>
-                          ))}
-                        </div>
+                <CardContent>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                      Không tìm thấy kết quả
+                    </h3>
+                    <p className="text-gray-500 mb-4">
+                      Hãy thử điều chỉnh từ khóa tìm kiếm hoặc bộ lọc
+                    </p>
+                    <div className="space-y-2">
+                      <div className="text-sm text-gray-600">Gợi ý:</div>
+                      <div className="flex flex-wrap justify-center gap-2">
+                        {['Đại học Bách khoa', 'Công nghệ thông tin', 'Y khoa', 'Kinh tế'].map(suggestion => (
+                          <Button
+                            key={suggestion}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => updateSearchParams({ q: suggestion })}
+                          >
+                            {suggestion}
+                          </Button>
+                        ))}
                       </div>
                     </div>
-                  }
-                />
+                  </div>
+                </CardContent>
               </Card>
             )}
 
             {/* Results List */}
             {!loading && totalResults > 0 && (
               <>
-                <div className="!space-y-4 mb-8">
+                <div className="space-y-4 mb-8">
                   {paginatedResults.map((university) => (
                     <UniversityCard 
                       key={university.id} 
@@ -427,23 +460,53 @@ const SearchResults = () => {
                 </div>
 
                 {/* Pagination */}
-                <div className="flex justify-center">
-                  <Pagination
-                    current={currentPage}
-                    total={totalResults}
-                    pageSize={pageSize}
-                    onChange={setCurrentPage}
-                    onShowSizeChange={(current, size) => {
-                      setPageSize(size)
-                      setCurrentPage(1)
-                    }}
-                    showSizeChanger
-                    showQuickJumper
-                    showTotal={(total, range) => 
-                      `${range[0]}-${range[1]} của ${total} kết quả`
-                    }
-                    pageSizeOptions={['5', '10', '20', '50']}
-                  />
+                <div className="flex flex-col items-center gap-4">
+                  <div className="text-sm text-gray-600">
+                    Hiển thị {startResult}-{endResult} của {totalResults} kết quả
+                  </div>
+                  
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                          className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        />
+                      </PaginationItem>
+                      
+                      {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <PaginationItem key={pageNum}>
+                            <PaginationLink
+                              isActive={currentPage === pageNum}
+                              onClick={() => setCurrentPage(pageNum)}
+                              className="cursor-pointer"
+                            >
+                              {pageNum}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                          className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
                 </div>
               </>
             )}

@@ -1,7 +1,16 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Card, Tag, Button } from 'antd'
-import { CalendarOutlined, EyeOutlined } from '@ant-design/icons'
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Calendar, Eye } from 'lucide-react'
 
 const NewsSection = () => {
   const news = [
@@ -60,7 +69,7 @@ const NewsSection = () => {
             </p>
           </div>
           <Link to="/news">
-            <Button type="primary">
+            <Button>
               Xem tất cả tin tức
             </Button>
           </Link>
@@ -70,70 +79,77 @@ const NewsSection = () => {
           {/* Main News */}
           <div className="space-y-5">
             {news.slice(0, 2).map((article) => (
-              <div 
+              <Card
                 key={article.id}
-                className="bg-white rounded-lg p-6 border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all duration-300 cursor-pointer"
+                className="bg-white rounded-lg p-6 border border-gray-100 hover:shadow-md transition-all duration-300"
               >
-                <div className="flex items-center gap-3 mb-3">
-                  <Tag 
-                    color={article.urgent ? 'red' : 'blue'}
-                    className="rounded-full px-3 py-1"
-                  >
-                    {article.urgent ? 'KHẨN CẤP' : article.category}
-                  </Tag>
-                  <span className="text-sm text-gray-500 flex items-center">
-                    <CalendarOutlined className="mr-1.5" />
-                    {article.date}
-                  </span>
-                  <span className="text-sm text-gray-400 flex items-center ml-auto">
-                    <EyeOutlined className="mr-1.5" />
-                    {article.views.toLocaleString()}
-                  </span>
-                </div>
-                
-                <h3 className="text-xl font-bold text-gray-900 mb-3 leading-tight hover:text-blue-600 transition-colors">
-                  {article.title}
-                </h3>
-                
-                <p className="text-gray-600 leading-relaxed line-clamp-2">
-                  {article.excerpt}
-                </p>
-                
-                <div className="mt-4 pt-3 border-t border-gray-50">
-                  <span className="text-blue-600 font-medium text-sm hover:text-blue-700 transition-colors">
+                <CardHeader>
+                  <CardTitle>
+                  <div className="flex items-center gap-3 mb-1">
+                    <Badge
+                      variant={article.urgent ? 'destructive' : 'default'}
+                      className="rounded-full px-3 py-1"
+                    >
+                      {article.urgent ? 'KHẨN CẤP' : article.category}
+                    </Badge>
+                    <span className="text-sm text-gray-500 flex items-center">
+                      <Calendar className="mr-1.5 h-3 w-3" />
+                      {article.date}
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 leading-tight hover:text-blue-600 transition-colors">
+                    {article.title}
+                  </h3>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 leading-relaxed line-clamp-2">
+                    {article.excerpt}
+                  </p>
+                </CardContent>
+                <CardFooter>
+                  <Button variant="link" size="sm" className="h-auto p-0 text-blue-600 cursor-pointer">
                     Đọc thêm →
-                  </span>
-                </div>
-              </div>
+                  </Button>
+                </CardFooter>
+              </Card>
             ))}
           </div>
 
           {/* Side News */}
           <div>
             <h3 className="text-xl font-semibold text-gray-800 mb-4">
-              Tin tức khác
+              Lịch thi đánh giá tư duy các trường năm 2025
             </h3>
-            <div className="!space-y-4">
+            <div className="space-y-4">
               {news.slice(2).map((article) => (
-                <Card key={article.id} size="small" className="hover:shadow-md transition-shadow">
-                  <div className="flex justify-between items-start mb-2">
-                    <Tag color="blue" size="small">{article.category}</Tag>
-                    <span className="text-xs text-gray-500">{article.date}</span>
-                  </div>
-                  <h4 className="font-medium text-gray-800 mb-2 line-clamp-2">
-                    {article.title}
-                  </h4>
-                  <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                    {article.excerpt}
-                  </p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-500">
-                      {article.views.toLocaleString()} lượt xem
-                    </span>
-                    <Button type="link" size="small">
-                      Xem
-                    </Button>
-                  </div>
+                <Card key={article.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader>
+                    <CardTitle>
+                    <div className="flex justify-between items-start mb-2">
+                      <Badge variant="secondary" className="text-xs">{article.category}</Badge>
+                      <span className="text-xs text-gray-500 flex items-center">
+                        <Calendar className="mr-1.5 h-3 w-3" />
+                        {article.date}
+                      </span>
+                    </div>
+                    <h4 className="font-semibold text-gray-800 mb-2 leading-snug">
+                      {article.title}
+                    </h4>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                      {article.excerpt}
+                    </p>
+                  </CardContent>
+                  <CardFooter>
+                    <div className="flex justify-between items-center">
+                      <Button variant="link" size="sm" className="h-auto p-0 text-blue-600 cursor-pointer">
+                        Xem chi tiết
+                      </Button>
+                    </div>
+                  </CardFooter>
                 </Card>
               ))}
             </div>

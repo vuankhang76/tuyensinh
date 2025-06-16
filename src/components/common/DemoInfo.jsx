@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
-import { Card, Button, Table, Tag } from 'antd';
-import { InfoCircleOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Info, Eye, EyeOff } from 'lucide-react';
 
 const DemoInfo = () => {
   const [visible, setVisible] = useState(false);
@@ -36,65 +47,65 @@ const DemoInfo = () => {
     }
   ];
 
-  const columns = [
-    {
-      title: 'Loại tài khoản',
-      dataIndex: 'type',
-      key: 'type',
-      render: (text, record) => (
-        <Tag color={record.role === 'student' ? 'blue' : record.role === 'university' ? 'green' : 'red'}>
-          {text}
-        </Tag>
-      )
-    },
-    {
-      title: 'Email',
-      dataIndex: 'email',
-      key: 'email'
-    },
-    {
-      title: 'Username',
-      dataIndex: 'username',
-      key: 'username'
-    },
-    {
-      title: 'Password',
-      dataIndex: 'password',
-      key: 'password'
+  const getRoleBadgeVariant = (role) => {
+    switch (role) {
+      case 'student': return 'default';
+      case 'university': return 'secondary';
+      case 'admin': return 'destructive';
+      default: return 'default';
     }
-  ];
+  };
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
       <Button
-        type="primary"
-        icon={visible ? <EyeInvisibleOutlined /> : <EyeOutlined />}
         onClick={() => setVisible(!visible)}
         className="mb-2"
+        size="sm"
       >
+        {visible ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
         Demo Accounts
       </Button>
       
       {visible && (
-        <Card 
-          title={
-            <div className="flex items-center gap-2">
-              <InfoCircleOutlined />
+        <Card className="w-96 shadow-lg">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Info className="h-4 w-4" />
               <span>Demo Accounts (Development)</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs">Loại tài khoản</TableHead>
+                    <TableHead className="text-xs">Email</TableHead>
+                    <TableHead className="text-xs">Username</TableHead>
+                    <TableHead className="text-xs">Password</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {demoAccounts.map((account) => (
+                    <TableRow key={account.key}>
+                      <TableCell className="text-xs">
+                        <Badge variant={getRoleBadgeVariant(account.role)}>
+                          {account.type}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs">{account.email}</TableCell>
+                      <TableCell className="text-xs">{account.username}</TableCell>
+                      <TableCell className="text-xs">{account.password}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
-          }
-          className="w-96 shadow-lg"
-          size="small"
-        >
-          <Table 
-            columns={columns} 
-            dataSource={demoAccounts} 
-            pagination={false}
-            size="small"
-          />
-          <div className="mt-3 text-xs text-gray-500">
-            💡 Google Login cũng hoạt động bình thường
-          </div>
+            <div className="mt-3 text-xs text-muted-foreground">
+              💡 Google Login cũng hoạt động bình thường
+            </div>
+          </CardContent>
         </Card>
       )}
     </div>

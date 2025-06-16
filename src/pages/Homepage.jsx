@@ -4,12 +4,13 @@ import UniversityCard from '../components/Homepage/UniversityCard'
 import FilterSection from '../components/Homepage/FilterSection'
 import FeaturedUniversities from '../components/Homepage/FeaturedUniversities'
 import NewsSection from '../components/Homepage/NewsSection'
-import { Select, Button, Card, Statistic } from 'antd'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const Homepage = () => {
     const [searchTerm, setSearchTerm] = useState('')
     const [selectedRegion, setSelectedRegion] = useState('')
     const [selectedType, setSelectedType] = useState('')
+    const [sortBy, setSortBy] = useState('')
 
     // Mock data cho các trường đại học
     const universities = [
@@ -117,13 +118,37 @@ const Homepage = () => {
         }
     ]
 
-    const filteredUniversities = universities.filter(uni => {
+    let filteredUniversities = universities.filter(uni => {
         return (
             uni.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
             (selectedRegion === '' || uni.location.includes(selectedRegion)) &&
             (selectedType === '' || uni.type === selectedType)
         )
     })
+
+    // Apply sorting
+    if (sortBy) {
+        switch (sortBy) {
+            case 'name':
+                filteredUniversities.sort((a, b) => a.name.localeCompare(b.name))
+                break
+            case 'score':
+                filteredUniversities.sort((a, b) => b.minScore - a.minScore)
+                break
+            case 'ranking':
+                filteredUniversities.sort((a, b) => a.ranking - b.ranking)
+                break
+            case 'tuition':
+                filteredUniversities.sort((a, b) => {
+                    const aTuition = parseInt(a.tuition.split('-')[0])
+                    const bTuition = parseInt(b.tuition.split('-')[0])
+                    return aTuition - bTuition
+                })
+                break
+            default:
+                break
+        }
+    }
 
     const featuredUniversities = universities.filter(uni => uni.featured)
 
@@ -137,7 +162,6 @@ const Homepage = () => {
                     </h1>
                     <p className="text-xl text-black mb-8 opacity-90">
                         Tìm thông tin trường đại học Việt Nam dễ dàng
-
                     </p>
                     <SearchSection
                         searchTerm={searchTerm}
@@ -189,19 +213,20 @@ const Homepage = () => {
                                 </p>
                             </div>
 
-                            <Select
-                                placeholder="Sắp xếp theo"
-                                style={{ width: 200 }}
-                                options={[
-                                    { value: 'name', label: 'Tên trường' },
-                                    { value: 'score', label: 'Điểm chuẩn' },
-                                    { value: 'ranking', label: 'Xếp hạng' },
-                                    { value: 'tuition', label: 'Học phí' }
-                                ]}
-                            />
+                            <Select value={sortBy} onValueChange={setSortBy}>
+                                <SelectTrigger className="w-[200px]">
+                                    <SelectValue placeholder="Sắp xếp theo" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="name">Tên trường</SelectItem>
+                                    <SelectItem value="score">Điểm chuẩn</SelectItem>
+                                    <SelectItem value="ranking">Xếp hạng</SelectItem>
+                                    <SelectItem value="tuition">Học phí</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
 
-                        <div className="!space-y-3">
+                        <div className="space-y-3">
                             {filteredUniversities.map(university => (
                                 <UniversityCard
                                     key={university.id}

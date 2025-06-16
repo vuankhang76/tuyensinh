@@ -1,6 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { ConfigProvider } from 'antd'
-import viVN from 'antd/locale/vi_VN'
 import './index.css'
 
 // Context
@@ -27,61 +25,65 @@ import Footer from './components/common/Layout/Footer'
 import DemoInfo from './components/common/DemoInfo'
 import ProtectedRoute from './components/common/ProtectedRoute'
 
+// Toast components
+import { Toaster } from './components/ui/sonner'
+
 function App() {
   return (
-    <ConfigProvider locale={viVN}>
-      <AuthProvider>
-        <Router>
-          <div className="min-h-screen bg-gray-50">
-            <Navbar />
-            <main>
-              <Routes>
-                <Route path="/" element={<Homepage />} />
-                <Route path="/university/:slug" element={<UniversityDetail />} />
-                <Route path="/search" element={<SearchResults />} />
-                <Route path="/compare" element={<CompareUniversities />} />
-                <Route path="/login" element={<Login />} />
-                
-                {/* Protected routes example */}
-                <Route path="/profile" element={
-                  <ProtectedRoute>
-                    <div className="p-8">Profile Page</div>
-                  </ProtectedRoute>
-                } />
-                
-                <Route path="/admin" element={
-                  <ProtectedRoute requiredRole="admin">
-                    <AdminLayout />
-                  </ProtectedRoute>
-                }>
-                  <Route index element={<Overview />} />
-                  <Route path="universities" element={<UniversityManagement />} />
-                  <Route path="users" element={<UserManagement />} />
-                  <Route path="majors" element={<MajorManagement />} />
-                  <Route path="programs" element={<ProgramManagement />} />
-                  <Route path="scholarships" element={<div className="p-8">Quản lý Học bổng - Đang phát triển</div>} />
-                  <Route path="news" element={<AdmissionNewsManagement />} />
-                  <Route path="verification" element={<div className="p-8">Xác minh Thông tin - Đang phát triển</div>} />
-                  <Route path="settings" element={<div className="p-8">Cài đặt Hệ thống - Đang phát triển</div>} />
-                </Route>
-                
-                <Route path="/university-admin" element={
-                  <ProtectedRoute requiredRole="university">
-                    <div className="p-8">University Admin Dashboard</div>
-                  </ProtectedRoute>
-                } />
-                
-                <Route path="/unauthorized" element={<Unauthorized />} />
-              </Routes>
-            </main>
-            <Footer />
-            
-            {/* Demo accounts info - only in development */}
-            <DemoInfo />
-          </div>
-        </Router>
-      </AuthProvider>
-    </ConfigProvider>
+    <AuthProvider>
+      <Router>
+        <div className="min-h-screen bg-background">
+          <Navbar />
+          <main>
+            <Routes>
+              <Route path="/" element={<Homepage />} />
+              <Route path="/university/:slug" element={<UniversityDetail />} />
+              <Route path="/search" element={<SearchResults />} />
+              <Route path="/compare" element={<CompareUniversities />} />
+              <Route path="/login" element={<Login />} />
+              
+              {/* Protected routes example */}
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <div className="p-8">Profile Page</div>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/admin" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminLayout />
+                </ProtectedRoute>
+              }>
+                <Route index element={<Overview />} />
+                <Route path="universities" element={<UniversityManagement />} />
+                <Route path="users" element={<UserManagement />} />
+                <Route path="majors" element={<MajorManagement />} />
+                <Route path="programs" element={<ProgramManagement />} />
+                <Route path="scholarships" element={<div className="p-8">Quản lý Học bổng - Đang phát triển</div>} />
+                <Route path="news" element={<AdmissionNewsManagement />} />
+                <Route path="verification" element={<div className="p-8">Xác minh Thông tin - Đang phát triển</div>} />
+                <Route path="settings" element={<div className="p-8">Cài đặt Hệ thống - Đang phát triển</div>} />
+              </Route>
+              
+              <Route path="/university-admin" element={
+                <ProtectedRoute requiredRole="university">
+                  <div className="p-8">University Admin Dashboard</div>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/unauthorized" element={<Unauthorized />} />
+            </Routes>
+          </main>
+          <Footer />
+          
+          {/* Demo accounts info - only in development */}
+          <DemoInfo />
+          
+          {/* Toast notifications */}
+          <Toaster />
+        </div>
+      </Router>
+    </AuthProvider>
   )
 }
 

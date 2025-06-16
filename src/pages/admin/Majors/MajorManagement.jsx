@@ -1,20 +1,26 @@
 import React, { useState } from 'react';
-import { Table, Button, Space, Popconfirm, message, Tag, Select } from 'antd';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Card, CardContent } from '@/components/ui/card';
+import { toast } from '@/hooks/use-toast';
 import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  BookOutlined
-} from '@ant-design/icons';
+  Plus,
+  Edit,
+  Trash2,
+  BookOpen
+} from 'lucide-react';
 import MajorModal from './MajorModal';
-
-const { Option } = Select;
 
 const MajorManagement = () => {
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [universityFilter, setUniversityFilter] = useState('all');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [majorToDelete, setMajorToDelete] = useState(null);
 
   // Sample data based on schema - in real app, this would come from API
   const [majors, setMajors] = useState([
@@ -67,89 +73,26 @@ const MajorManagement = () => {
     { Id: 3, Name: 'Đại học FPT' }
   ];
 
-  const columns = [
-    {
-      title: 'Mã ngành',
-      dataIndex: 'Code',
-      key: 'Code',
-      width: 100,
-      sorter: (a, b) => a.Code.localeCompare(b.Code),
-    },
-    {
-      title: 'Tên ngành',
-      dataIndex: 'Name',
-      key: 'Name',
-      sorter: (a, b) => a.Name.localeCompare(b.Name),
-    },
-    {
-      title: 'Trường',
-      dataIndex: 'UniversityName',
-      key: 'UniversityName',
-      render: (text) => (
-        <span className="text-blue-600">{text}</span>
-      ),
-    },
-    {
-      title: 'Điểm chuẩn',
-      dataIndex: 'AdmissionScore',
-      key: 'AdmissionScore',
-      width: 120,
-      sorter: (a, b) => (a.AdmissionScore || 0) - (b.AdmissionScore || 0),
-      render: (score) => score ? 
-        <Tag color="green">{score}</Tag> : 
-        <Tag color="gray">Chưa có</Tag>,
-    },
-    {
-      title: 'Năm',
-      dataIndex: 'Year',
-      key: 'Year',
-      width: 80,
-      sorter: (a, b) => (a.Year || 0) - (b.Year || 0),
-    },
-    {
-      title: 'Mô tả',
-      dataIndex: 'Description',
-      key: 'Description',
-      ellipsis: true,
-    },
-    {
-      title: 'Thao tác',
-      key: 'action',
-      width: 150,
-      render: (_, record) => (
-        <Space size="middle">
-          <Button 
-            type="link" 
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-            title="Sửa"
-          />
-          <Popconfirm
-            title="Bạn có chắc chắn muốn xóa ngành này?"
-            onConfirm={() => handleDelete(record.Id)}
-            okText="Có"
-            cancelText="Không"
-          >
-            <Button 
-              type="link" 
-              danger 
-              icon={<DeleteOutlined />}
-              title="Xóa"
-            />
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
-
   const handleEdit = (record) => {
     setEditingRecord(record);
     setIsModalVisible(true);
   };
 
-  const handleDelete = (id) => {
-    setMajors(majors.filter(m => m.Id !== id));
-    message.success('Đã xóa ngành học thành công');
+  const handleDeleteClick = (major) => {
+    setMajorToDelete(major);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (majorToDelete) {
+      setMajors(majors.filter(m => m.Id !== majorToDelete.Id));
+      toast({
+        title: "Thành công",
+        description: "Đã xóa ngành học thành công",
+      });
+    }
+    setDeleteDialogOpen(false);
+    setMajorToDelete(null);
   };
 
   const handleAdd = () => {
@@ -167,7 +110,10 @@ const MajorManagement = () => {
           UniversityName: universities.find(u => u.Id === values.UniversityId)?.Name || ''
         } : m
       ));
-      message.success('Đã cập nhật thông tin ngành học');
+      toast({
+        title: "Thành công",
+        description: "Đã cập nhật thông tin ngành học",
+      });
     } else {
       // Add new major
       const newMajor = { 
@@ -176,7 +122,10 @@ const MajorManagement = () => {
         UniversityName: universities.find(u => u.Id === values.UniversityId)?.Name || ''
       };
       setMajors([...majors, newMajor]);
-      message.success('Đã thêm ngành học mới');
+      toast({
+        title: "Thành công",
+        description: "Đã thêm ngành học mới",
+      });
     }
     setIsModalVisible(false);
     setEditingRecord(null);
@@ -197,6 +146,8 @@ const MajorManagement = () => {
     }))
   };
 
+  const sortedMajors = [...filteredMajors].sort((a, b) => a.Code.localeCompare(b.Code));
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -208,24 +159,21 @@ const MajorManagement = () => {
           </div>
         </div>
         <div className="flex space-x-2">
-          <Select
-            value={universityFilter}
-            onChange={setUniversityFilter}
-            style={{ width: 200 }}
-            placeholder="Lọc theo trường"
-          >
-            <Option value="all">Tất cả trường</Option>
-            {universities.map(uni => (
-              <Option key={uni.Id} value={uni.Id}>
-                {uni.Name}
-              </Option>
-            ))}
+          <Select value={universityFilter} onValueChange={setUniversityFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Lọc theo trường" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả trường</SelectItem>
+              {universities.map(uni => (
+                <SelectItem key={uni.Id} value={uni.Id.toString()}>
+                  {uni.Name}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />}
-            onClick={handleAdd}
-          >
+          <Button onClick={handleAdd}>
+            <Plus className="h-4 w-4 mr-2" />
             Thêm ngành mới
           </Button>
         </div>
@@ -233,37 +181,117 @@ const MajorManagement = () => {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="flex items-center">
-            <BookOutlined className="text-2xl text-blue-500 mr-3" />
-            <div>
-              <div className="text-2xl font-bold">{stats.total}</div>
-              <div className="text-gray-600">Tổng ngành</div>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center">
+              <BookOpen className="h-8 w-8 text-blue-500 mr-3" />
+              <div>
+                <div className="text-2xl font-bold">{stats.total}</div>
+                <div className="text-gray-600">Tổng ngành</div>
+              </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
         {stats.byUniversity.slice(0, 3).map(uni => (
-          <div key={uni.Id} className="bg-white p-4 rounded-lg shadow">
-            <div className="text-lg font-semibold">{uni.count}</div>
-            <div className="text-gray-600 text-sm">{uni.Name}</div>
-          </div>
+          <Card key={uni.Id}>
+            <CardContent className="p-4">
+              <div className="text-lg font-semibold">{uni.count}</div>
+              <div className="text-gray-600 text-sm">{uni.Name}</div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
-      <Table 
-        columns={columns} 
-        dataSource={filteredMajors}
-        rowKey="Id"
-        loading={loading}
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total, range) => 
-            `${range[0]}-${range[1]} của ${total} ngành học`,
-        }}
-        scroll={{ x: 1000 }}
-      />
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-24">Mã ngành</TableHead>
+              <TableHead>Tên ngành</TableHead>
+              <TableHead>Trường</TableHead>
+              <TableHead className="w-32">Điểm chuẩn</TableHead>
+              <TableHead className="w-20">Năm</TableHead>
+              <TableHead>Mô tả</TableHead>
+              <TableHead className="w-32">Thao tác</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedMajors.map((major) => (
+              <TableRow key={major.Id}>
+                <TableCell className="font-medium">{major.Code}</TableCell>
+                <TableCell>{major.Name}</TableCell>
+                <TableCell className="text-blue-600">{major.UniversityName}</TableCell>
+                <TableCell>
+                  {major.AdmissionScore ? (
+                    <Badge variant="secondary">{major.AdmissionScore}</Badge>
+                  ) : (
+                    <Badge variant="outline">Chưa có</Badge>
+                  )}
+                </TableCell>
+                <TableCell>{major.Year}</TableCell>
+                <TableCell className="max-w-xs truncate" title={major.Description}>
+                  {major.Description}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(major)}
+                      title="Sửa"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteClick(major)}
+                      className="text-red-600 hover:text-red-700"
+                      title="Xóa"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Pagination placeholder */}
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <div className="text-sm text-muted-foreground">
+          Hiển thị 1-{filteredMajors.length} của {filteredMajors.length} ngành học
+        </div>
+      </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận xóa ngành học</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn xóa ngành "{majorToDelete?.Name}" ({majorToDelete?.Code})? 
+              Hành động này không thể hoàn tác.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteConfirm}
+            >
+              Xóa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <MajorModal
         visible={isModalVisible}

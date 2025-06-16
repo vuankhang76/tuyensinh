@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
-import { Table, Button, Space, Popconfirm, message, Tag, Select, DatePicker } from 'antd';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Card, CardContent } from '@/components/ui/card';
+import { toast } from '@/hooks/use-toast';
 import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  EyeOutlined,
-  NotificationOutlined
-} from '@ant-design/icons';
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Bell
+} from 'lucide-react';
 import AdmissionNewsModal from './AdmissionNewsModal';
-import moment from 'moment';
-
-const { Option } = Select;
-const { RangePicker } = DatePicker;
+import { format } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 const AdmissionNewsManagement = () => {
   const [loading, setLoading] = useState(false);
@@ -19,6 +23,8 @@ const AdmissionNewsManagement = () => {
   const [editingRecord, setEditingRecord] = useState(null);
   const [universityFilter, setUniversityFilter] = useState('all');
   const [yearFilter, setYearFilter] = useState('all');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [newsToDelete, setNewsToDelete] = useState(null);
 
   // Sample data based on schema - in real app, this would come from API
   const [admissionNews, setAdmissionNews] = useState([
@@ -71,111 +77,37 @@ const AdmissionNewsManagement = () => {
     { Id: 3, Name: 'Đại học FPT' }
   ];
 
-  const columns = [
-    {
-      title: 'Tiêu đề',
-      dataIndex: 'Title',
-      key: 'Title',
-      ellipsis: true,
-      width: 300,
-    },
-    {
-      title: 'Trường',
-      dataIndex: 'UniversityName',
-      key: 'UniversityName',
-      width: 200,
-      render: (text) => (
-        <span className="text-blue-600">{text}</span>
-      ),
-    },
-    {
-      title: 'Ngày xuất bản',
-      dataIndex: 'PublishDate',
-      key: 'PublishDate',
-      width: 150,
-      sorter: (a, b) => moment(a.PublishDate).unix() - moment(b.PublishDate).unix(),
-      render: (date) => moment(date).format('DD/MM/YYYY HH:mm'),
-    },
-    {
-      title: 'Năm',
-      dataIndex: 'Year',
-      key: 'Year',
-      width: 80,
-      sorter: (a, b) => (a.Year || 0) - (b.Year || 0),
-    },
-    {
-      title: 'Trạng thái',
-      dataIndex: 'Status',
-      key: 'Status',
-      width: 120,
-      render: (status) => {
-        const colors = {
-          published: 'green',
-          draft: 'orange',
-          archived: 'gray'
-        };
-        const labels = {
-          published: 'Đã xuất bản',
-          draft: 'Bản nháp',
-          archived: 'Lưu trữ'
-        };
-        return (
-          <Tag color={colors[status]}>
-            {labels[status]}
-          </Tag>
-        );
-      },
-    },
-    {
-      title: 'Nội dung',
-      dataIndex: 'Content',
-      key: 'Content',
-      ellipsis: true,
-      render: (text) => (
-        <span className="text-gray-600">
-          {text.length > 50 ? `${text.substring(0, 50)}...` : text}
-        </span>
-      ),
-    },
-    {
-      title: 'Thao tác',
-      key: 'action',
-      width: 180,
-      render: (_, record) => (
-        <Space size="small">
-          <Button 
-            type="link" 
-            icon={<EyeOutlined />}
-            onClick={() => handleView(record)}
-            title="Xem"
-          />
-          <Button 
-            type="link" 
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-            title="Sửa"
-          />
-          <Popconfirm
-            title="Bạn có chắc chắn muốn xóa tin này?"
-            onConfirm={() => handleDelete(record.Id)}
-            okText="Có"
-            cancelText="Không"
-          >
-            <Button 
-              type="link" 
-              danger 
-              icon={<DeleteOutlined />}
-              title="Xóa"
-            />
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
+  const getStatusBadge = (status) => {
+    const variants = {
+      published: 'secondary',
+      draft: 'outline',
+      archived: 'destructive'
+    };
+    return variants[status] || 'default';
+  };
+
+  const getStatusLabel = (status) => {
+    const labels = {
+      published: 'Đã xuất bản',
+      draft: 'Bản nháp',
+      archived: 'Lưu trữ'
+    };
+    return labels[status] || status;
+  };
+
+  const formatDate = (dateString) => {
+    try {
+      return format(new Date(dateString), 'dd/MM/yyyy HH:mm', { locale: vi });
+    } catch {
+      return dateString;
+    }
+  };
 
   const handleView = (record) => {
-    // TODO: Open view modal
-    message.info('Chức năng xem chi tiết tin tức');
+    toast({
+      title: "Thông tin",
+      description: "Chức năng xem chi tiết tin tức",
+    });
   };
 
   const handleEdit = (record) => {
@@ -183,9 +115,21 @@ const AdmissionNewsManagement = () => {
     setIsModalVisible(true);
   };
 
-  const handleDelete = (id) => {
-    setAdmissionNews(admissionNews.filter(n => n.Id !== id));
-    message.success('Đã xóa tin tức thành công');
+  const handleDeleteClick = (news) => {
+    setNewsToDelete(news);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (newsToDelete) {
+      setAdmissionNews(admissionNews.filter(n => n.Id !== newsToDelete.Id));
+      toast({
+        title: "Thành công",
+        description: "Đã xóa tin tức thành công",
+      });
+    }
+    setDeleteDialogOpen(false);
+    setNewsToDelete(null);
   };
 
   const handleAdd = () => {
@@ -201,21 +145,27 @@ const AdmissionNewsManagement = () => {
           ...n, 
           ...values,
           UniversityName: universities.find(u => u.Id === values.UniversityId)?.Name || '',
-          PublishDate: values.PublishDate.toISOString()
+          PublishDate: values.PublishDate?.toISOString() || values.PublishDate
         } : n
       ));
-      message.success('Đã cập nhật tin tức thành công');
+      toast({
+        title: "Thành công",
+        description: "Đã cập nhật tin tức thành công",
+      });
     } else {
       // Add new news
       const newNews = { 
         ...values, 
         Id: Date.now(),
         UniversityName: universities.find(u => u.Id === values.UniversityId)?.Name || '',
-        PublishDate: values.PublishDate.toISOString(),
+        PublishDate: values.PublishDate?.toISOString() || new Date().toISOString(),
         Status: values.Status || 'draft'
       };
       setAdmissionNews([...admissionNews, newNews]);
-      message.success('Đã thêm tin tức mới');
+      toast({
+        title: "Thành công",
+        description: "Đã thêm tin tức mới",
+      });
     }
     setIsModalVisible(false);
     setEditingRecord(null);
@@ -230,15 +180,22 @@ const AdmissionNewsManagement = () => {
     filteredNews = filteredNews.filter(n => n.Year === parseInt(yearFilter));
   }
 
+  // Sort by publish date (newest first)
+  const sortedNews = [...filteredNews].sort((a, b) => 
+    new Date(b.PublishDate) - new Date(a.PublishDate)
+  );
+
   // Statistics
   const stats = {
     total: admissionNews.length,
     published: admissionNews.filter(n => n.Status === 'published').length,
     draft: admissionNews.filter(n => n.Status === 'draft').length,
-    thisMonth: admissionNews.filter(n => 
-      moment(n.PublishDate).month() === moment().month() &&
-      moment(n.PublishDate).year() === moment().year()
-    ).length
+    thisMonth: admissionNews.filter(n => {
+      const newsDate = new Date(n.PublishDate);
+      const now = new Date();
+      return newsDate.getMonth() === now.getMonth() && 
+             newsDate.getFullYear() === now.getFullYear();
+    }).length
   };
 
   return (
@@ -253,83 +210,176 @@ const AdmissionNewsManagement = () => {
             <span>Tháng này: {stats.thisMonth}</span>
           </div>
         </div>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />}
-          onClick={handleAdd}
-        >
+        <Button onClick={handleAdd}>
+          <Plus className="h-4 w-4 mr-2" />
           Thêm tin tức mới
         </Button>
       </div>
 
       {/* Filters */}
       <div className="flex space-x-4 mb-6">
-        <Select
-          value={universityFilter}
-          onChange={setUniversityFilter}
-          style={{ width: 200 }}
-          placeholder="Lọc theo trường"
-        >
-          <Option value="all">Tất cả trường</Option>
-          {universities.map(uni => (
-            <Option key={uni.Id} value={uni.Id}>
-              {uni.Name}
-            </Option>
-          ))}
+        <Select value={universityFilter} onValueChange={setUniversityFilter}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Lọc theo trường" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tất cả trường</SelectItem>
+            {universities.map(uni => (
+              <SelectItem key={uni.Id} value={uni.Id.toString()}>
+                {uni.Name}
+              </SelectItem>
+            ))}
+          </SelectContent>
         </Select>
         
-        <Select
-          value={yearFilter}
-          onChange={setYearFilter}
-          style={{ width: 120 }}
-          placeholder="Lọc theo năm"
-        >
-          <Option value="all">Tất cả năm</Option>
-          <Option value={2024}>2024</Option>
-          <Option value={2023}>2023</Option>
-          <Option value={2022}>2022</Option>
+        <Select value={yearFilter} onValueChange={setYearFilter}>
+          <SelectTrigger className="w-[120px]">
+            <SelectValue placeholder="Lọc theo năm" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tất cả năm</SelectItem>
+            <SelectItem value="2024">2024</SelectItem>
+            <SelectItem value="2023">2023</SelectItem>
+            <SelectItem value="2022">2022</SelectItem>
+          </SelectContent>
         </Select>
       </div>
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="flex items-center">
-            <NotificationOutlined className="text-2xl text-blue-500 mr-3" />
-            <div>
-              <div className="text-2xl font-bold">{stats.total}</div>
-              <div className="text-gray-600">Tổng tin tức</div>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center">
+              <Bell className="h-8 w-8 text-blue-500 mr-3" />
+              <div>
+                <div className="text-2xl font-bold">{stats.total}</div>
+                <div className="text-gray-600">Tổng tin tức</div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-2xl font-bold text-green-600">{stats.published}</div>
-          <div className="text-gray-600">Đã xuất bản</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-2xl font-bold text-orange-600">{stats.draft}</div>
-          <div className="text-gray-600">Bản nháp</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-2xl font-bold text-purple-600">{stats.thisMonth}</div>
-          <div className="text-gray-600">Tháng này</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-green-600">{stats.published}</div>
+            <div className="text-gray-600">Đã xuất bản</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-orange-600">{stats.draft}</div>
+            <div className="text-gray-600">Bản nháp</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-purple-600">{stats.thisMonth}</div>
+            <div className="text-gray-600">Tháng này</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-80">Tiêu đề</TableHead>
+              <TableHead className="w-48">Trường</TableHead>
+              <TableHead className="w-36">Ngày xuất bản</TableHead>
+              <TableHead className="w-20">Năm</TableHead>
+              <TableHead className="w-32">Trạng thái</TableHead>
+              <TableHead>Nội dung</TableHead>
+              <TableHead className="w-36">Thao tác</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedNews.map((news) => (
+              <TableRow key={news.Id}>
+                <TableCell className="font-medium">
+                  <div className="max-w-xs truncate" title={news.Title}>
+                    {news.Title}
+                  </div>
+                </TableCell>
+                <TableCell className="text-blue-600">{news.UniversityName}</TableCell>
+                <TableCell>{formatDate(news.PublishDate)}</TableCell>
+                <TableCell>{news.Year}</TableCell>
+                <TableCell>
+                  <Badge variant={getStatusBadge(news.Status)}>
+                    {getStatusLabel(news.Status)}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="max-w-md text-gray-600 truncate" title={news.Content}>
+                    {news.Content.length > 50 ? `${news.Content.substring(0, 50)}...` : news.Content}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleView(news)}
+                      title="Xem"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(news)}
+                      title="Sửa"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteClick(news)}
+                      className="text-red-600 hover:text-red-700"
+                      title="Xóa"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Pagination placeholder */}
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <div className="text-sm text-muted-foreground">
+          Hiển thị 1-{filteredNews.length} của {filteredNews.length} tin tức
         </div>
       </div>
 
-      <Table 
-        columns={columns} 
-        dataSource={filteredNews}
-        rowKey="Id"
-        loading={loading}
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total, range) => 
-            `${range[0]}-${range[1]} của ${total} tin tức`,
-        }}
-        scroll={{ x: 1200 }}
-      />
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận xóa tin tức</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn xóa tin tức "{newsToDelete?.Title}"? 
+              Hành động này không thể hoàn tác.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteConfirm}
+            >
+              Xóa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AdmissionNewsModal
         visible={isModalVisible}

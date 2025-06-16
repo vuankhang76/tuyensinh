@@ -1,16 +1,22 @@
 import React, { useState } from 'react';
-import { Table, Button, Space, Popconfirm, message, Tag } from 'antd';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { toast } from '@/hooks/use-toast';
 import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  SafetyCertificateOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined
-} from '@ant-design/icons';
+  Plus,
+  Edit,
+  Trash2,
+  Shield,
+  CheckCircle,
+  XCircle
+} from 'lucide-react';
 
 const UserManagement = () => {
   const [loading, setLoading] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   // Sample data - in real app, this would come from API
   const [users, setUsers] = useState([
@@ -56,154 +62,82 @@ const UserManagement = () => {
     }
   ]);
 
-  const columns = [
-    {
-      title: 'Tên',
-      dataIndex: 'name',
-      key: 'name',
-      sorter: (a, b) => a.name.localeCompare(b.name),
-    },
-    {
-      title: 'Email',
-      dataIndex: 'email',
-      key: 'email',
-    },
-    {
-      title: 'Vai trò',
-      dataIndex: 'role',
-      key: 'role',
-      width: 120,
-      render: (role) => {
-        const colors = {
-          admin: 'red',
-          university: 'blue', 
-          student: 'green'
-        };
-        const labels = {
-          admin: 'Quản trị',
-          university: 'Trường ĐH',
-          student: 'Sinh viên'
-        };
-        return (
-          <Tag color={colors[role]}>
-            {labels[role]}
-          </Tag>
-        );
-      },
-    },
-    {
-      title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
-      width: 120,
-      render: (status) => {
-        const colors = {
-          active: 'green',
-          pending: 'orange',
-          inactive: 'red'
-        };
-        const labels = {
-          active: 'Hoạt động',
-          pending: 'Chờ duyệt',
-          inactive: 'Tạm khóa'
-        };
-        return (
-          <Tag color={colors[status]}>
-            {labels[status]}
-          </Tag>
-        );
-      },
-    },
-    {
-      title: 'Xác minh',
-      dataIndex: 'verified',
-      key: 'verified',
-      width: 100,
-      align: 'center',
-      render: (verified) => (
-        verified ? 
-          <CheckCircleOutlined style={{ color: 'green', fontSize: '16px' }} /> : 
-          <CloseCircleOutlined style={{ color: 'red', fontSize: '16px' }} />
-      ),
-    },
-    {
-      title: 'Ngày tạo',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      width: 120,
-      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
-    },
-    {
-      title: 'Đăng nhập cuối',
-      dataIndex: 'lastLogin',
-      key: 'lastLogin',
-      width: 130,
-      render: (lastLogin) => lastLogin || 'Chưa đăng nhập',
-    },
-    {
-      title: 'Thao tác',
-      key: 'action',
-      width: 200,
-      render: (_, record) => (
-        <Space size="small">
-          <Button 
-            type="link" 
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-            title="Sửa"
-          />
-          <Button 
-            type="link" 
-            icon={<SafetyCertificateOutlined />}
-            onClick={() => handleVerify(record.id)}
-            disabled={record.verified}
-            title="Xác minh"
-          />
-          {record.role !== 'admin' && (
-            <Popconfirm
-              title="Bạn có chắc chắn muốn xóa người dùng này?"
-              onConfirm={() => handleDelete(record.id)}
-              okText="Có"
-              cancelText="Không"
-            >
-              <Button 
-                type="link" 
-                danger 
-                icon={<DeleteOutlined />}
-                title="Xóa"
-              />
-            </Popconfirm>
-          )}
-        </Space>
-      ),
-    },
-  ];
+  const getRoleBadge = (role) => {
+    const variants = {
+      admin: 'destructive',
+      university: 'default',
+      student: 'secondary'
+    };
+    const labels = {
+      admin: 'Quản trị',
+      university: 'Trường ĐH',
+      student: 'Sinh viên'
+    };
+    return { variant: variants[role], label: labels[role] };
+  };
+
+  const getStatusBadge = (status) => {
+    const variants = {
+      active: 'secondary',
+      pending: 'outline',
+      inactive: 'destructive'
+    };
+    const labels = {
+      active: 'Hoạt động',
+      pending: 'Chờ duyệt',
+      inactive: 'Tạm khóa'
+    };
+    return { variant: variants[status], label: labels[status] };
+  };
 
   const handleEdit = (record) => {
     // TODO: Open edit modal
-    message.info('Chức năng sửa thông tin người dùng');
+    toast({
+      title: "Thông báo",
+      description: "Chức năng sửa thông tin người dùng",
+    });
   };
 
   const handleVerify = (id) => {
     setUsers(users.map(u => 
       u.id === id ? { ...u, verified: true, status: 'active' } : u
     ));
-    message.success('Đã xác minh người dùng thành công');
+    toast({
+      title: "Thành công",
+      description: "Đã xác minh người dùng thành công",
+    });
   };
 
-  const handleDelete = (id) => {
-    setUsers(users.filter(u => u.id !== id));
-    message.success('Đã xóa người dùng thành công');
+  const handleDeleteClick = (user) => {
+    setUserToDelete(user);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (userToDelete) {
+      setUsers(users.filter(u => u.id !== userToDelete.id));
+      toast({
+        title: "Thành công",
+        description: "Đã xóa người dùng thành công",
+      });
+    }
+    setDeleteDialogOpen(false);
+    setUserToDelete(null);
   };
 
   const handleAdd = () => {
     // TODO: Open add user modal
-    message.info('Chức năng thêm người dùng mới');
+    toast({
+      title: "Thông báo",
+      description: "Chức năng thêm người dùng mới",
+    });
   };
 
   // Filter functions
   const pendingUsers = users.filter(u => u.status === 'pending');
   const unverifiedUsers = users.filter(u => !u.verified);
+
+  const sortedUsers = [...users].sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <div>
@@ -216,29 +150,128 @@ const UserManagement = () => {
             <span>Chưa xác minh: {unverifiedUsers.length}</span>
           </div>
         </div>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />}
-          onClick={handleAdd}
-        >
+        <Button onClick={handleAdd}>
+          <Plus className="h-4 w-4 mr-2" />
           Thêm người dùng
         </Button>
       </div>
 
-      <Table 
-        columns={columns} 
-        dataSource={users}
-        rowKey="id"
-        loading={loading}
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total, range) => 
-            `${range[0]}-${range[1]} của ${total} người dùng`,
-        }}
-        scroll={{ x: 1200 }}
-      />
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Tên</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead className="w-32">Vai trò</TableHead>
+              <TableHead className="w-32">Trạng thái</TableHead>
+              <TableHead className="w-24 text-center">Xác minh</TableHead>
+              <TableHead className="w-32">Ngày tạo</TableHead>
+              <TableHead className="w-36">Đăng nhập cuối</TableHead>
+              <TableHead className="w-48">Thao tác</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedUsers.map((user) => {
+              const roleBadge = getRoleBadge(user.role);
+              const statusBadge = getStatusBadge(user.status);
+              
+              return (
+                <TableRow key={user.id}>
+                  <TableCell className="font-medium">{user.name}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>
+                    <Badge variant={roleBadge.variant}>
+                      {roleBadge.label}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={statusBadge.variant}>
+                      {statusBadge.label}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {user.verified ? (
+                      <CheckCircle className="h-4 w-4 text-green-600 mx-auto" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-red-600 mx-auto" />
+                    )}
+                  </TableCell>
+                  <TableCell>{user.createdAt}</TableCell>
+                  <TableCell>{user.lastLogin || 'Chưa đăng nhập'}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(user)}
+                        title="Sửa"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleVerify(user.id)}
+                        disabled={user.verified}
+                        title="Xác minh"
+                      >
+                        <Shield className="h-4 w-4" />
+                      </Button>
+                      
+                      {user.role !== 'admin' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteClick(user)}
+                          className="text-red-600 hover:text-red-700"
+                          title="Xóa"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Pagination could be added here */}
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <div className="text-sm text-muted-foreground">
+          Hiển thị 1-{users.length} của {users.length} người dùng
+        </div>
+      </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận xóa người dùng</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn xóa người dùng "{userToDelete?.name}"? 
+              Hành động này không thể hoàn tác.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteConfirm}
+            >
+              Xóa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

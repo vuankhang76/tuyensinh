@@ -1,66 +1,59 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  MenuOutlined,
-  HomeOutlined,
-  BankOutlined,
-  BookOutlined,
-  BellOutlined,
-  DownOutlined,
-  CloseOutlined,
-  UserOutlined,
-  SettingOutlined,
-  LogoutOutlined,
-  LoginOutlined,
-  UserAddOutlined,
-  DashboardOutlined
-} from '@ant-design/icons'
+  Menu,
+  Home,
+  Building2,
+  BookOpen,
+  Bell,
+  ChevronDown,
+  X,
+  User,
+  Settings,
+  LogOut,
+  LogIn,
+  LayoutDashboard
+} from 'lucide-react'
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { 
+  Avatar, 
+  AvatarImage,
+  AvatarFallback,
+} from '@/components/ui/avatar'
+
 import logo from '../../../assets/images/logo/logo_full.png'
 import { useAuth } from '../../../context/AuthContext'
+import { cn } from "@/lib/utils"
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState(null)
-  const [dropdownTimeout, setDropdownTimeout] = useState(null)
   const navigate = useNavigate()
 
   // Use auth context
   const { user, isAuthenticated, logout } = useAuth()
+  
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (dropdownTimeout) {
-        clearTimeout(dropdownTimeout)
-      }
-    }
-  }, [dropdownTimeout])
 
-  const 
-  handleDropdownToggle = (key) => {
-    // Clear any existing timeout
-    if (dropdownTimeout) {
-      clearTimeout(dropdownTimeout)
-      setDropdownTimeout(null)
-    }
+  const handleDropdownToggle = (key) => {
     setActiveDropdown(activeDropdown === key ? null : key)
-  }
-
-  const handleMouseEnter = (key) => {
-    // Clear any existing timeout when mouse enters
-    if (dropdownTimeout) {
-      clearTimeout(dropdownTimeout)
-      setDropdownTimeout(null)
-    }
-    setActiveDropdown(key)
-  }
-
-  const handleMouseLeave = () => {
-    // Add delay before closing dropdown
-    const timeout = setTimeout(() => {
-      setActiveDropdown(null)
-    }, 150) // 150ms delay
-    setDropdownTimeout(timeout)
   }
 
   const handleLogin = () => {
@@ -73,6 +66,29 @@ const Navbar = () => {
     setActiveDropdown(null)
     navigate('/')
   }
+
+  const ListItem = React.forwardRef(({ className, title, children, ...props }, ref) => {
+    return (
+      <li>
+        <NavigationMenuLink asChild>
+          <a
+            ref={ref}
+            className={cn(
+              "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+              className
+            )}
+            {...props}
+          >
+            <div className="text-sm font-medium leading-none">{title}</div>
+            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+              {children}
+            </p>
+          </a>
+        </NavigationMenuLink>
+      </li>
+    )
+  })
+  ListItem.displayName = "ListItem"
 
   return (
     <>
@@ -92,237 +108,223 @@ const Navbar = () => {
 
             {/* Desktop Menu */}
             <div className="hidden lg:flex items-center space-x-6">
-              {/* Home */}
-              <Link 
-                to="/" 
-                className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors duration-200 px-3 py-2 rounded-md hover:bg-gray-50"
-              >
-                <HomeOutlined />
-                <span>Trang chủ</span>
-              </Link>
+              <NavigationMenu>
+                <NavigationMenuList>
+                  {/* Home */}
+                  <NavigationMenuItem>
+                    <Link to="/">
+                      <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                        <span>
+                          <Home className="h-4 w-4 mr-2" />
+                          Trang chủ
+                        </span>
+                      </NavigationMenuLink>
+                    </Link>
+                  </NavigationMenuItem>
 
-              {/* Universities Dropdown */}
-              {user?.role != 'admin' && (
-              <div 
-                className="relative"
-                onMouseEnter={() => handleMouseEnter('universities')}
-                onMouseLeave={handleMouseLeave}
-              >
-                <button 
-                  className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors duration-200 px-3 py-2 rounded-md hover:bg-gray-50"
-                  onClick={() => handleDropdownToggle('universities')}
-                >
-                  <BankOutlined />
-                  <span>Trường đại học</span>
-                  <DownOutlined className={`text-xs transition-transform duration-200 ${activeDropdown === 'universities' ? 'rotate-180' : ''}`} />
-                </button>
-                
-                {activeDropdown === 'universities' && (
-                  <div className="absolute top-full left-0 mt-0 w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-1">
-                    <div className="py-1 px-1">
-                      <Link 
-                        to="/search?type=Tất cả" 
-                        className="block px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded-lg"
-                      >
-                        Tất cả trường
-                      </Link>
-                      <Link 
-                        to="/search?type=Công lập" 
-                        className="block px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded-lg"
-                      >
-                        Trường công lập
-                      </Link>
-                      <Link 
-                        to="/search?type=Tư thục" 
-                        className="block px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded-lg"
-                      >
-                        Trường tư thục
-                      </Link>
-                    </div>
-                  </div>
-                )}
-              </div>
-              )}
+                  {/* Universities Dropdown */}
+                  {user?.role !== 'admin' && (
+                    <NavigationMenuItem>
+                      <NavigationMenuTrigger>
+                        <Building2 className="h-4 w-4 mr-2" />
+                        Trường đại học
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+                          <li className="row-span-3">
+                            <NavigationMenuLink asChild>
+                              <a
+                                className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                                href="/search"
+                              >
+                                <Building2 className="h-6 w-6" />
+                                <div className="mb-2 mt-4 text-lg font-medium">
+                                  Trường đại học
+                                </div>
+                                <p className="text-sm leading-tight text-muted-foreground">
+                                  Tìm kiếm thông tin các trường đại học trên toàn quốc
+                                </p>
+                              </a>
+                            </NavigationMenuLink>
+                          </li>
+                          <ListItem href="/search?type=Tất cả" title="Tất cả trường">
+                            Danh sách đầy đủ các trường đại học
+                          </ListItem>
+                          <ListItem href="/search?type=Công lập" title="Trường công lập">
+                            Các trường đại học công lập
+                          </ListItem>
+                          <ListItem href="/search?type=Tư thục" title="Trường tư thục">
+                            Các trường đại học tư thục
+                          </ListItem>
+                        </ul>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                  )}
 
-              {/* Majors Dropdown */}
-              {user?.role != 'admin' && (
-              <div 
-                className="relative"
-                onMouseEnter={() => handleMouseEnter('majors')}
-                onMouseLeave={handleMouseLeave}
-              >
-                <button 
-                  className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors duration-200 px-3 py-2 rounded-md hover:bg-gray-50"
-                  onClick={() => handleDropdownToggle('majors')}
-                >
-                  <BookOutlined />
-                  <span>Ngành học</span>
-                  <DownOutlined className={`text-xs transition-transform duration-200 ${activeDropdown === 'majors' ? 'rotate-180' : ''}`} />
-                </button>
-                
-                {activeDropdown === 'majors' && (
-                  <div className="absolute w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-1">
-                    <div className="py-1 px-1">
-                      <Link 
-                        to="/search?major=Công nghệ thông tin" 
-                        className="block px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded-lg"
-                      >
-                        Công nghệ thông tin
-                      </Link>
-                      <Link 
-                        to="/search?major=Kinh doanh" 
-                        className="block px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded-lg"
-                      >
-                        Kinh tế - Kinh doanh
-                      </Link>
-                      <Link 
-                        to="/search?major=Kỹ thuật" 
-                        className="block px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded-lg"
-                      >
-                        Kỹ thuật
-                      </Link>
-                      <Link 
-                        to="/search?major=Y khoa" 
-                        className="block px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded-lg"
-                      >
-                        Y - Dược
-                      </Link>
-                    </div>
-                  </div>
-                )}
-              </div>
-              )}
+                  {/* Majors Dropdown */}
+                  {user?.role !== 'admin' && (
+                    <NavigationMenuItem>
+                      <NavigationMenuTrigger>
+                        <BookOpen className="h-4 w-4 mr-2" />
+                        Ngành học
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                          <ListItem
+                            title="Công nghệ thông tin"
+                            href="/search?major=Công nghệ thông tin"
+                          >
+                            Lập trình, AI, Machine Learning, Cybersecurity
+                          </ListItem>
+                          <ListItem
+                            title="Kinh tế - Kinh doanh"
+                            href="/search?major=Kinh doanh"
+                          >
+                            Quản trị kinh doanh, Marketing, Tài chính
+                          </ListItem>
+                          <ListItem
+                            title="Kỹ thuật"
+                            href="/search?major=Kỹ thuật"
+                          >
+                            Cơ khí, Điện tử, Xây dựng, Hóa học
+                          </ListItem>
+                          <ListItem
+                            title="Y - Dược"
+                            href="/search?major=Y khoa"
+                          >
+                            Y khoa, Dược học, Điều dưỡng
+                          </ListItem>
+                        </ul>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                  )}
 
-              {/* News Dropdown */}
-              {user?.role != 'admin' && (
-                
-              <div 
-                className="relative"
-                onMouseEnter={() => handleMouseEnter('news')}
-                onMouseLeave={handleMouseLeave}
-              >
-                <button 
-                  className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors duration-200 px-3 py-2 rounded-md hover:bg-gray-50"
-                  onClick={() => handleDropdownToggle('news')}
-                >
-                  <BellOutlined />
-                  <span>Tin tức</span>
-                  <DownOutlined className={`text-xs transition-transform duration-200 ${activeDropdown === 'news' ? 'rotate-180' : ''}`} />
-                </button>
-                
-                {activeDropdown === 'news' && (
-                  <div className="absolute w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-1">
-                    <div className="py-1 px-1">
-                      <Link 
-                        to="/news?category=admission" 
-                        className="block px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded-lg"
-                      >
-                        Tin tuyển sinh
-                      </Link>
-                      <Link 
-                        to="/news?category=policy" 
-                        className="block px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded-lg"
-                      >
-                        Chính sách mới
-                      </Link>
-                      <Link 
-                        to="/news?category=scholarship" 
-                        className="block px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded-lg"
-                      >
-                        Học bổng
-                      </Link>
-                    </div>
-                  </div>
-                )}
-              </div>
-              )}
+                  {/* News Dropdown */}
+                  {user?.role !== 'admin' && (
+                    <NavigationMenuItem>
+                    <NavigationMenuTrigger>
+                        <Bell className="h-4 w-4 mr-2" />
+                        Tin tức
+                      </NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+                        <li className="row-span-3">
+                          <NavigationMenuLink asChild>
+                            <a
+                              className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                              href="/search"
+                            >
+                              <div className="mb-2 mt-4 text-lg font-medium">
+                                Tin tức
+                              </div>
+                              <p className="text-sm leading-tight text-muted-foreground">
+                                Tin tức của các trường đại học trên toàn quốc
+                              </p>
+                            </a>
+                          </NavigationMenuLink>
+                        </li>
+                        <ListItem href="/search?type=Tất cả" title="Tất cả trường">
+                          Danh sách đầy đủ các trường đại học
+                        </ListItem>
+                        <ListItem href="/search?type=Công lập" title="Trường công lập">
+                          Các trường đại học công lập
+                        </ListItem>
+                        <ListItem href="/search?type=Tư thục" title="Trường tư thục">
+                          Các trường đại học tư thục
+                        </ListItem>
+                      </ul>
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
+                  )}
+                </NavigationMenuList>
+              </NavigationMenu>
             </div>
 
             {/* User Section & Mobile Menu */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center">
               {/* User Section - Desktop */}
               <div className="hidden lg:flex">
                 {isAuthenticated ? (
-                  <div 
-                    className="relative"
-                    onMouseEnter={() => handleMouseEnter('user')}
-                    onMouseLeave={handleMouseLeave}
-                  >
-                    <button 
-                      className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors duration-200 rounded-md hover:bg-gray-50"
-                      onClick={() => handleDropdownToggle('user')}
-                    >
-                      <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                        <UserOutlined className="text-white text-sm" />
-                      </div>
-                    </button>
-                    
-                    {activeDropdown === 'user' && (
-                      <div className="absolute w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-1 -right-20">
-                        <div className="py-1 px-1">
-                          <div className="px-3 py-2 border-b border-gray-100">
-                            <div className="font-medium text-gray-900">{user?.name || user?.email}</div>
-                            <div className="text-sm text-gray-500">{user?.email}</div>
-                          </div>
-                          {user?.role === 'admin' && (
-                            <Link 
-                              to="/admin" 
-                              className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <div className="relative">
+                        {user?.photoURL ? (
+                          <div className="cursor-pointer">
+                            <img 
+                              src={user.photoURL} 
+                              alt={user?.displayName}
+                              className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
+                              referrerPolicy="no-referrer"
+                              crossOrigin="anonymous"
+                            />
+                            <div 
+                              className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center" 
+                              style={{display: 'none'}}
                             >
-                              <DashboardOutlined />
-                              <span>Admin Dashboard</span>
-                            </Link>
-                          )}
-                          <Link 
-                            to="/profile" 
-                            className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
-                          >
-                            <UserOutlined />
-                            <span>Thông tin cá nhân</span>
-                          </Link>
-                          <Link 
-                            to="/settings" 
-                            className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
-                          >
-                            <SettingOutlined />
-                            <span>Cài đặt</span>
-                          </Link>
-                          <button 
-                            onClick={handleLogout}
-                            className="w-full flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
-                          >
-                            <LogoutOutlined />
-                            <span>Đăng xuất</span>
-                          </button>
-                        </div>
+                              <User className="h-4 w-4" />
+                            </div>
+                          </div>
+                        ) : (
+                          <Avatar className="cursor-pointer">
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              <User className="h-4 w-4" />
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                      <DropdownMenuLabel className="font-normal">
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium leading-none">{user?.displayName}</p>
+                          <p className="text-xs leading-none text-muted-foreground">
+                            {user?.email}
+                          </p>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {user?.role === 'admin' && (
+                        <DropdownMenuItem onClick={() => navigate('/admin')}>
+                          <LayoutDashboard className="mr-2 h-4 w-4" />
+                          <span>Admin Dashboard</span>
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem onClick={() => navigate('/profile')}>
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Thông tin cá nhân</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/settings')}>
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Cài đặt</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleLogout}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Đăng xuất</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 ) : (
-                  <div className="flex items-center space-x-2">
-                    <button 
-                      onClick={handleLogin}
-                      className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors duration-200 px-3 py-2 rounded-md hover:bg-gray-50"
-                    >
-                      <LoginOutlined />
-                      <span>Đăng nhập</span>
-                    </button>
-                  </div>
+                  <Button variant="ghost" onClick={handleLogin}>
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Đăng nhập
+                  </Button>
                 )}
               </div>
 
               {/* Mobile Menu Button */}
               <div className="lg:hidden">
-                <button
-                  className="p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-50 transition-colors duration-200"
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 >
                   {isMobileMenuOpen ? (
-                    <CloseOutlined className="text-xl" />
+                    <X className="h-5 w-5" />
                   ) : (
-                    <MenuOutlined className="text-xl" />
+                    <Menu className="h-5 w-5" />
                   )}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -337,7 +339,7 @@ const Navbar = () => {
                     <div className="px-4 py-3 border-b border-gray-200 mb-2">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                          <UserOutlined className="text-white" />
+                          <User className="text-white h-4 w-4" />
                         </div>
                         <div>
                           <div className="font-medium text-gray-900">{user?.name || user?.email}</div>
@@ -346,185 +348,191 @@ const Navbar = () => {
                       </div>
                     </div>
                     {user?.role === 'admin' && (
-                      <Link 
-                        to="/admin" 
+                      <Link
+                        to="/admin"
                         className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <DashboardOutlined />
+                        <LayoutDashboard className="h-4 w-4" />
                         <span>Admin Dashboard</span>
                       </Link>
                     )}
-                    <Link 
-                      to="/profile" 
+                    <Link
+                      to="/profile"
                       className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <UserOutlined />
+                      <User className="h-4 w-4" />
                       <span>Thông tin cá nhân</span>
                     </Link>
-                    <Link 
-                      to="/settings" 
+                    <Link
+                      to="/settings"
                       className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <SettingOutlined />
+                      <Settings className="h-4 w-4" />
                       <span>Cài đặt</span>
                     </Link>
-                    <button 
+                    <button
                       onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
                       className="w-full flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
                     >
-                      <LogoutOutlined />
+                      <LogOut className="h-4 w-4" />
                       <span>Đăng xuất</span>
                     </button>
                     <div className="border-t border-gray-200 mt-2 p-1"></div>
                   </div>
                 ) : (
                   <div className="space-y-1 border-b border-gray-200 pb-2 mb-2">
-                    <button 
+                    <button
                       onClick={() => { handleLogin(); setIsMobileMenuOpen(false); }}
                       className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
                     >
-                      <LoginOutlined />
+                      <LogIn className="h-4 w-4" />
                       <span>Đăng nhập</span>
                     </button>
                   </div>
                 )}
 
                 {/* Home */}
-                <Link 
-                  to="/" 
+                <Link
+                  to="/"
                   className="flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <HomeOutlined />
+                  <Home className="h-4 w-4" />
                   <span>Trang chủ</span>
                 </Link>
 
                 {/* Universities Mobile */}
-                <div>
-                  <button 
-                    className="w-full flex items-center justify-between px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
-                    onClick={() => handleDropdownToggle('universities-mobile')}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <BankOutlined />
-                      <span>Trường đại học</span>
-                    </div>
-                    <DownOutlined className={`text-xs transition-transform duration-200 ${activeDropdown === 'universities-mobile' ? 'rotate-180' : ''}`} />
-                  </button>
-                  {activeDropdown === 'universities-mobile' && (
-                    <div className="bg-gray-50">
-                      <Link 
-                        to="/search?type=Tất cả" 
-                        className="block px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Tất cả trường
-                      </Link>
-                      <Link 
-                        to="/search?type=Công lập" 
-                        className="block px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Trường công lập
-                      </Link>
-                      <Link 
-                        to="/search?type=Tư thục" 
-                        className="block px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Trường tư thục
-                      </Link>
-                    </div>
-                  )}
-                </div>
+                {user?.role !== 'admin' && (
+                  <div>
+                    <button
+                      className="w-full flex items-center justify-between px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
+                      onClick={() => handleDropdownToggle('universities-mobile')}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Building2 className="h-4 w-4" />
+                        <span>Trường đại học</span>
+                      </div>
+                      <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${activeDropdown === 'universities-mobile' ? 'rotate-180' : ''}`} />
+                    </button>
+                    {activeDropdown === 'universities-mobile' && (
+                      <div className="bg-gray-50">
+                        <Link
+                          to="/search?type=Tất cả"
+                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Tất cả trường
+                        </Link>
+                        <Link
+                          to="/search?type=Công lập"
+                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Trường công lập
+                        </Link>
+                        <Link
+                          to="/search?type=Tư thục"
+                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Trường tư thục
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Majors Mobile */}
-                <div>
-                  <button 
-                    className="w-full flex items-center justify-between px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
-                    onClick={() => handleDropdownToggle('majors-mobile')}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <BookOutlined />
-                      <span>Ngành học</span>
-                    </div>
-                    <DownOutlined className={`text-xs transition-transform duration-200 ${activeDropdown === 'majors-mobile' ? 'rotate-180' : ''}`} />
-                  </button>
-                  {activeDropdown === 'majors-mobile' && (
-                    <div className="bg-gray-50">
-                      <Link 
-                        to="/search?major=Công nghệ thông tin" 
-                        className="block px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Công nghệ thông tin
-                      </Link>
-                      <Link 
-                        to="/search?major=Kinh doanh" 
-                        className="block px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Kinh tế - Kinh doanh
-                      </Link>
-                      <Link 
-                        to="/search?major=Kỹ thuật" 
-                        className="block px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Kỹ thuật
-                      </Link>
-                      <Link 
-                        to="/search?major=Y khoa" 
-                        className="block px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Y - Dược
-                      </Link>
-                    </div>
-                  )}
-                </div>
+                {user?.role !== 'admin' && (
+                  <div>
+                    <button
+                      className="w-full flex items-center justify-between px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
+                      onClick={() => handleDropdownToggle('majors-mobile')}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <BookOpen className="h-4 w-4" />
+                        <span>Ngành học</span>
+                      </div>
+                      <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${activeDropdown === 'majors-mobile' ? 'rotate-180' : ''}`} />
+                    </button>
+                    {activeDropdown === 'majors-mobile' && (
+                      <div className="bg-gray-50">
+                        <Link
+                          to="/search?major=Công nghệ thông tin"
+                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Công nghệ thông tin
+                        </Link>
+                        <Link
+                          to="/search?major=Kinh doanh"
+                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Kinh tế - Kinh doanh
+                        </Link>
+                        <Link
+                          to="/search?major=Kỹ thuật"
+                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Kỹ thuật
+                        </Link>
+                        <Link
+                          to="/search?major=Y khoa"
+                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Y - Dược
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* News Mobile */}
-                <div>
-                  <button 
-                    className="w-full flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
-                    onClick={() => handleDropdownToggle('news-mobile')}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <BellOutlined />
-                      <span>Tin tức</span>
-                    </div>
-                    <DownOutlined className={`text-xs transition-transform duration-200 ${activeDropdown === 'news-mobile' ? 'rotate-180' : ''}`} />
-                  </button>
-                  {activeDropdown === 'news-mobile' && (
-                    <div className="bg-gray-50">
-                      <Link 
-                        to="/news?category=admission" 
-                        className="block px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Tin tuyển sinh
-                      </Link>
-                      <Link 
-                        to="/news?category=policy" 
-                        className="block px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Chính sách mới
-                      </Link>
-                      <Link 
-                        to="/news?category=scholarship" 
-                        className="block px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Học bổng
-                      </Link>
-                    </div>
-                  )}
-                </div>
+                {user?.role !== 'admin' && (
+                  <div>
+                    <button
+                      className="w-full flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
+                      onClick={() => handleDropdownToggle('news-mobile')}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Bell className="h-4 w-4" />
+                        <span>Tin tức</span>
+                      </div>
+                      <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${activeDropdown === 'news-mobile' ? 'rotate-180' : ''}`} />
+                    </button>
+                    {activeDropdown === 'news-mobile' && (
+                      <div className="bg-gray-50">
+                        <Link
+                          to="/news?category=admission"
+                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Tin tuyển sinh
+                        </Link>
+                        <Link
+                          to="/news?category=policy"
+                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Chính sách mới
+                        </Link>
+                        <Link
+                          to="/news?category=scholarship"
+                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Học bổng
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}

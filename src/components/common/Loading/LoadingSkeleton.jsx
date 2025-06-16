@@ -131,7 +131,6 @@ const SpinnerLoading = ({ size = "default", className = "" }) => {
   );
 };
 
-// Main Loading Component - thay thế cho antd Spin
 const Loading = ({ 
   type = "spinner", 
   size = "default",

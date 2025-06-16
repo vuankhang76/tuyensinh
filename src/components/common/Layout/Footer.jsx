@@ -1,13 +1,14 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Button } from 'antd'
+import { Button } from "@/components/ui/button"
+import { Input } from '@/components/ui/input'
 import {
-  FacebookOutlined,
-  YoutubeOutlined,
-  MailOutlined,
-  PhoneOutlined,
-  EnvironmentOutlined
-} from '@ant-design/icons'
+  Facebook,
+  Youtube,
+  Mail,
+  Phone,
+  MapPin
+} from 'lucide-react'
 import logo from '../../../assets/images/logo/logo_full.png'
 
 const Footer = () => {
@@ -37,15 +38,15 @@ const Footer = () => {
             <h3 className="font-semibold text-lg mb-4">Liên hệ</h3>
             <div className="space-y-3">
               <div className="flex items-center text-sm text-gray-400">
-                <EnvironmentOutlined className="mr-2" />
+                <MapPin className="mr-2 h-4 w-4" />
                 Hà Nội, Việt Nam
               </div>
               <div className="flex items-center text-sm text-gray-400">
-                <PhoneOutlined className="mr-2" />
+                <Phone className="mr-2 h-4 w-4" />
                 1900 xxxx
               </div>
               <div className="flex items-center text-sm text-gray-400">
-                <MailOutlined className="mr-2" />
+                <Mail className="mr-2 h-4 w-4" />
                 contact@tuyensinh.edu.vn
               </div>
             </div>
@@ -55,13 +56,12 @@ const Footer = () => {
           <div className="mt-6">
             <h4 className="font-medium mb-2">Đăng ký nhận tin</h4>
             <div className="flex">
-              <input
+              <Input
                 type="email"
                 placeholder="Email của bạn"
-                className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-l-lg text-sm focus:outline-none focus:border-blue-500"
-                size="large"
+                className="flex-1 bg-gray-800 border-gray-700 rounded-r-none text-sm focus:border-primary text-white"
               />
-              <Button type="primary" className="!rounded-l-none" size="large">
+              <Button className="rounded-l-none">
                 Đăng ký
               </Button>
             </div>

@@ -1,39 +1,28 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { 
-  Card, 
-  Button, 
-  Select, 
-  Table, 
-  Tag, 
-  Progress, 
-  Statistic, 
-  Breadcrumb,
-  Modal,
-  Input,
-  AutoComplete,
-  Tooltip,
-  Alert,
-  Row,
-  Col
-} from 'antd'
-import { 
-  HomeOutlined,
-  PlusOutlined,
-  DeleteOutlined,
-  SearchOutlined,
-  TrophyOutlined,
-  EnvironmentOutlined,
-  DollarCircleOutlined,
-  UserOutlined,
-  BookOutlined,
-  GlobalOutlined,
-  StarOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined
-} from '@ant-design/icons'
-
-const { Option } = Select
+  Home,
+  Plus,
+  Trash2,
+  Search,
+  Trophy,
+  MapPin,
+  DollarSign,
+  User,
+  Book,
+  Globe,
+  Star,
+  CheckCircle,
+  XCircle
+} from 'lucide-react'
 
 const CompareUniversities = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -194,10 +183,7 @@ const CompareUniversities = () => {
 
   const addUniversity = (universityId) => {
     if (selectedUniversities.length >= 4) {
-      Modal.warning({
-        title: 'Giới hạn so sánh',
-        content: 'Bạn chỉ có thể so sánh tối đa 4 trường cùng lúc.'
-      })
+      alert('Bạn chỉ có thể so sánh tối đa 4 trường cùng lúc.')
       return
     }
 
@@ -277,19 +263,20 @@ const CompareUniversities = () => {
     
     switch (field) {
       case 'ranking':
-        return <Tag color="blue">#{value}</Tag>
+        return <Badge variant="default">#{value}</Badge>
       case 'internationalRanking':
-        return value ? <Tag color="green">#{value}</Tag> : <Tag color="gray">Chưa có</Tag>
+        return value ? <Badge variant="secondary">#{value}</Badge> : <Badge variant="outline">Chưa có</Badge>
       case 'type':
-        return <Tag color={value === 'Công lập' ? 'blue' : 'orange'}>{value}</Tag>
+        return <Badge variant={value === 'Công lập' ? 'default' : 'secondary'}>{value}</Badge>
       case 'website':
         return (
           <Button 
-            type="link" 
-            icon={<GlobalOutlined />}
+            variant="link" 
+            size="sm"
             onClick={() => window.open(value, '_blank')}
-            className="p-0"
+            className="p-0 h-auto"
           >
+            <Globe className="h-4 w-4 mr-1" />
             Truy cập
           </Button>
         )
@@ -298,21 +285,22 @@ const CompareUniversities = () => {
       case 'scholarships':
       case 'topEmployers':
         return (
-          <div className="space-y-1">
+          <div className="flex flex-wrap gap-1">
             {value.map((item, index) => (
-              <Tag key={index} className="mb-1">{item}</Tag>
+              <Badge key={index} variant="outline" className="text-xs">
+                {item}
+              </Badge>
             ))}
           </div>
         )
       case 'employmentRate':
         return (
-          <div>
+          <div className="space-y-1">
             <Progress 
-              percent={value} 
-              size="small" 
-              status={value >= 90 ? 'success' : value >= 80 ? 'normal' : 'exception'}
+              value={value} 
+              className="h-2"
             />
-            <span className="text-sm">{value}%</span>
+            <span className="text-sm font-medium">{value}%</span>
           </div>
         )
       case 'quota':
@@ -325,16 +313,29 @@ const CompareUniversities = () => {
     }
   }
 
+  const filteredUniversities = allUniversities.filter(uni => 
+    !selectedUniversities.find(selected => selected.id === uni.id)
+  )
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Breadcrumb */}
       <div className="bg-white border-b">
         <div className="container mx-auto px-4 py-4">
           <Breadcrumb>
-            <Breadcrumb.Item>
-              <Link to="/"><HomeOutlined /></Link>
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>So sánh trường đại học</Breadcrumb.Item>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link to="/">
+                    <Home className="h-4 w-4" />
+                  </Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>So sánh trường đại học</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
           </Breadcrumb>
         </div>
       </div>
@@ -353,275 +354,271 @@ const CompareUniversities = () => {
 
         {/* Instructions */}
         {selectedUniversities.length === 0 && (
-          <Alert
-            message="Hướng dẫn sử dụng"
-            description="Chọn ít nhất 2 trường đại học để bắt đầu so sánh. Bạn có thể so sánh tối đa 4 trường cùng lúc."
-            type="info"
-            showIcon
-            className="mb-6"
-          />
+          <Alert variant="info" className="mb-6">
+            <AlertDescription>
+              <strong>Hướng dẫn sử dụng:</strong> Chọn ít nhất 2 trường đại học để bắt đầu so sánh. 
+              Bạn có thể so sánh tối đa 4 trường cùng lúc.
+            </AlertDescription>
+          </Alert>
         )}
 
         {/* University Selection */}
         <Card className="mb-6">
-          <div className="flex flex-wrap items-center gap-4 mb-4">
-            <h3 className="text-lg font-semibold">Trường đại học đã chọn:</h3>
-            <Button
-              type="dashed"
-              icon={<PlusOutlined />}
-              onClick={() => setIsAddModalVisible(true)}
-              disabled={selectedUniversities.length >= 4}
-            >
-              Thêm trường
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {selectedUniversities.map((university) => (
-              <Card 
-                key={university.id}
-                size="small"
-                className="relative"
-                cover={
-                  <div className="h-20 bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">{university.code}</span>
-                  </div>
-                }
-              >
-                <Button
-                  type="text"
-                  danger
-                  icon={<DeleteOutlined />}
-                  size="small"
-                  className="absolute top-2 right-2 z-10"
-                  onClick={() => removeUniversity(university.id)}
-                />
-                <div className="pt-2">
-                  <h4 className="font-medium text-sm line-clamp-2 mb-2">
-                    {university.name}
-                  </h4>
-                  <div className="flex justify-between items-center text-xs text-gray-600">
-                    <span>{university.location}</span>
-                    <Tag size="small" color="blue">#{university.ranking}</Tag>
-                  </div>
-                </div>
-              </Card>
-            ))}
-
-            {/* Add University Placeholder */}
-            {selectedUniversities.length < 4 && (
-              <Card 
-                className="border-dashed cursor-pointer hover:border-blue-500 transition-colors"
+          <CardHeader>
+            <div className="flex flex-wrap items-center gap-4">
+              <CardTitle className="text-lg">Trường đại học đã chọn:</CardTitle>
+              <Button
+                variant="outline"
                 onClick={() => setIsAddModalVisible(true)}
+                disabled={selectedUniversities.length >= 4}
               >
-                <div className="h-32 flex flex-col items-center justify-center text-gray-400">
-                  <PlusOutlined className="text-2xl mb-2" />
-                  <span className="text-sm">Thêm trường</span>
-                </div>
-              </Card>
-            )}
-          </div>
+                <Plus className="h-4 w-4 mr-2" />
+                Thêm trường
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {selectedUniversities.map((university) => (
+                <Card key={university.id} className="relative">
+                  <CardHeader className="pb-2">
+                    <div className="h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-md flex items-center justify-center -mx-6 -mt-6 mb-4">
+                      <span className="text-white font-bold text-lg">{university.code}</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeUniversity(university.id)}
+                      className="absolute top-2 right-2 h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <h4 className="font-medium text-sm line-clamp-2 mb-2">
+                      {university.name}
+                    </h4>
+                    <div className="flex justify-between items-center text-xs text-gray-600">
+                      <span>{university.location}</span>
+                      <Badge variant="default" className="text-xs">#{university.ranking}</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {/* Add University Placeholder */}
+              {selectedUniversities.length < 4 && (
+                <Card 
+                  className="border-dashed cursor-pointer hover:border-blue-500 transition-colors"
+                  onClick={() => setIsAddModalVisible(true)}
+                >
+                  <CardContent className="h-32 flex flex-col items-center justify-center text-gray-400">
+                    <Plus className="h-8 w-8 mb-2" />
+                    <span className="text-sm">Thêm trường</span>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </CardContent>
         </Card>
 
         {/* Comparison Table */}
         {selectedUniversities.length >= 2 && (
-          <Card title="Bảng so sánh chi tiết">
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr>
-                    <th className="border border-gray-300 p-3 bg-gray-50 text-left min-w-48">
-                      Tiêu chí
-                    </th>
-                    {selectedUniversities.map((university) => (
-                      <th 
-                        key={university.id}
-                        className="border border-gray-300 p-3 bg-gray-50 text-center min-w-64"
-                      >
-                        <div>
-                          <div className="font-bold text-lg">{university.code}</div>
-                          <div className="font-normal text-sm text-gray-600 line-clamp-2">
-                            {university.name}
-                          </div>
-                        </div>
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Bảng so sánh chi tiết</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr>
+                      <th className="border border-gray-300 p-3 bg-gray-50 text-left min-w-48">
+                        Tiêu chí
                       </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {compareData.map((category) => (
-                    <React.Fragment key={category.key}>
-                      <tr>
-                        <td 
-                          colSpan={selectedUniversities.length + 1}
-                          className="border border-gray-300 p-3 bg-blue-50 font-semibold text-blue-800"
+                      {selectedUniversities.map((university) => (
+                        <th 
+                          key={university.id}
+                          className="border border-gray-300 p-3 bg-gray-50 text-center min-w-64"
                         >
-                          {category.category}
-                        </td>
-                      </tr>
-                      {category.items.map((item) => (
-                        <tr key={item.field}>
-                          <td className="border border-gray-300 p-3 font-medium bg-gray-50">
-                            {item.label}
-                          </td>
-                          {selectedUniversities.map((university) => (
-                            <td 
-                              key={university.id}
-                              className="border border-gray-300 p-3 text-center"
-                            >
-                              {renderCellValue(university, item.field)}
-                            </td>
-                          ))}
-                        </tr>
+                          <div>
+                            <div className="font-bold text-lg">{university.code}</div>
+                            <div className="font-normal text-sm text-gray-600 line-clamp-2">
+                              {university.name}
+                            </div>
+                          </div>
+                        </th>
                       ))}
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {compareData.map((category) => (
+                      <React.Fragment key={category.key}>
+                        <tr>
+                          <td 
+                            colSpan={selectedUniversities.length + 1}
+                            className="border border-gray-300 p-3 bg-blue-50 font-semibold text-blue-800"
+                          >
+                            {category.category}
+                          </td>
+                        </tr>
+                        {category.items.map((item) => (
+                          <tr key={item.field}>
+                            <td className="border border-gray-300 p-3 font-medium bg-gray-50">
+                              {item.label}
+                            </td>
+                            {selectedUniversities.map((university) => (
+                              <td 
+                                key={university.id}
+                                className="border border-gray-300 p-3 text-center"
+                              >
+                                {renderCellValue(university, item.field)}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </React.Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
           </Card>
         )}
 
         {/* Quick Stats Comparison */}
         {selectedUniversities.length >= 2 && (
-          <Card title="So sánh nhanh" className="mt-6">
-            <Row gutter={[16, 16]}>
-              {selectedUniversities.map((university) => (
-                <Col key={university.id} xs={24} sm={12} lg={6}>
-                  <Card size="small" className="text-center">
-                    <div className="mb-3">
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>So sánh nhanh</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {selectedUniversities.map((university) => (
+                  <Card key={university.id} className="text-center">
+                    <CardHeader className="pb-2">
                       <div className="text-lg font-bold">{university.code}</div>
                       <div className="text-xs text-gray-600 line-clamp-1">
                         {university.name}
                       </div>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <Statistic
-                        title="Xếp hạng"
-                        value={university.ranking}
-                        prefix="#"
-                        valueStyle={{ fontSize: '18px' }}
-                      />
-                      <Statistic
-                        title="Điểm chuẩn"
-                        value={university.minScore}
-                        precision={1}
-                        valueStyle={{ fontSize: '18px', color: '#1890ff' }}
-                      />
-                      <Statistic
-                        title="Tỷ lệ có việc"
-                        value={university.employmentRate}
-                        suffix="%"
-                        valueStyle={{ fontSize: '18px', color: '#52c41a' }}
-                      />
-                    </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div>
+                        <div className="text-sm text-gray-600">Xếp hạng</div>
+                        <div className="text-xl font-bold">#{university.ranking}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-600">Điểm chuẩn</div>
+                        <div className="text-xl font-bold text-blue-600">{university.minScore}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-600">Tỷ lệ có việc</div>
+                        <div className="text-xl font-bold text-green-600">{university.employmentRate}%</div>
+                      </div>
+                    </CardContent>
                   </Card>
-                </Col>
-              ))}
-            </Row>
+                ))}
+              </div>
+            </CardContent>
           </Card>
         )}
 
         {/* Facilities Comparison */}
         {selectedUniversities.length >= 2 && (
-          <Card title="So sánh cơ sở vật chất" className="mt-6">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr>
-                    <th className="text-left p-3">Cơ sở vật chất</th>
-                    {selectedUniversities.map(uni => (
-                      <th key={uni.id} className="text-center p-3">{uni.code}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.keys(selectedUniversities[0]?.facilities || {}).map(facility => (
-                    <tr key={facility}>
-                      <td className="p-3 font-medium">
-                        {facility === 'library' ? 'Thư viện' :
-                         facility === 'dormitory' ? 'Ký túc xá' :
-                         facility === 'gym' ? 'Phòng gym' :
-                         facility === 'lab' ? 'Phòng thí nghiệm' :
-                         facility === 'hospital' ? 'Bệnh viện' : facility}
-                      </td>
+          <Card>
+            <CardHeader>
+              <CardTitle>So sánh cơ sở vật chất</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr>
+                      <th className="text-left p-3 font-semibold">Cơ sở vật chất</th>
                       {selectedUniversities.map(uni => (
-                        <td key={uni.id} className="text-center p-3">
-                          {uni.facilities[facility] ? 
-                            <CheckCircleOutlined className="text-green-500 text-xl" /> :
-                            <CloseCircleOutlined className="text-red-500 text-xl" />
-                          }
-                        </td>
+                        <th key={uni.id} className="text-center p-3 font-semibold">{uni.code}</th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {Object.keys(selectedUniversities[0]?.facilities || {}).map(facility => (
+                      <tr key={facility} className="border-t">
+                        <td className="p-3 font-medium">
+                          {facility === 'library' ? 'Thư viện' :
+                           facility === 'dormitory' ? 'Ký túc xá' :
+                           facility === 'gym' ? 'Phòng gym' :
+                           facility === 'lab' ? 'Phòng thí nghiệm' :
+                           facility === 'hospital' ? 'Bệnh viện' : facility}
+                        </td>
+                        {selectedUniversities.map(uni => (
+                          <td key={uni.id} className="text-center p-3">
+                            {uni.facilities[facility] ? 
+                              <CheckCircle className="h-6 w-6 text-green-500 mx-auto" /> :
+                              <XCircle className="h-6 w-6 text-red-500 mx-auto" />
+                            }
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
           </Card>
         )}
       </div>
 
       {/* Add University Modal */}
-      <Modal
-        title="Thêm trường đại học"
-        open={isAddModalVisible}
-        onCancel={() => {
-          setIsAddModalVisible(false)
-          setSearchTerm('')
-          setSuggestions([])
-        }}
-        footer={null}
-        width={600}
-      >
-        <div className="mb-4">
-          <AutoComplete
-            options={searchSuggestions}
-            onSearch={handleSearch}
-            value={searchTerm}
-            onChange={setSearchTerm}
-            onSelect={(value) => addUniversity(Number(value))}
-            placeholder="Tìm kiếm tên trường hoặc mã trường..."
-            className="w-full"
-          >
-            <Input
-              prefix={<SearchOutlined />}
-              size="large"
-            />
-          </AutoComplete>
-        </div>
+      <Dialog open={isAddModalVisible} onOpenChange={setIsAddModalVisible}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Thêm trường đại học</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Tìm kiếm tên trường hoặc mã trường..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value)
+                  handleSearch(e.target.value)
+                }}
+                className="pl-9"
+              />
+            </div>
 
-        <div className="text-sm text-gray-600 mb-4">
-          Gợi ý: Hãy thử tìm "Bách khoa", "FPT", "Kinh tế"...
-        </div>
+            <div className="text-sm text-gray-600">
+              Gợi ý: Hãy thử tìm "Bách khoa", "FPT", "Kinh tế"...
+            </div>
 
-        <div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto">
-          {allUniversities
-            .filter(uni => !selectedUniversities.find(selected => selected.id === uni.id))
-            .map(university => (
-              <Card 
-                key={university.id}
-                size="small"
-                className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => addUniversity(university.id)}
-              >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div className="font-medium">{university.name}</div>
-                    <div className="text-sm text-gray-600">
-                      {university.location} • {university.type} • #{university.ranking}
+            <div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto">
+              {filteredUniversities.map(university => (
+                <Card 
+                  key={university.id}
+                  className="cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => addUniversity(university.id)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <div className="font-medium">{university.name}</div>
+                        <div className="text-sm text-gray-600">
+                          {university.location} • {university.type} • #{university.ranking}
+                        </div>
+                      </div>
+                      <Button size="sm">
+                        Chọn
+                      </Button>
                     </div>
-                  </div>
-                  <Button type="primary" size="small">
-                    Chọn
-                  </Button>
-                </div>
-              </Card>
-            ))
-          }
-        </div>
-      </Modal>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

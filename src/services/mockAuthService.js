@@ -7,7 +7,7 @@ const MOCK_USERS = [
     password: '123456',
     displayName: 'Nguyễn Văn A',
     role: 'student',
-    photoURL: null,
+    photoURL: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
     provider: 'email'
   },
   {
@@ -17,7 +17,7 @@ const MOCK_USERS = [
     password: '123456',
     displayName: 'Admin HUST',
     role: 'university',
-    photoURL: null,
+    photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
     provider: 'email',
     universityId: 1
   },
@@ -33,10 +33,8 @@ const MOCK_USERS = [
   }
 ];
 
-// Mock delay to simulate API calls
 const mockDelay = (ms = 1000) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Generate mock JWT token
 const generateMockToken = (user) => {
   const payload = {
     userId: user.id,
@@ -44,12 +42,11 @@ const generateMockToken = (user) => {
     role: user.role,
     iat: Date.now()
   };
-  return btoa(JSON.stringify(payload)); // Simple base64 encoding for mock
+  return btoa(JSON.stringify(payload));
 };
 
-// Email/Password login
 export const loginWithCredentials = async (emailOrUsername, password) => {
-  await mockDelay(800); // Simulate API delay
+  await mockDelay(800);
 
   try {
     const user = MOCK_USERS.find(u => 
@@ -63,7 +60,7 @@ export const loginWithCredentials = async (emailOrUsername, password) => {
 
     const token = generateMockToken(user);
     const userResponse = { ...user };
-    delete userResponse.password; // Don't return password
+    delete userResponse.password;
 
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userResponse));
@@ -90,14 +87,10 @@ export const loginWithGoogle = async () => {
     const result = await signInWithPopup(auth, provider);
     const firebaseUser = result.user;
     
-    console.log('✅ Firebase Google login successful:', firebaseUser.email);
-    
-    // Mock sync with database
     await mockDelay(500);
     
-    // Create user object from Google data
     const mockUser = {
-      id: Date.now(), // Use timestamp as mock ID
+      id: Date.now(),
       email: firebaseUser.email,
       displayName: firebaseUser.displayName,
       photoURL: firebaseUser.photoURL,
@@ -179,7 +172,7 @@ export const logoutUser = async () => {
       const { signOut } = await import('firebase/auth');
       const { auth } = await import('../lib/firebase');
       await signOut(auth);
-      console.log('✅ Firebase sign out successful');
+
     }
     
     // Clear local storage

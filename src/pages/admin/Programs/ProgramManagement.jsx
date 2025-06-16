@@ -1,21 +1,27 @@
 import React, { useState } from 'react';
-import { Table, Button, Space, Popconfirm, message, Tag, Select, InputNumber } from 'antd';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Card, CardContent } from '@/components/ui/card';
+import { toast } from '@/hooks/use-toast';
 import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  BookOutlined,
-  DollarOutlined
-} from '@ant-design/icons';
+  Plus,
+  Edit,
+  Trash2,
+  BookOpen,
+  DollarSign
+} from 'lucide-react';
 import ProgramModal from './ProgramModal';
-
-const { Option } = Select;
 
 const ProgramManagement = () => {
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [universityFilter, setUniversityFilter] = useState('all');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [programToDelete, setProgramToDelete] = useState(null);
 
   // Sample data based on schema - in real app, this would come from API
   const [programs, setPrograms] = useState([
@@ -72,89 +78,26 @@ const ProgramManagement = () => {
     return `${amount.toLocaleString('vi-VN')} VNĐ/${unit}`;
   };
 
-  const columns = [
-    {
-      title: 'Tên chương trình',
-      dataIndex: 'Name',
-      key: 'Name',
-      width: 250,
-      sorter: (a, b) => a.Name.localeCompare(b.Name),
-    },
-    {
-      title: 'Trường',
-      dataIndex: 'UniversityName',
-      key: 'UniversityName',
-      width: 200,
-      render: (text) => (
-        <span className="text-blue-600">{text}</span>
-      ),
-    },
-    {
-      title: 'Học phí',
-      dataIndex: 'Tuition',
-      key: 'Tuition',
-      width: 180,
-      sorter: (a, b) => (a.Tuition || 0) - (b.Tuition || 0),
-      render: (tuition, record) => (
-        <div className="flex items-center">
-          <DollarOutlined className="text-green-500 mr-1" />
-          <span className="font-semibold">
-            {formatCurrency(tuition, record.TuitionUnit)}
-          </span>
-        </div>
-      ),
-    },
-    {
-      title: 'Năm',
-      dataIndex: 'Year',
-      key: 'Year',
-      width: 80,
-      sorter: (a, b) => (a.Year || 0) - (b.Year || 0),
-    },
-    {
-      title: 'Mô tả',
-      dataIndex: 'Description',
-      key: 'Description',
-      ellipsis: true,
-    },
-    {
-      title: 'Thao tác',
-      key: 'action',
-      width: 150,
-      render: (_, record) => (
-        <Space size="middle">
-          <Button 
-            type="link" 
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-            title="Sửa"
-          />
-          <Popconfirm
-            title="Bạn có chắc chắn muốn xóa chương trình này?"
-            onConfirm={() => handleDelete(record.Id)}
-            okText="Có"
-            cancelText="Không"
-          >
-            <Button 
-              type="link" 
-              danger 
-              icon={<DeleteOutlined />}
-              title="Xóa"
-            />
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
-
   const handleEdit = (record) => {
     setEditingRecord(record);
     setIsModalVisible(true);
   };
 
-  const handleDelete = (id) => {
-    setPrograms(programs.filter(p => p.Id !== id));
-    message.success('Đã xóa chương trình thành công');
+  const handleDeleteClick = (program) => {
+    setProgramToDelete(program);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (programToDelete) {
+      setPrograms(programs.filter(p => p.Id !== programToDelete.Id));
+      toast({
+        title: "Thành công",
+        description: "Đã xóa chương trình thành công",
+      });
+    }
+    setDeleteDialogOpen(false);
+    setProgramToDelete(null);
   };
 
   const handleAdd = () => {
@@ -172,7 +115,10 @@ const ProgramManagement = () => {
           UniversityName: universities.find(u => u.Id === values.UniversityId)?.Name || ''
         } : p
       ));
-      message.success('Đã cập nhật thông tin chương trình');
+      toast({
+        title: "Thành công",
+        description: "Đã cập nhật thông tin chương trình",
+      });
     } else {
       // Add new program
       const newProgram = { 
@@ -181,7 +127,10 @@ const ProgramManagement = () => {
         UniversityName: universities.find(u => u.Id === values.UniversityId)?.Name || ''
       };
       setPrograms([...programs, newProgram]);
-      message.success('Đã thêm chương trình mới');
+      toast({
+        title: "Thành công",
+        description: "Đã thêm chương trình mới",
+      });
     }
     setIsModalVisible(false);
     setEditingRecord(null);
@@ -206,6 +155,8 @@ const ProgramManagement = () => {
     }))
   };
 
+  const sortedPrograms = [...filteredPrograms].sort((a, b) => a.Name.localeCompare(b.Name));
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -217,24 +168,21 @@ const ProgramManagement = () => {
           </div>
         </div>
         <div className="flex space-x-2">
-          <Select
-            value={universityFilter}
-            onChange={setUniversityFilter}
-            style={{ width: 200 }}
-            placeholder="Lọc theo trường"
-          >
-            <Option value="all">Tất cả trường</Option>
-            {universities.map(uni => (
-              <Option key={uni.Id} value={uni.Id}>
-                {uni.Name}
-              </Option>
-            ))}
+          <Select value={universityFilter} onValueChange={setUniversityFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Lọc theo trường" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả trường</SelectItem>
+              {universities.map(uni => (
+                <SelectItem key={uni.Id} value={uni.Id.toString()}>
+                  {uni.Name}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />}
-            onClick={handleAdd}
-          >
+          <Button onClick={handleAdd}>
+            <Plus className="h-4 w-4 mr-2" />
             Thêm chương trình mới
           </Button>
         </div>
@@ -242,45 +190,128 @@ const ProgramManagement = () => {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="flex items-center">
-            <BookOutlined className="text-2xl text-blue-500 mr-3" />
-            <div>
-              <div className="text-2xl font-bold">{stats.total}</div>
-              <div className="text-gray-600">Chương trình</div>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center">
+              <BookOpen className="h-8 w-8 text-blue-500 mr-3" />
+              <div>
+                <div className="text-2xl font-bold">{stats.total}</div>
+                <div className="text-gray-600">Chương trình</div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-2xl font-bold text-green-600">
-            {stats.avgTuition.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}
-          </div>
-          <div className="text-gray-600">Học phí TB (VNĐ)</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-lg font-semibold text-orange-600">{stats.byUnit.semester}</div>
-          <div className="text-gray-600">Học phí theo học kỳ</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-lg font-semibold text-purple-600">{stats.byUnit.year}</div>
-          <div className="text-gray-600">Học phí theo năm</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-green-600">
+              {stats.avgTuition.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}
+            </div>
+            <div className="text-gray-600">Học phí TB (VNĐ)</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-lg font-semibold text-orange-600">{stats.byUnit.semester}</div>
+            <div className="text-gray-600">Học phí theo học kỳ</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-lg font-semibold text-purple-600">{stats.byUnit.year}</div>
+            <div className="text-gray-600">Học phí theo năm</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-64">Tên chương trình</TableHead>
+              <TableHead className="w-48">Trường</TableHead>
+              <TableHead className="w-44">Học phí</TableHead>
+              <TableHead className="w-20">Năm</TableHead>
+              <TableHead>Mô tả</TableHead>
+              <TableHead className="w-32">Thao tác</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedPrograms.map((program) => (
+              <TableRow key={program.Id}>
+                <TableCell className="font-medium">{program.Name}</TableCell>
+                <TableCell className="text-blue-600">{program.UniversityName}</TableCell>
+                <TableCell>
+                  <div className="flex items-center">
+                    <DollarSign className="h-4 w-4 text-green-500 mr-1" />
+                    <span className="font-semibold">
+                      {formatCurrency(program.Tuition, program.TuitionUnit)}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell>{program.Year}</TableCell>
+                <TableCell className="max-w-xs truncate" title={program.Description}>
+                  {program.Description}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(program)}
+                      title="Sửa"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteClick(program)}
+                      className="text-red-600 hover:text-red-700"
+                      title="Xóa"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Pagination placeholder */}
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <div className="text-sm text-muted-foreground">
+          Hiển thị 1-{filteredPrograms.length} của {filteredPrograms.length} chương trình
         </div>
       </div>
 
-      <Table 
-        columns={columns} 
-        dataSource={filteredPrograms}
-        rowKey="Id"
-        loading={loading}
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total, range) => 
-            `${range[0]}-${range[1]} của ${total} chương trình`,
-        }}
-        scroll={{ x: 1000 }}
-      />
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận xóa chương trình</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn xóa chương trình "{programToDelete?.Name}"? 
+              Hành động này không thể hoàn tác.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteConfirm}
+            >
+              Xóa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <ProgramModal
         visible={isModalVisible}

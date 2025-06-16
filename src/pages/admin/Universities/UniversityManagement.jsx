@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
-import { Table, Button, Space, Popconfirm, message, Avatar, Tag } from 'antd';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from '@/hooks/use-toast';
 import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  EyeOutlined,
-  BankOutlined
-} from '@ant-design/icons';
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Building2
+} from 'lucide-react';
 import UniversityModal from './UniversityModal';
 import UniversityDetailModal from './UniversityDetailModal';
 
@@ -16,6 +21,8 @@ const UniversityManagement = () => {
   const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [viewingRecord, setViewingRecord] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [universityToDelete, setUniversityToDelete] = useState(null);
 
   // Sample data - in real app, this would come from API
   const [universities, setUniversities] = useState([
@@ -63,90 +70,6 @@ const UniversityManagement = () => {
     }
   ]);
 
-  const columns = [
-    {
-      title: 'Logo',
-      dataIndex: 'logo',
-      key: 'logo',
-      width: 80,
-      render: (logo) => <Avatar src={logo} icon={<BankOutlined />} />,
-    },
-    {
-      title: 'Tên trường',
-      dataIndex: 'name',
-      key: 'name',
-      sorter: (a, b) => a.name.localeCompare(b.name),
-    },
-    {
-      title: 'Mã trường',
-      dataIndex: 'code',
-      key: 'code',
-      width: 100,
-    },
-    {
-      title: 'Địa chỉ',
-      dataIndex: 'address',
-      key: 'address',
-      width: 120,
-    },
-    {
-      title: 'Loại hình',
-      dataIndex: 'type',
-      key: 'type',
-      width: 100,
-      render: (type) => (
-        <Tag color={type === 'Công lập' ? 'blue' : 'green'}>
-          {type}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
-      width: 100,
-      render: (status) => (
-        <Tag color={status === 'active' ? 'green' : 'red'}>
-          {status === 'active' ? 'Hoạt động' : 'Tạm dừng'}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Thao tác',
-      key: 'action',
-      width: 180,
-      render: (_, record) => (
-        <Space size="middle">
-          <Button 
-            type="link" 
-            icon={<EyeOutlined />}
-            onClick={() => handleView(record)}
-            title="Xem chi tiết"
-          />
-          <Button 
-            type="link" 
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-            title="Sửa"
-          />
-          <Popconfirm
-            title="Bạn có chắc chắn muốn xóa trường này?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Có"
-            cancelText="Không"
-          >
-            <Button 
-              type="link" 
-              danger 
-              icon={<DeleteOutlined />}
-              title="Xóa"
-            />
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
-
   const handleView = (record) => {
     setViewingRecord(record);
     setIsDetailModalVisible(true);
@@ -157,9 +80,21 @@ const UniversityManagement = () => {
     setIsModalVisible(true);
   };
 
-  const handleDelete = (id) => {
-    setUniversities(universities.filter(u => u.id !== id));
-    message.success('Đã xóa trường đại học thành công');
+  const handleDeleteClick = (university) => {
+    setUniversityToDelete(university);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (universityToDelete) {
+      setUniversities(universities.filter(u => u.id !== universityToDelete.id));
+      toast({
+        title: "Thành công",
+        description: "Đã xóa trường đại học thành công",
+      });
+    }
+    setDeleteDialogOpen(false);
+    setUniversityToDelete(null);
   };
 
   const handleAdd = () => {
@@ -173,7 +108,10 @@ const UniversityManagement = () => {
       setUniversities(universities.map(u => 
         u.id === editingRecord.id ? { ...u, ...values } : u
       ));
-      message.success('Đã cập nhật thông tin trường đại học');
+      toast({
+        title: "Thành công",
+        description: "Đã cập nhật thông tin trường đại học",
+      });
     } else {
       // Add new university
       const newUniversity = { 
@@ -182,39 +120,138 @@ const UniversityManagement = () => {
         status: values.status || 'active'
       };
       setUniversities([...universities, newUniversity]);
-      message.success('Đã thêm trường đại học mới');
+      toast({
+        title: "Thành công",
+        description: "Đã thêm trường đại học mới",
+      });
     }
     setIsModalVisible(false);
     setEditingRecord(null);
+  };
+
+  const getTypeBadge = (type) => {
+    return type === 'Công lập' ? 'default' : 'secondary';
+  };
+
+  const getStatusBadge = (status) => {
+    return status === 'active' ? 'secondary' : 'destructive';
   };
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Quản lý Trường Đại học</h2>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />}
-          onClick={handleAdd}
-        >
+        <Button onClick={handleAdd}>
+          <Plus className="h-4 w-4 mr-2" />
           Thêm trường mới
         </Button>
       </div>
 
-      <Table 
-        columns={columns} 
-        dataSource={universities}
-        rowKey="id"
-        loading={loading}
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total, range) => 
-            `${range[0]}-${range[1]} của ${total} trường`,
-        }}
-        scroll={{ x: 1000 }}
-      />
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-20">Logo</TableHead>
+              <TableHead>Tên trường</TableHead>
+              <TableHead className="w-24">Mã trường</TableHead>
+              <TableHead className="w-32">Địa chỉ</TableHead>
+              <TableHead className="w-24">Loại hình</TableHead>
+              <TableHead className="w-32">Trạng thái</TableHead>
+              <TableHead className="w-44">Thao tác</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {universities.map((university) => (
+              <TableRow key={university.id}>
+                <TableCell>
+                  <Avatar>
+                    <AvatarImage src={university.logo} alt={university.name} />
+                    <AvatarFallback>
+                      <Building2 className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                </TableCell>
+                <TableCell className="font-medium">{university.name}</TableCell>
+                <TableCell>{university.code}</TableCell>
+                <TableCell>{university.address}</TableCell>
+                <TableCell>
+                  <Badge variant={getTypeBadge(university.type)}>
+                    {university.type}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant={getStatusBadge(university.status)}>
+                    {university.status === 'active' ? 'Hoạt động' : 'Tạm dừng'}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleView(university)}
+                      title="Xem chi tiết"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(university)}
+                      title="Sửa"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteClick(university)}
+                      className="text-red-600 hover:text-red-700"
+                      title="Xóa"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Pagination placeholder */}
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <div className="text-sm text-muted-foreground">
+          Hiển thị 1-{universities.length} của {universities.length} trường
+        </div>
+      </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận xóa trường đại học</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn xóa trường "{universityToDelete?.name}" ({universityToDelete?.code})? 
+              Hành động này không thể hoàn tác.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteConfirm}
+            >
+              Xóa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <UniversityModal
         visible={isModalVisible}
