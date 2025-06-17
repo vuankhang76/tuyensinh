@@ -2,28 +2,33 @@ import React, { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Command, CommandInput } from '@/components/ui/command'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
-import { 
-  Search, 
+import {
   Filter,
   ArrowUpDown,
   Home,
   MapPin,
-  X
+  X,
+  ChevronDown
 } from 'lucide-react'
 import UniversityCard from '../components/Homepage/UniversityCard'
 import FilterSection from '../components/Homepage/FilterSection'
 import Loading from '../components/common/Loading/LoadingSkeleton'
+import { Link } from 'react-router-dom'
+import { useDebounce } from '@/hooks/useDebounce'
 
 const SearchResults = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
-  
+
   const [loading, setLoading] = useState(false)
+  const [searchInput, setSearchInput] = useState(searchParams.get('q') || '')
   const [universities, setUniversities] = useState([])
   const [filteredUniversities, setFilteredUniversities] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
@@ -37,6 +42,23 @@ const SearchResults = () => {
   const region = searchParams.get('region') || ''
   const type = searchParams.get('type') || ''
   const major = searchParams.get('major') || ''
+
+  // Debounced search value
+  const debouncedSearchInput = useDebounce(searchInput, 500)
+
+  // Update URL when debounced search value changes
+  useEffect(() => {
+    if (debouncedSearchInput !== query) {
+      updateSearchParams({ q: debouncedSearchInput })
+    }
+  }, [debouncedSearchInput])
+
+  // Sync search input with URL params when navigating
+  useEffect(() => {
+    if (query !== searchInput) {
+      setSearchInput(query)
+    }
+  }, [query, searchInput])
 
   // Mock data - trong thực tế sẽ fetch từ API
   const mockUniversities = [
@@ -137,40 +159,38 @@ const SearchResults = () => {
     }
   ]
 
-  // Simulate API call
+  // Simulate API call with debounced search
   useEffect(() => {
     setLoading(true)
-    
+
     // Simulate API delay
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       let filtered = [...mockUniversities]
-      
+
       // Filter by search query
       if (query) {
-        filtered = filtered.filter(uni => 
+        filtered = filtered.filter(uni =>
           uni.name.toLowerCase().includes(query.toLowerCase()) ||
           uni.majors.some(major => major.toLowerCase().includes(query.toLowerCase()))
         )
       }
-      
+
       // Filter by region
-      if (region) {
+      if (region && region !== 'clear') {
         filtered = filtered.filter(uni => uni.location === region)
       }
-      
+
       // Filter by type
-      if (type) {
+      if (type && type !== 'clear') {
         filtered = filtered.filter(uni => uni.type === type)
       }
-      
-      // Filter by major
+
       if (major) {
-        filtered = filtered.filter(uni => 
+        filtered = filtered.filter(uni =>
           uni.majors.some(m => m.toLowerCase().includes(major.toLowerCase()))
         )
       }
-      
-      // Sort results
+
       switch (sortBy) {
         case 'name':
           filtered.sort((a, b) => a.name.localeCompare(b.name))
@@ -189,22 +209,22 @@ const SearchResults = () => {
           })
           break
         default:
-          // Relevance - featured first, then by ranking
           filtered.sort((a, b) => {
             if (a.featured && !b.featured) return -1
             if (!a.featured && b.featured) return 1
             return a.ranking - b.ranking
           })
       }
-      
+
       setUniversities(mockUniversities)
       setFilteredUniversities(filtered)
       setTotalResults(filtered.length)
       setLoading(false)
-    }, 500)
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
   }, [query, region, type, major, sortBy])
 
-  // Update URL when search changes
   const updateSearchParams = (newParams) => {
     const params = new URLSearchParams(searchParams)
     Object.entries(newParams).forEach(([key, value]) => {
@@ -217,14 +237,27 @@ const SearchResults = () => {
     setSearchParams(params)
   }
 
-  // Handle filter changes
   const handleRegionChange = (value) => {
-    updateSearchParams({ region: value })
+    updateSearchParams({ region: value === 'clear' ? '' : value })
     setCurrentPage(1)
   }
 
   const handleTypeChange = (value) => {
-    updateSearchParams({ type: value })
+    updateSearchParams({ type: value === 'clear' ? '' : value })
+    setCurrentPage(1)
+  }
+
+  const clearAllFilters = () => {
+    setSearchInput('')
+    updateSearchParams({ q: '', region: '', type: '', major: '' })
+    setCurrentPage(1)
+  }
+
+  const handleSuggestionClick = (suggestion) => {
+    const params = new URLSearchParams(searchParams)
+    params.set('q', suggestion)
+    setSearchParams(params)
+    setSearchInput(suggestion)
     setCurrentPage(1)
   }
 
@@ -247,9 +280,9 @@ const SearchResults = () => {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/">
+                <BreadcrumbLink href="/" className="flex items-center">
                   <Home className="h-4 w-4" />
-                  <span className="ml-1">Trang chủ</span>
+                  <span className="ml-1 font-normal text-foreground">Trang chủ</span>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
@@ -274,44 +307,70 @@ const SearchResults = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col lg:flex-row gap-3">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Tìm kiếm trường đại học, ngành học... (tự động tìm kiếm)"
-                value={query}
-                onChange={(e) => {
-                  const newQuery = e.target.value
-                  updateSearchParams({ q: newQuery })
-                }}
-                className="pl-10 h-10"
-              />
+              <Command className="rounded-lg border border-gray-200 focus:border-gray-500">
+                <CommandInput
+                  placeholder="Tìm kiếm trường đại học, ngành học..."
+                  value={searchInput}
+                  onValueChange={setSearchInput}
+                />
+                {searchInput !== query && (
+                  <div className="absolute right-5 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
+                    Đang tìm...
+                  </div>
+                )}
+              </Command>
             </div>
-            
+
             <div className="flex gap-3">
-              <Select value={region || undefined} onValueChange={handleRegionChange}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Khu vực" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="clear">Tất cả khu vực</SelectItem>
-                  <SelectItem value="Hà Nội">Hà Nội</SelectItem>
-                  <SelectItem value="TP. Hồ Chí Minh">TP.HCM</SelectItem>
-                  <SelectItem value="Đà Nẵng">Đà Nẵng</SelectItem>
-                  <SelectItem value="Khác">Khác</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={type || undefined} onValueChange={handleTypeChange}>
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Loại hình" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="clear">Tất cả loại</SelectItem>
-                  <SelectItem value="Công lập">Công lập</SelectItem>
-                  <SelectItem value="Tư thục">Tư thục</SelectItem>
-                  <SelectItem value="Dân lập">Dân lập</SelectItem>
-                </SelectContent>
-              </Select>
-              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-[150px] justify-between">
+                    {region || "Khu vực"}
+                    <ChevronDown className="h-4 w-4 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-[150px]">
+                  <DropdownMenuItem onClick={() => handleRegionChange('clear')}>
+                    Tất cả khu vực
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleRegionChange('Hà Nội')}>
+                    Hà Nội
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleRegionChange('TP. Hồ Chí Minh')}>
+                    TP.HCM
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleRegionChange('Đà Nẵng')}>
+                    Đà Nẵng
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleRegionChange('Khác')}>
+                    Khác
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-[120px] justify-between">
+                    {type || "Loại hình"}
+                    <ChevronDown className="h-4 w-4 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-[120px]">
+                  <DropdownMenuItem onClick={() => handleTypeChange('clear')}>
+                    Tất cả loại
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleTypeChange('Công lập')}>
+                    Công lập
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleTypeChange('Tư thục')}>
+                    Tư thục
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleTypeChange('Dân lập')}>
+                    Dân lập
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <Button
                 variant={showFilters ? "default" : "outline"}
                 onClick={() => setShowFilters(!showFilters)}
@@ -319,6 +378,17 @@ const SearchResults = () => {
                 <Filter className="h-4 w-4 mr-2" />
                 Bộ lọc
               </Button>
+
+              {(query || region || type) && (
+                <Button
+                  variant="ghost"
+                  onClick={clearAllFilters}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Xóa bộ lọc
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -330,7 +400,7 @@ const SearchResults = () => {
           {/* Filters Sidebar */}
           {showFilters && (
             <div className="w-80 flex-shrink-0">
-              <FilterSection 
+              <FilterSection
                 selectedRegion={region}
                 setSelectedRegion={handleRegionChange}
                 selectedType={type}
@@ -386,11 +456,11 @@ const SearchResults = () => {
                   )}
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-600">Sắp xếp:</span>
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-[150px]">
+                  <SelectTrigger className="w-[180px]">
                     <ArrowUpDown className="h-4 w-4 mr-2" />
                     <SelectValue />
                   </SelectTrigger>
@@ -430,12 +500,12 @@ const SearchResults = () => {
                     <div className="space-y-2">
                       <div className="text-sm text-gray-600">Gợi ý:</div>
                       <div className="flex flex-wrap justify-center gap-2">
-                        {['Đại học Bách khoa', 'Công nghệ thông tin', 'Y khoa', 'Kinh tế'].map(suggestion => (
+                                                 {['Đại học Bách khoa', 'Công nghệ thông tin', 'Y khoa', 'Kinh tế'].map(suggestion => (
                           <Button
                             key={suggestion}
                             variant="outline"
                             size="sm"
-                            onClick={() => updateSearchParams({ q: suggestion })}
+                            onClick={() => handleSuggestionClick(suggestion)}
                           >
                             {suggestion}
                           </Button>
@@ -452,8 +522,8 @@ const SearchResults = () => {
               <>
                 <div className="space-y-4 mb-8">
                   {paginatedResults.map((university) => (
-                    <UniversityCard 
-                      key={university.id} 
+                    <UniversityCard
+                      key={university.id}
                       university={university}
                     />
                   ))}
@@ -464,16 +534,16 @@ const SearchResults = () => {
                   <div className="text-sm text-gray-600">
                     Hiển thị {startResult}-{endResult} của {totalResults} kết quả
                   </div>
-                  
+
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
-                        <PaginationPrevious 
+                        <PaginationPrevious
                           onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                           className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                         />
                       </PaginationItem>
-                      
+
                       {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
                         let pageNum;
                         if (totalPages <= 5) {
@@ -485,7 +555,7 @@ const SearchResults = () => {
                         } else {
                           pageNum = currentPage - 2 + i;
                         }
-                        
+
                         return (
                           <PaginationItem key={pageNum}>
                             <PaginationLink
@@ -498,9 +568,9 @@ const SearchResults = () => {
                           </PaginationItem>
                         );
                       })}
-                      
+
                       <PaginationItem>
-                        <PaginationNext 
+                        <PaginationNext
                           onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                           className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                         />

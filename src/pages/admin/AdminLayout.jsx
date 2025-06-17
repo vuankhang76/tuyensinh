@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import AdminNavbar from '@/components/admin/AdminNavbar';
 import {
   LayoutDashboard,
   Building2,
@@ -218,9 +219,9 @@ const AdminLayout = () => {
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <div className="w-64 bg-white shadow-lg">
-        <div className="p-6 text-center border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-          <div className="flex items-center justify-center mb-2">
-            <span className="text-xl font-bold text-gray-800">Admin</span>
+        <div className="py-6 text-center border-b border-r border-gray-200">
+          <div className="flex items-center justify-center">
+            <span className="text- font-bold text-gray-800">Admin</span>
           </div>
           <div className="text-xs text-gray-600 font-semibold">University Information System</div>
         </div>
@@ -233,6 +234,7 @@ const AdminLayout = () => {
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
+        <AdminNavbar />
         <main className="flex-1 overflow-auto p-6">
           <div className="max-w-7xl mx-auto">
             <Outlet />

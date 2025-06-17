@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom'
 import { Button } from "@/components/ui/button"
 import { Input } from '@/components/ui/input'
 import {
-  Facebook,
-  Youtube,
   Mail,
   Phone,
   MapPin
@@ -59,9 +57,9 @@ const Footer = () => {
               <Input
                 type="email"
                 placeholder="Email của bạn"
-                className="flex-1 bg-gray-800 border-gray-700 rounded-r-none text-sm focus:border-primary text-white"
+                className="flex-1 bg-gray-800 border-gray-700 rounded-r-none"
               />
-              <Button className="rounded-l-none">
+              <Button className="rounded-l-none h-10">
                 Đăng ký
               </Button>
             </div>

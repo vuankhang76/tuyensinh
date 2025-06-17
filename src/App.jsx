@@ -17,6 +17,8 @@ import UserManagement from './pages/admin/Users/UserManagement'
 import MajorManagement from './pages/admin/Majors/MajorManagement'
 import AdmissionNewsManagement from './pages/admin/AdmissionNews/AdmissionNewsManagement'
 import ProgramManagement from './pages/admin/Programs/ProgramManagement'
+import UniversityAdmin from './pages/UniversityAdmin'
+import AIChat from './pages/AIChat'
 import Unauthorized from './pages/Unauthorized'
 
 // Layout components
@@ -33,53 +35,65 @@ function App() {
     <AuthProvider>
       <Router>
         <div className="min-h-screen bg-background">
-          <Navbar />
-          <main>
-            <Routes>
-              <Route path="/" element={<Homepage />} />
-              <Route path="/university/:slug" element={<UniversityDetail />} />
-              <Route path="/search" element={<SearchResults />} />
-              <Route path="/compare" element={<CompareUniversities />} />
-              <Route path="/login" element={<Login />} />
-              
-              {/* Protected routes example */}
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <div className="p-8">Profile Page</div>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/admin" element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout />
-                </ProtectedRoute>
-              }>
-                <Route index element={<Overview />} />
-                <Route path="universities" element={<UniversityManagement />} />
-                <Route path="users" element={<UserManagement />} />
-                <Route path="majors" element={<MajorManagement />} />
-                <Route path="programs" element={<ProgramManagement />} />
-                <Route path="scholarships" element={<div className="p-8">Quản lý Học bổng - Đang phát triển</div>} />
-                <Route path="news" element={<AdmissionNewsManagement />} />
-                <Route path="verification" element={<div className="p-8">Xác minh Thông tin - Đang phát triển</div>} />
-                <Route path="settings" element={<div className="p-8">Cài đặt Hệ thống - Đang phát triển</div>} />
-              </Route>
-              
-              <Route path="/university-admin" element={
-                <ProtectedRoute requiredRole="university">
-                  <div className="p-8">University Admin Dashboard</div>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/unauthorized" element={<Unauthorized />} />
-            </Routes>
-          </main>
-          <Footer />
-          
-          {/* Demo accounts info - only in development */}
+          <Routes>
+            {/* Admin routes without regular navbar */}
+            <Route path="/admin" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<Overview />} />
+              <Route path="universities" element={<UniversityManagement />} />
+              <Route path="users" element={<UserManagement />} />
+              <Route path="majors" element={<MajorManagement />} />
+              <Route path="programs" element={<ProgramManagement />} />
+              <Route path="scholarships" element={<div className="p-8">Quản lý Học bổng - Đang phát triển</div>} />
+              <Route path="news" element={<AdmissionNewsManagement />} />
+              <Route path="verification" element={<div className="p-8">Xác minh Thông tin - Đang phát triển</div>} />
+              <Route path="settings" element={<div className="p-8">Cài đặt Hệ thống - Đang phát triển</div>} />
+              <Route path="profile" element={<div className="p-8">Admin Profile - Đang phát triển</div>} />
+            </Route>
+
+            <Route path="/university-admin" element={
+              <ProtectedRoute requiredRole="university">
+                <UniversityAdmin />
+              </ProtectedRoute>
+            } />
+
+            {/* Regular routes with navbar */}
+            <Route path="/*" element={
+              <>
+                <Navbar />
+                <main>
+                  <Routes>
+                    <Route path="/" element={<Homepage />} />
+                    <Route path="/university/:slug" element={<UniversityDetail />} />
+                    <Route path="/search" element={<SearchResults />} />
+                    <Route path="/compare" element={<CompareUniversities />} />
+                     <Route path="/login" element={<Login />} />
+                     <Route path="/ai-chat" element={
+                       <ProtectedRoute>
+                         <AIChat />
+                       </ProtectedRoute>
+                     } />
+                     
+                     {/* Protected routes example */}
+                     <Route path="/profile" element={
+                       <ProtectedRoute>
+                         <div className="p-8">Profile Page</div>
+                       </ProtectedRoute>
+                     } />
+                     
+                     <Route path="/unauthorized" element={<Unauthorized />} />
+                  </Routes>
+                </main>
+                <Footer />
+              </>
+            } />
+          </Routes>
+
           <DemoInfo />
-          
-          {/* Toast notifications */}
+
           <Toaster />
         </div>
       </Router>

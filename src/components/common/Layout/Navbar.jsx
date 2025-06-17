@@ -12,7 +12,8 @@ import {
   Settings,
   LogOut,
   LogIn,
-  LayoutDashboard
+  LayoutDashboard,
+  MessageCircle
 } from 'lucide-react'
 import {
   NavigationMenu,
@@ -67,6 +68,16 @@ const Navbar = () => {
     navigate('/')
   }
 
+  const handleAIChat = () => {
+    if (!isAuthenticated) {
+      navigate('/login?redirect=ai-chat')
+    } else {
+      navigate('/ai-chat')
+    }
+    setActiveDropdown(null)
+    setIsMobileMenuOpen(false)
+  }
+
   const ListItem = React.forwardRef(({ className, title, children, ...props }, ref) => {
     return (
       <li>
@@ -115,7 +126,6 @@ const Navbar = () => {
                     <Link to="/">
                       <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
                         <span>
-                          <Home className="h-4 w-4 mr-2" />
                           Trang chủ
                         </span>
                       </NavigationMenuLink>
@@ -126,7 +136,6 @@ const Navbar = () => {
                   {user?.role !== 'admin' && (
                     <NavigationMenuItem>
                       <NavigationMenuTrigger>
-                        <Building2 className="h-4 w-4 mr-2" />
                         Trường đại học
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
@@ -161,49 +170,10 @@ const Navbar = () => {
                     </NavigationMenuItem>
                   )}
 
-                  {/* Majors Dropdown */}
-                  {user?.role !== 'admin' && (
-                    <NavigationMenuItem>
-                      <NavigationMenuTrigger>
-                        <BookOpen className="h-4 w-4 mr-2" />
-                        Ngành học
-                      </NavigationMenuTrigger>
-                      <NavigationMenuContent>
-                        <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
-                          <ListItem
-                            title="Công nghệ thông tin"
-                            href="/search?major=Công nghệ thông tin"
-                          >
-                            Lập trình, AI, Machine Learning, Cybersecurity
-                          </ListItem>
-                          <ListItem
-                            title="Kinh tế - Kinh doanh"
-                            href="/search?major=Kinh doanh"
-                          >
-                            Quản trị kinh doanh, Marketing, Tài chính
-                          </ListItem>
-                          <ListItem
-                            title="Kỹ thuật"
-                            href="/search?major=Kỹ thuật"
-                          >
-                            Cơ khí, Điện tử, Xây dựng, Hóa học
-                          </ListItem>
-                          <ListItem
-                            title="Y - Dược"
-                            href="/search?major=Y khoa"
-                          >
-                            Y khoa, Dược học, Điều dưỡng
-                          </ListItem>
-                        </ul>
-                      </NavigationMenuContent>
-                    </NavigationMenuItem>
-                  )}
-
                   {/* News Dropdown */}
                   {user?.role !== 'admin' && (
                     <NavigationMenuItem>
                     <NavigationMenuTrigger>
-                        <Bell className="h-4 w-4 mr-2" />
                         Tin tức
                       </NavigationMenuTrigger>
                     <NavigationMenuContent>
@@ -223,18 +193,30 @@ const Navbar = () => {
                             </a>
                           </NavigationMenuLink>
                         </li>
-                        <ListItem href="/search?type=Tất cả" title="Tất cả trường">
+                        <ListItem href="/news?category=admission" title="Tin tuyển sinh">
                           Danh sách đầy đủ các trường đại học
                         </ListItem>
-                        <ListItem href="/search?type=Công lập" title="Trường công lập">
+                        <ListItem href="/news?category=policy" title="Chính sách mới">
                           Các trường đại học công lập
                         </ListItem>
-                        <ListItem href="/search?type=Tư thục" title="Trường tư thục">
+                        <ListItem href="/news?category=scholarship" title="Học bổng">
                           Các trường đại học tư thục
                         </ListItem>
                       </ul>
                     </NavigationMenuContent>
                   </NavigationMenuItem>
+                  )}
+
+                  {/* AI Chat */}
+                  {user?.role !== 'admin' && (
+                    <NavigationMenuItem>
+                      <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                        <button onClick={handleAIChat} className="flex items-center space-x-2">
+                          <MessageCircle className="h-4 w-4" />
+                          <span>Trợ lý AI</span>
+                        </button>
+                      </NavigationMenuLink>
+                    </NavigationMenuItem>
                   )}
                 </NavigationMenuList>
               </NavigationMenu>
@@ -287,6 +269,12 @@ const Navbar = () => {
                         <DropdownMenuItem onClick={() => navigate('/admin')}>
                           <LayoutDashboard className="mr-2 h-4 w-4" />
                           <span>Admin Dashboard</span>
+                        </DropdownMenuItem>
+                      )}
+                      {user?.role === 'university' && (
+                        <DropdownMenuItem onClick={() => navigate('/university-admin')}>
+                          <Building2 className="mr-2 h-4 w-4" />
+                          <span>Quản lý trường</span>
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuItem onClick={() => navigate('/profile')}>
@@ -357,6 +345,16 @@ const Navbar = () => {
                         <span>Admin Dashboard</span>
                       </Link>
                     )}
+                    {user?.role === 'university' && (
+                      <Link
+                        to="/university-admin"
+                        className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-green-600 transition-colors duration-200"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <Building2 className="h-4 w-4" />
+                        <span>Quản lý trường</span>
+                      </Link>
+                    )}
                     <Link
                       to="/profile"
                       className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
@@ -412,7 +410,6 @@ const Navbar = () => {
                       onClick={() => handleDropdownToggle('universities-mobile')}
                     >
                       <div className="flex items-center space-x-3">
-                        <Building2 className="h-4 w-4" />
                         <span>Trường đại học</span>
                       </div>
                       <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${activeDropdown === 'universities-mobile' ? 'rotate-180' : ''}`} />
@@ -445,54 +442,6 @@ const Navbar = () => {
                   </div>
                 )}
 
-                {/* Majors Mobile */}
-                {user?.role !== 'admin' && (
-                  <div>
-                    <button
-                      className="w-full flex items-center justify-between px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
-                      onClick={() => handleDropdownToggle('majors-mobile')}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <BookOpen className="h-4 w-4" />
-                        <span>Ngành học</span>
-                      </div>
-                      <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${activeDropdown === 'majors-mobile' ? 'rotate-180' : ''}`} />
-                    </button>
-                    {activeDropdown === 'majors-mobile' && (
-                      <div className="bg-gray-50">
-                        <Link
-                          to="/search?major=Công nghệ thông tin"
-                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          Công nghệ thông tin
-                        </Link>
-                        <Link
-                          to="/search?major=Kinh doanh"
-                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          Kinh tế - Kinh doanh
-                        </Link>
-                        <Link
-                          to="/search?major=Kỹ thuật"
-                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          Kỹ thuật
-                        </Link>
-                        <Link
-                          to="/search?major=Y khoa"
-                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          Y - Dược
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                )}
-
                 {/* News Mobile */}
                 {user?.role !== 'admin' && (
                   <div>
@@ -501,7 +450,6 @@ const Navbar = () => {
                       onClick={() => handleDropdownToggle('news-mobile')}
                     >
                       <div className="flex items-center space-x-3">
-                        <Bell className="h-4 w-4" />
                         <span>Tin tức</span>
                       </div>
                       <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${activeDropdown === 'news-mobile' ? 'rotate-180' : ''}`} />
@@ -532,6 +480,17 @@ const Navbar = () => {
                       </div>
                     )}
                   </div>
+                )}
+
+                {/* AI Chat Mobile */}
+                {user?.role !== 'admin' && (
+                  <button
+                    onClick={handleAIChat}
+                    className="w-full flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    <span>Trợ lý AI</span>
+                  </button>
                 )}
               </div>
             </div>

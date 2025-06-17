@@ -30,7 +30,10 @@ const Login = () => {
   const location = useLocation();
   const { login } = useAuth();
 
-  const from = location.state?.from?.pathname || '/';
+  // Handle redirect parameter from URL
+  const urlParams = new URLSearchParams(location.search);
+  const redirectTo = urlParams.get('redirect');
+  const from = location.state?.from?.pathname || (redirectTo ? `/${redirectTo}` : '/');
 
   // Email/Password Login
   const handleCredentialsLogin = async (values) => {
@@ -51,7 +54,14 @@ const Login = () => {
           title: "Đăng nhập thành công",
           description: `Chào mừng ${result.user.email}!`,
         });
-        navigate(from, { replace: true });
+        
+        if (result.user.role === 'admin') {
+          navigate('/admin', { replace: true });
+        } else if (result.user.role === 'university') {
+          navigate('/university-admin', { replace: true });
+        } else {
+          navigate(from, { replace: true });
+        }
       }
     } catch (error) {
       setError('Đã xảy ra lỗi. Vui lòng thử lại.');
@@ -76,7 +86,15 @@ const Login = () => {
           title: "Đăng nhập thành công",
           description: `Chào mừng ${result.user.email}!`,
         });
-        navigate(from, { replace: true });
+        
+        // Redirect admin to admin panel
+        if (result.user.role === 'admin') {
+          navigate('/admin', { replace: true });
+        } else if (result.user.role === 'university') {
+          navigate('/university-admin', { replace: true });
+        } else {
+          navigate(from, { replace: true });
+        }
       }
     } catch (error) {
       setError('Đã xảy ra lỗi khi đăng nhập bằng Google.');
