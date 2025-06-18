@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +16,6 @@ import {
 import { loginWithCredentials, loginWithGoogle } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
-import ApiTester from '../components/common/ApiTester';
 
 const Login = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
@@ -26,12 +25,19 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { user, login } = useAuth();
 
-  // Handle redirect parameter from URL
-  const urlParams = new URLSearchParams(location.search);
-  const redirectTo = urlParams.get('redirect');
-  const from = location.state?.from?.pathname || (redirectTo ? `/${redirectTo}` : '/');
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'admin') {
+        navigate('/admin', { replace: true });
+      } else if (user.role === 'university') {
+        navigate('/university', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [user, navigate]);
 
   // Email/Password Login
   const handleCredentialsLogin = async (values) => {
@@ -56,9 +62,9 @@ const Login = () => {
         if (result.user.role === 'admin') {
           navigate('/admin', { replace: true });
         } else if (result.user.role === 'university') {
-          navigate('/university-admin', { replace: true });
+          navigate('/university', { replace: true });
         } else {
-          navigate(from, { replace: true });
+          navigate('/', { replace: true });
         }
       }
     } catch (error) {
@@ -84,16 +90,16 @@ const Login = () => {
       } else {
         login(result.user);
         toast.success("Đăng nhập thành công", {
-          description: `Chào mừng ${result.user.email}!`,
+          description: `Chào mừng ${result.user.displayName}!`,
         });
 
         // Redirect admin to admin panel
         if (result.user.role === 'admin') {
           navigate('/admin', { replace: true });
         } else if (result.user.role === 'university') {
-          navigate('/university-admin', { replace: true });
+          navigate('/university', { replace: true });
         } else {
-          navigate(from, { replace: true });
+          navigate('/', { replace: true });
         }
       }
     } catch (error) {
@@ -108,7 +114,6 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <ApiTester />
         {/* Header */}
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-bold text-foreground">
@@ -186,8 +191,8 @@ const Login = () => {
                     {...register('password', {
                       required: 'Vui lòng nhập mật khẩu!',
                       minLength: {
-                        value: 6,
-                        message: 'Mật khẩu phải có ít nhất 6 ký tự'
+                        value: 3,
+                        message: 'Mật khẩu phải có ít nhất 3 ký tự'
                       }
                     })}
                   />

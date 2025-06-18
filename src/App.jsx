@@ -23,13 +23,10 @@ import UniversityAdmin from './pages/university/UniversityAdmin'
 import AIChat from './pages/AIChat'
 import Unauthorized from './pages/Unauthorized'
 
-// Layout components
 import Navbar from './components/common/Layout/Navbar'
 import Footer from './components/common/Layout/Footer'
-import DemoInfo from './components/common/DemoInfo'
 import ProtectedRoute from './components/common/ProtectedRoute'
 
-// Toast components
 import { Toaster } from './components/ui/sonner'
 
 function App() {
@@ -85,6 +82,7 @@ function App() {
                     <Route path="/university/:slug" element={<UniversityDetail />} />
                     <Route path="/search" element={<SearchResults />} />
                     <Route path="/compare" element={<CompareUniversities />} />
+                    
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     
@@ -102,9 +100,6 @@ function App() {
               </>
             } />
           </Routes>
-
-          <DemoInfo />
-
           <Toaster />
         </div>
       </Router>

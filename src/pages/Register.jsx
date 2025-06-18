@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -14,14 +14,29 @@ import {
     Mail
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '../context/AuthContext';
+
 const Register = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const { user } = useAuth();
 
-    const { register, handleSubmit, formState: { errors }, watch } = useForm();
+    const { register, handleSubmit, formState: { errors }, watch, control } = useForm();
     const password = watch('password');
+
+    useEffect(() => {
+        if (user) {
+            if (user.role === 'admin') {
+                navigate('/admin', { replace: true });
+            } else if (user.role === 'university') {
+                navigate('/university', { replace: true });
+            } else {
+                navigate('/', { replace: true });
+            }
+        }
+    }, [user, navigate]);
 
     // Handle Registration
     const handleRegister = async (values) => {
@@ -127,8 +142,8 @@ const Register = () => {
                                         {...register('password', {
                                             required: 'Vui lòng nhập mật khẩu!',
                                             minLength: {
-                                                value: 6,
-                                                message: 'Mật khẩu phải có ít nhất 6 ký tự'
+                                                value: 3,
+                                                message: 'Mật khẩu phải có ít nhất 3 ký tự'
                                             }
                                         })}
                                     />
@@ -175,11 +190,17 @@ const Register = () => {
 
                             <div className="flex items-center space-x-1">
                                 <div className="flex items-center gap-2">
-                                    <Checkbox
-                                        id="terms"
-                                        {...register('terms', {
-                                            required: 'Bạn phải đồng ý với điều khoản sử dụng'
-                                        })}
+                                    <Controller
+                                      name="terms"
+                                      control={control}
+                                      rules={{ required: 'Bạn phải đồng ý với điều khoản sử dụng' }}
+                                      render={({ field }) => (
+                                        <Checkbox
+                                          id="terms"
+                                          checked={field.value}
+                                          onCheckedChange={field.onChange}
+                                        />
+                                      )}
                                     />
                                     <div className="text-[13px] space-x-1">
                                         <span>Tôi đồng ý với</span>
