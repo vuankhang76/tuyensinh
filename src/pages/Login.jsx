@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -12,18 +11,16 @@ import {
   User, 
   Lock, 
   Eye,
-  EyeOff,
-  AlertCircle
+  EyeOff
 } from 'lucide-react';
 import { loginWithCredentials, loginWithGoogle } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 const Login = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
@@ -38,7 +35,6 @@ const Login = () => {
   // Email/Password Login
   const handleCredentialsLogin = async (values) => {
     setLoading(true);
-    setError('');
 
     try {
       const result = await loginWithCredentials(
@@ -47,11 +43,12 @@ const Login = () => {
       );
       
       if (result.error) {
-        setError(result.error);
+        toast.error("Đăng nhập thất bại", {
+          description: result.error,
+        });
       } else {
         login(result.user);
-        toast({
-          title: "Đăng nhập thành công",
+        toast.success("Đăng nhập thành công", {
           description: `Chào mừng ${result.user.email}!`,
         });
         
@@ -64,7 +61,9 @@ const Login = () => {
         }
       }
     } catch (error) {
-      setError('Đã xảy ra lỗi. Vui lòng thử lại.');
+      toast.error("Lỗi hệ thống", {
+        description: "Đã xảy ra lỗi. Vui lòng thử lại.",
+      });
     } finally {
       setLoading(false);
     }
@@ -73,17 +72,17 @@ const Login = () => {
   // Google Login
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
-    setError('');
 
     try {
       const result = await loginWithGoogle();
       
       if (result.error) {
-        setError(result.error);
+        toast.error("Đăng nhập Google thất bại", {
+          description: result.error,
+        });
       } else {
         login(result.user);
-        toast({
-          title: "Đăng nhập thành công",
+        toast.success("Đăng nhập thành công", {
           description: `Chào mừng ${result.user.email}!`,
         });
         
@@ -97,7 +96,9 @@ const Login = () => {
         }
       }
     } catch (error) {
-      setError('Đã xảy ra lỗi khi đăng nhập bằng Google.');
+      toast.error("Lỗi hệ thống", {
+        description: "Đã xảy ra lỗi khi đăng nhập bằng Google.",
+      });
     } finally {
       setGoogleLoading(false);
     }
@@ -119,13 +120,6 @@ const Login = () => {
         {/* Login Form */}
         <Card className="shadow-lg">
           <CardContent className="p-6">
-            {error && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
             {/* Google Login First */}
             <Button
               onClick={handleGoogleLogin}
@@ -163,7 +157,15 @@ const Login = () => {
                     className="pl-10"
                     autoComplete="username"
                     {...register('emailOrUsername', { 
-                      required: 'Vui lòng nhập email hoặc tên đăng nhập!' 
+                      required: 'Vui lòng nhập email hoặc tên đăng nhập!',
+                      minLength: {
+                        value: 3,
+                        message: 'Email hoặc tên đăng nhập phải có ít nhất 3 ký tự'
+                      },
+                      pattern: {
+                        value: /^[^\s]+$/,
+                        message: 'Email hoặc tên đăng nhập không được chứa khoảng trắng'
+                      }
                     })}
                   />
                 </div>
@@ -183,7 +185,11 @@ const Login = () => {
                     className="pl-10 pr-10"
                     autoComplete="current-password"
                     {...register('password', { 
-                      required: 'Vui lòng nhập mật khẩu!' 
+                      required: 'Vui lòng nhập mật khẩu!',
+                      minLength: {
+                        value: 6,
+                        message: 'Mật khẩu phải có ít nhất 6 ký tự'
+                      }
                     })}
                   />
                   <button

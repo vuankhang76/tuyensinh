@@ -13,6 +13,7 @@ import Login from './pages/Login'
 import AdminLayout from './pages/admin/AdminLayout'
 import Overview from './pages/admin/Dashboard/Overview'
 import UniversityManagement from './pages/admin/Universities/UniversityManagement'
+import UniversityDetailPage from './pages/admin/Universities/UniversityDetailPage'
 import UserManagement from './pages/admin/Users/UserManagement'
 import MajorManagement from './pages/admin/Majors/MajorManagement'
 import AdmissionNewsManagement from './pages/admin/AdmissionNews/AdmissionNewsManagement'
@@ -44,6 +45,7 @@ function App() {
             }>
               <Route index element={<Overview />} />
               <Route path="universities" element={<UniversityManagement />} />
+              <Route path="universities/:id" element={<UniversityDetailPage />} />
               <Route path="users" element={<UserManagement />} />
               <Route path="majors" element={<MajorManagement />} />
               <Route path="programs" element={<ProgramManagement />} />
@@ -60,7 +62,19 @@ function App() {
               </ProtectedRoute>
             } />
 
-            {/* Regular routes with navbar */}
+            {/* AI Chat route without footer */}
+            <Route path="/ai-chat" element={
+              <>
+                <Navbar />
+                <main className="h-screen">
+                  <ProtectedRoute>
+                    <AIChat />
+                  </ProtectedRoute>
+                </main>
+              </>
+            } />
+
+            {/* Regular routes with navbar and footer */}
             <Route path="/*" element={
               <>
                 <Navbar />
@@ -71,11 +85,6 @@ function App() {
                     <Route path="/search" element={<SearchResults />} />
                     <Route path="/compare" element={<CompareUniversities />} />
                      <Route path="/login" element={<Login />} />
-                     <Route path="/ai-chat" element={
-                       <ProtectedRoute>
-                         <AIChat />
-                       </ProtectedRoute>
-                     } />
                      
                      {/* Protected routes example */}
                      <Route path="/profile" element={

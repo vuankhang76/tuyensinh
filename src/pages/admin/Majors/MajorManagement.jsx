@@ -152,7 +152,7 @@ const MajorManagement = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-2xl font-bold">Quản lý Ngành học</h2>
+          <h2 className="text-2xl font-bold">Quản lý ngành học</h2>
           <div className="flex space-x-4 mt-2 text-sm text-gray-600">
             <span>Tổng: {stats.total} ngành</span>
             <span>Có điểm chuẩn: {stats.withScore}</span>
@@ -192,14 +192,6 @@ const MajorManagement = () => {
             </div>
           </CardContent>
         </Card>
-        {stats.byUniversity.slice(0, 3).map(uni => (
-          <Card key={uni.Id}>
-            <CardContent className="p-4">
-              <div className="text-lg font-semibold">{uni.count}</div>
-              <div className="text-gray-600 text-sm">{uni.Name}</div>
-            </CardContent>
-          </Card>
-        ))}
       </div>
 
       <div className="rounded-md border">

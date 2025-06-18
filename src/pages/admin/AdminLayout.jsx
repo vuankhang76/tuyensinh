@@ -62,7 +62,7 @@ const AdminLayout = () => {
     {
       key: 'university-management',
       icon: Building2,
-      label: 'University Management',
+      label: 'Quản lý trường',
       type: 'group',
       children: [
         {
@@ -90,7 +90,7 @@ const AdminLayout = () => {
     {
       key: 'user-management',
       icon: User,
-      label: 'User Management',
+      label: 'Quản lý người dùng',
       type: 'group',
       children: [
         {
@@ -108,7 +108,7 @@ const AdminLayout = () => {
     {
       key: 'content-management',
       icon: Bell,
-      label: 'Content Management',
+      label: 'Quản lý tin',
       type: 'group',
       children: [
         {

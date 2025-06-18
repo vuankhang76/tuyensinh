@@ -1,28 +1,22 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import {
   Plus,
   Edit,
-  Trash2,
-  Eye,
-  Building2
+  Building2,
 } from 'lucide-react';
 import UniversityModal from './UniversityModal';
-import UniversityDetailModal from './UniversityDetailModal';
 
 const UniversityManagement = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
-  const [viewingRecord, setViewingRecord] = useState(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [universityToDelete, setUniversityToDelete] = useState(null);
 
   // Sample data - in real app, this would come from API
   const [universities, setUniversities] = useState([
@@ -71,30 +65,7 @@ const UniversityManagement = () => {
   ]);
 
   const handleView = (record) => {
-    setViewingRecord(record);
-    setIsDetailModalVisible(true);
-  };
-
-  const handleEdit = (record) => {
-    setEditingRecord(record);
-    setIsModalVisible(true);
-  };
-
-  const handleDeleteClick = (university) => {
-    setUniversityToDelete(university);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = () => {
-    if (universityToDelete) {
-      setUniversities(universities.filter(u => u.id !== universityToDelete.id));
-      toast({
-        title: "Thành công",
-        description: "Đã xóa trường đại học thành công",
-      });
-    }
-    setDeleteDialogOpen(false);
-    setUniversityToDelete(null);
+    navigate(`/admin/universities/${record.id}`);
   };
 
   const handleAdd = () => {
@@ -108,10 +79,7 @@ const UniversityManagement = () => {
       setUniversities(universities.map(u => 
         u.id === editingRecord.id ? { ...u, ...values } : u
       ));
-      toast({
-        title: "Thành công",
-        description: "Đã cập nhật thông tin trường đại học",
-      });
+      toast.success("Đã cập nhật thông tin trường đại học");
     } else {
       // Add new university
       const newUniversity = { 
@@ -120,27 +88,18 @@ const UniversityManagement = () => {
         status: values.status || 'active'
       };
       setUniversities([...universities, newUniversity]);
-      toast({
-        title: "Thành công",
-        description: "Đã thêm trường đại học mới",
-      });
+      toast.success("Đã thêm trường đại học mới");
     }
     setIsModalVisible(false);
     setEditingRecord(null);
   };
 
-  const getTypeBadge = (type) => {
-    return type === 'Công lập' ? 'default' : 'secondary';
-  };
-
-  const getStatusBadge = (status) => {
-    return status === 'active' ? 'secondary' : 'destructive';
-  };
-
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Quản lý Trường Đại học</h2>
+        <div>
+          <h2 className="text-2xl font-bold">Quản lý Trường Đại học</h2>
+        </div>
         <Button onClick={handleAdd}>
           <Plus className="h-4 w-4 mr-2" />
           Thêm trường mới
@@ -151,65 +110,59 @@ const UniversityManagement = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-20">Logo</TableHead>
-              <TableHead>Tên trường</TableHead>
-              <TableHead className="w-24">Mã trường</TableHead>
-              <TableHead className="w-32">Địa chỉ</TableHead>
-              <TableHead className="w-24">Loại hình</TableHead>
-              <TableHead className="w-32">Trạng thái</TableHead>
-              <TableHead className="w-44">Thao tác</TableHead>
+              <TableHead className="w-10 font-bold">Id</TableHead>
+              <TableHead className="w-50 font-bold">Tên trường</TableHead>
+              <TableHead className="w-24 font-bold">Mã trường</TableHead>
+              <TableHead className="w-24 font-bold">Địa chỉ</TableHead>
+              <TableHead className="w-24 font-bold">Loại hình</TableHead>
+              <TableHead className="w-20 font-bold">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {universities.map((university) => (
-              <TableRow key={university.id}>
-                <TableCell>
-                  <Avatar>
-                    <AvatarImage src={university.logo} alt={university.name} />
-                    <AvatarFallback>
-                      <Building2 className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
+              <TableRow 
+                key={university.id}
+                className="hover:bg-muted/50 transition-colors"
+              >
+                <TableCell>{university.id}</TableCell>
+                <TableCell className="font-medium">
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={university.logo} alt={university.name} />
+                      <AvatarFallback>
+                        <Building2 className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-medium">{university.name}</div>
+                      <div className="text-sm text-muted-foreground truncate max-w-xs">
+                        {university.description}
+                      </div>
+                    </div>
+                  </div>
                 </TableCell>
-                <TableCell className="font-medium">{university.name}</TableCell>
-                <TableCell>{university.code}</TableCell>
-                <TableCell>{university.address}</TableCell>
                 <TableCell>
-                  <Badge variant={getTypeBadge(university.type)}>
+                  <Badge variant="outline">{university.code}</Badge>
+                </TableCell>
+                <TableCell className="max-w-xs truncate">{university.address}</TableCell>
+                <TableCell>
+                  <span>
                     {university.type}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={getStatusBadge(university.status)}>
-                    {university.status === 'active' ? 'Hoạt động' : 'Tạm dừng'}
-                  </Badge>
+                  </span>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center space-x-2">
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleView(university)}
-                      title="Xem chi tiết"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit(university)}
-                      title="Sửa"
+                      className="cursor-pointer hover:bg-primary/10 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleView(university);
+                      }}
+                      title="Chỉnh sửa"
                     >
                       <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteClick(university)}
-                      className="text-red-600 hover:text-red-700"
-                      title="Xóa"
-                    >
-                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </TableCell>
@@ -226,33 +179,6 @@ const UniversityManagement = () => {
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Xác nhận xóa trường đại học</DialogTitle>
-            <DialogDescription>
-              Bạn có chắc chắn muốn xóa trường "{universityToDelete?.name}" ({universityToDelete?.code})? 
-              Hành động này không thể hoàn tác.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setDeleteDialogOpen(false)}
-            >
-              Hủy
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDeleteConfirm}
-            >
-              Xóa
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       <UniversityModal
         visible={isModalVisible}
         onCancel={() => {
@@ -261,15 +187,6 @@ const UniversityManagement = () => {
         }}
         onSubmit={handleSubmit}
         editingRecord={editingRecord}
-      />
-
-      <UniversityDetailModal
-        visible={isDetailModalVisible}
-        onCancel={() => {
-          setIsDetailModalVisible(false);
-          setViewingRecord(null);
-        }}
-        record={viewingRecord}
       />
     </div>
   );
