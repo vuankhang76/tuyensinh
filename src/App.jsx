@@ -25,7 +25,7 @@ import Unauthorized from './pages/Unauthorized'
 
 import Navbar from './components/common/Layout/Navbar'
 import Footer from './components/common/Layout/Footer'
-import ProtectedRoute from './components/common/ProtectedRoute'
+import ProtectedRoute from './routes/ProtectedRoute'
 
 import { Toaster } from './components/ui/sonner'
 
