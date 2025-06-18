@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -14,14 +14,13 @@ import {
     Mail
 } from 'lucide-react';
 import { toast } from 'sonner';
-
 const Register = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    const { register, handleSubmit, formState: { errors }, watch, control } = useForm();
+    const { register, handleSubmit, formState: { errors }, watch } = useForm();
     const password = watch('password');
 
     // Handle Registration
@@ -176,17 +175,11 @@ const Register = () => {
 
                             <div className="flex items-center space-x-1">
                                 <div className="flex items-center gap-2">
-                                    <Controller
-                                      name="terms"
-                                      control={control}
-                                      rules={{ required: 'Bạn phải đồng ý với điều khoản sử dụng' }}
-                                      render={({ field }) => (
-                                        <Checkbox
-                                          id="terms"
-                                          checked={field.value}
-                                          onCheckedChange={field.onChange}
-                                        />
-                                      )}
+                                    <Checkbox
+                                        id="terms"
+                                        {...register('terms', {
+                                            required: 'Bạn phải đồng ý với điều khoản sử dụng'
+                                        })}
                                     />
                                     <div className="text-[13px] space-x-1">
                                         <span>Tôi đồng ý với</span>
