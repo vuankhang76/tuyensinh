@@ -4,13 +4,11 @@ import { useAuth } from '@/context/AuthContext';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { 
   User, 
   Settings, 
   LogOut, 
   Bell,
-  Shield
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -21,16 +19,13 @@ const AdminNavbar = () => {
   const handleLogout = async () => {
     const result = await logout();
     if (result.success) {
-      toast({
-        title: "Đăng xuất thành công",
+      toast.success("Đăng xuất thành công", {
         description: "Hẹn gặp lại bạn!",
       });
       navigate('/');
     } else {
-      toast({
-        title: "Lỗi đăng xuất",
+      toast.error("Lỗi đăng xuất", {
         description: result.error,
-        variant: "destructive"
       });
     }
   };

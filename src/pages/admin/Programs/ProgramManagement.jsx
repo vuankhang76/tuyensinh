@@ -144,7 +144,6 @@ const ProgramManagement = () => {
   // Statistics
   const stats = {
     total: programs.length,
-    avgTuition: programs.reduce((sum, p) => sum + p.Tuition, 0) / programs.length,
     byUnit: {
       semester: programs.filter(p => p.TuitionUnit === 'học kỳ').length,
       year: programs.filter(p => p.TuitionUnit === 'năm học').length
@@ -164,7 +163,6 @@ const ProgramManagement = () => {
           <h2 className="text-2xl font-bold">Quản lý Chương trình Đào tạo</h2>
           <div className="flex space-x-4 mt-2 text-sm text-gray-600">
             <span>Tổng: {stats.total} chương trình</span>
-            <span>Học phí TB: {stats.avgTuition.toLocaleString('vi-VN')} VNĐ</span>
           </div>
         </div>
         <div className="flex space-x-2">
@@ -189,36 +187,27 @@ const ProgramManagement = () => {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center">
-              <BookOpen className="h-8 w-8 text-blue-500 mr-3" />
+            <div className="flex items-center justify-center">
               <div>
-                <div className="text-2xl font-bold">{stats.total}</div>
-                <div className="text-gray-600">Chương trình</div>
+                <div className="text-2xl font-bold text-center">{stats.total}</div>
+                <div className="text-gray-600 text-center">Chương trình</div>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">
-              {stats.avgTuition.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}
-            </div>
-            <div className="text-gray-600">Học phí TB (VNĐ)</div>
+            <div className="text-lg font-semibold text-orange-600 text-center">{stats.byUnit.semester}</div>
+            <div className="text-gray-600 text-center">Học phí theo học kỳ</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-lg font-semibold text-orange-600">{stats.byUnit.semester}</div>
-            <div className="text-gray-600">Học phí theo học kỳ</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-lg font-semibold text-purple-600">{stats.byUnit.year}</div>
-            <div className="text-gray-600">Học phí theo năm</div>
+            <div className="text-lg font-semibold text-purple-600 text-center">{stats.byUnit.year}</div>
+            <div className="text-gray-600 text-center">Học phí theo năm</div>
           </CardContent>
         </Card>
       </div>

@@ -282,20 +282,19 @@ const AdmissionNewsManagement = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-80">Tiêu đề</TableHead>
+              <TableHead className="w-70">Tiêu đề</TableHead>
               <TableHead className="w-48">Trường</TableHead>
               <TableHead className="w-36">Ngày xuất bản</TableHead>
               <TableHead className="w-20">Năm</TableHead>
               <TableHead className="w-32">Trạng thái</TableHead>
-              <TableHead>Nội dung</TableHead>
-              <TableHead className="w-36">Thao tác</TableHead>
+              <TableHead className="w-32">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {sortedNews.map((news) => (
               <TableRow key={news.Id}>
                 <TableCell className="font-medium">
-                  <div className="max-w-xs truncate" title={news.Title}>
+                  <div className="max-w-md text-gray-600" title={news.Title}>
                     {news.Title}
                   </div>
                 </TableCell>
@@ -306,11 +305,6 @@ const AdmissionNewsManagement = () => {
                   <Badge variant={getStatusBadge(news.Status)}>
                     {getStatusLabel(news.Status)}
                   </Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="max-w-md text-gray-600 truncate" title={news.Content}>
-                    {news.Content.length > 50 ? `${news.Content.substring(0, 50)}...` : news.Content}
-                  </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center space-x-1">

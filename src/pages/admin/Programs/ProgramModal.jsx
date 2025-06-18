@@ -191,18 +191,6 @@ const ProgramModal = ({ visible, onCancel, onSubmit, editingRecord, universities
                 </FormItem>
               )}
             />
-
-            <div className="bg-yellow-50 p-4 rounded-lg">
-              <h4 className="text-sm font-semibold text-yellow-800 mb-2">💡 Gợi ý mô tả:</h4>
-              <ul className="text-sm text-yellow-700 space-y-1">
-                <li>• Thời gian đào tạo (số năm/học kỳ)</li>
-                <li>• Hình thức đào tạo (chính quy, liên thông, từ xa...)</li>
-                <li>• Bằng cấp cấp (Cử nhân, Thạc sĩ, Tiến sĩ...)</li>
-                <li>• Đối tượng tuyển sinh và điều kiện</li>
-                <li>• Cơ hội việc làm sau tốt nghiệp</li>
-              </ul>
-            </div>
-
             <div className="flex justify-end space-x-2 pt-4 border-t">
               <Button type="button" variant="outline" onClick={onCancel}>
                 Hủy

@@ -122,7 +122,7 @@ const UniversityDetailModal = ({ visible, onCancel, record }) => {
           {/* Statistics section */}
           <div className="bg-blue-50 p-4 rounded-lg">
             <h4 className="font-semibold text-gray-800 mb-3">Thống kê</h4>
-            <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="grid grid-cols-2 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold text-blue-600">12</div>
                 <div className="text-sm text-gray-600">Ngành đào tạo</div>
@@ -130,10 +130,6 @@ const UniversityDetailModal = ({ visible, onCancel, record }) => {
               <div>
                 <div className="text-2xl font-bold text-green-600">1,234</div>
                 <div className="text-sm text-gray-600">Sinh viên</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-orange-600">89</div>
-                <div className="text-sm text-gray-600">Giảng viên</div>
               </div>
             </div>
           </div>
