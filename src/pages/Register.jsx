@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
+import { registerWithCredentials } from '@/services/authService';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -38,26 +39,32 @@ const Register = () => {
         }
     }, [user, navigate]);
 
-    // Handle Registration
     const handleRegister = async (values) => {
         setLoading(true);
 
         try {
-            // Validate password confirmation
-            if (values.password !== values.confirmPassword) {
+            const normalizedValues = {
+                ...values,
+                username: values.username.toLowerCase(),
+                email: values.email.toLowerCase(),
+            };
+
+            if (normalizedValues.password !== normalizedValues.confirmPassword) {
                 toast.error("Mật khẩu xác nhận không khớp");
                 return;
             }
 
-            // In real app, call API to register
-            console.log('Registration:', values);
+            const result = await registerWithCredentials(normalizedValues);
+            if (result.error) {
+                toast.error(result.error);
+                return;
+            }
 
             toast.success("Đăng ký thành công!", {
                 description: "Tài khoản đã được tạo. Vui lòng đăng nhập.",
             });
 
             navigate('/login');
-
         } catch (error) {
             toast.error("Có lỗi xảy ra khi đăng ký", {
                 description: "Vui lòng thử lại sau."
@@ -82,14 +89,14 @@ const Register = () => {
                     <CardContent>
                         <form onSubmit={handleSubmit(handleRegister)} className="space-y-4">
                             <div>
-                                <Label htmlFor="fullName">Họ và tên</Label>
+                                <Label htmlFor="displayName">Họ và tên</Label>
                                 <div className="relative">
                                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                                     <Input
-                                        id="fullName"
+                                        id="displayName"
                                         placeholder="Nguyễn Văn A"
                                         className="pl-10"
-                                        {...register('fullName', {
+                                        {...register('displayName', {
                                             required: 'Vui lòng nhập họ và tên!',
                                             minLength: {
                                                 value: 3,
@@ -106,7 +113,31 @@ const Register = () => {
                                     <p className="text-sm text-destructive mt-1">{errors.fullName.message}</p>
                                 )}
                             </div>
-
+                            <div>
+                                <Label htmlFor="username">Tên đăng nhập</Label>
+                                <div className="relative">
+                                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                                    <Input
+                                        id="username"
+                                        placeholder="username"
+                                        className="pl-10"
+                                        {...register('username', {
+                                            required: 'Vui lòng nhập tên đăng nhập!',
+                                            minLength: {
+                                                value: 6,
+                                                message: 'Tên đăng nhập phải có ít nhất 6 ký tự'
+                                            },
+                                            pattern:{
+                                                value: /^[a-zA-Z0-9]+$/,
+                                                message: 'Tên đăng nhập chỉ được chứa chữ cái và số'
+                                            }
+                                        })}
+                                    />
+                                </div>
+                                {errors.username && (
+                                    <p className="text-sm text-destructive mt-1">{errors.username.message}</p>
+                                )}
+                            </div>
                             <div>
                                 <Label htmlFor="email">Email</Label>
                                 <div className="relative">
@@ -142,8 +173,12 @@ const Register = () => {
                                         {...register('password', {
                                             required: 'Vui lòng nhập mật khẩu!',
                                             minLength: {
-                                                value: 3,
-                                                message: 'Mật khẩu phải có ít nhất 3 ký tự'
+                                                value: 5,
+                                                message: 'Mật khẩu phải có ít nhất 5 ký tự'
+                                            },
+                                            pattern: {
+                                                value: /^\S+$/,
+                                                message: 'Mật khẩu không được chứa khoảng trắng'
                                             }
                                         })}
                                     />
