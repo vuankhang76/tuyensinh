@@ -112,14 +112,11 @@ const Login = () => {
           <h2 className="mt-6 text-3xl font-bold text-foreground">
             Đăng nhập
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Đăng nhập với tài khoản sinh viên hoặc trường đại học
-          </p>
         </div>
 
         {/* Login Form */}
         <Card className="shadow-lg">
-          <CardContent className="p-6">
+          <CardContent>
             {/* Google Login First */}
             <Button
               onClick={handleGoogleLogin}
@@ -212,7 +209,7 @@ const Login = () => {
                     checked={rememberMe}
                     onCheckedChange={setRememberMe}
                   />
-                  <Label htmlFor="remember" className="text-sm">Ghi nhớ đăng nhập</Label>
+                  <Label htmlFor="remember" className="text-sm mt-2">Ghi nhớ đăng nhập</Label>
                 </div>
                 <Link 
                   to="/forgot-password" 
@@ -233,22 +230,15 @@ const Login = () => {
 
             {/* Register Links */}
             <div className="text-center mt-6 pt-4 border-t space-y-3">
+              <div className="flex gap-4 justify-center">
               <div className="text-muted-foreground text-sm">
                 Chưa có tài khoản?
               </div>
-              <div className="flex gap-4 justify-center">
                 <Link 
                   to="/register/student" 
                   className="text-primary hover:text-primary/80 font-medium text-sm"
                 >
-                  Đăng ký Sinh viên
-                </Link>
-                <span className="text-muted-foreground">|</span>
-                <Link 
-                  to="/register/university" 
-                  className="text-green-600 hover:text-green-600/80 font-medium text-sm"
-                >
-                  Đăng ký Trường ĐH
+                  Đăng ký
                 </Link>
               </div>
             </div>
