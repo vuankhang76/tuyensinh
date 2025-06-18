@@ -6,10 +6,11 @@ import { AuthProvider } from './context/AuthContext'
 
 // Pages
 import Homepage from './pages/Homepage'
-import UniversityDetail from './pages/UniversityDetail'
+import UniversityDetail from './pages/admin/UniversityDetail'
 import SearchResults from './pages/SearchResults'
 import CompareUniversities from './pages/CompareUniversities'
 import Login from './pages/Login'
+import Register from './pages/Register'
 import AdminLayout from './pages/admin/AdminLayout'
 import Overview from './pages/admin/Dashboard/Overview'
 import UniversityManagement from './pages/admin/Universities/UniversityManagement'
@@ -18,7 +19,7 @@ import UserManagement from './pages/admin/Users/UserManagement'
 import MajorManagement from './pages/admin/Majors/MajorManagement'
 import AdmissionNewsManagement from './pages/admin/AdmissionNews/AdmissionNewsManagement'
 import ProgramManagement from './pages/admin/Programs/ProgramManagement'
-import UniversityAdmin from './pages/UniversityAdmin'
+import UniversityAdmin from './pages/university/UniversityAdmin'
 import AIChat from './pages/AIChat'
 import Unauthorized from './pages/Unauthorized'
 
@@ -84,16 +85,17 @@ function App() {
                     <Route path="/university/:slug" element={<UniversityDetail />} />
                     <Route path="/search" element={<SearchResults />} />
                     <Route path="/compare" element={<CompareUniversities />} />
-                     <Route path="/login" element={<Login />} />
-                     
-                     {/* Protected routes example */}
-                     <Route path="/profile" element={
-                       <ProtectedRoute>
-                         <div className="p-8">Profile Page</div>
-                       </ProtectedRoute>
-                     } />
-                     
-                     <Route path="/unauthorized" element={<Unauthorized />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    
+                    {/* Protected routes example */}
+                    <Route path="/profile" element={
+                      <ProtectedRoute>
+                        <div className="p-8">Profile Page</div>
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/unauthorized" element={<Unauthorized />} />
                   </Routes>
                 </main>
                 <Footer />

@@ -17,7 +17,7 @@ import {
   Info,
   AlertCircle
 } from 'lucide-react'
-import Loading from '../components/common/Loading/LoadingSkeleton'
+import Loading from '../../components/common/Loading/LoadingSkeleton'
 
 const UniversityDetail = () => {
   const { slug } = useParams()
