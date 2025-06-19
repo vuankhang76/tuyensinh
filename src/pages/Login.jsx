@@ -49,7 +49,6 @@ const Login = () => {
       );
 
       if (result.requiresEmailVerification) {
-        // Hiển thị toast với nút custom
         toast.error(
           <div className="flex flex-col gap-2">
             <div className="font-semibold">Email chưa được xác minh</div>
@@ -60,13 +59,20 @@ const Login = () => {
               variant="outline"
               size="sm"
               onClick={() => {
+                const navigationKey = `login_${Date.now()}_${Math.random()}`;
+                console.log('🎯 Navigate từ Login với state:', {
+                  email: result.email,
+                  shouldResendEmail: true,
+                  navigationKey
+                });
                 navigate('/email-verification', { 
                   state: { 
                     email: result.email,
-                    shouldResendEmail: true 
+                    shouldResendEmail: true,
+                    navigationKey
                   } 
                 });
-                toast.dismiss(); // Đóng toast khi click
+                toast.dismiss();
               }}
               className="mt-1"
             >
@@ -74,7 +80,7 @@ const Login = () => {
             </Button>
           </div>,
           {
-            duration: 5000, // Hiển thị lâu hơn để user có thể click
+            duration: 5000,
           }
         );
       } else if (result.error) {

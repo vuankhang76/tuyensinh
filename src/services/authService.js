@@ -33,6 +33,12 @@
         const errorData = error.response.data;
   
         if (errorData.code === 'EMAIL_NOT_VERIFIED') {
+          try {
+            await signInWithEmailAndPassword(auth, errorData.email, password);
+          } catch (firebaseError) {
+            console.error('❌ Lỗi đăng nhập Firebase:', firebaseError.message);
+          }
+          
           return {
             user: null,
             error: null,
@@ -99,24 +105,23 @@
   };
 
   export const registerWithEmailVerification = async (userData) => {
-    // Log để biết hàm đã được gọi và với dữ liệu gì
-    console.log('--- Bắt đầu hàm registerWithEmailVerification ---', { userData });
-  
     try {
-      // --- BƯỚC 1: Cố gắng tạo người dùng trên Firebase ---
-      console.log('BƯỚC 1: Đang thử tạo người dùng trên Firebase...');
+      try {
+        await apiClient.post('/Auth/check-availability', {
+          username: userData.username,
+        });
+      } catch (checkError) {
+        if (checkError.response?.status === 400) {
+          return { user: null, error: checkError.response.data.message || 'Validation failed' };
+        }
+      }
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         userData.email,
         userData.password
-      );
-  
-      console.log('✅ BƯỚC 1 THÀNH CÔNG: Người dùng mới đã được tạo trên Firebase.', userCredential.user);
-  
+      );  
       const firebaseUser = userCredential.user;
   
-      // --- BƯỚC 2: Tạo tài khoản trong database ngay lập tức (chưa verified) ---
-      console.log('BƯỚC 2: Đang tạo tài khoản trong database...');
       try {
         const response = await apiClient.post('/Auth/register', {
           username: userData.username,
@@ -124,23 +129,15 @@
           displayName: userData.displayName,
           role: userData.role,
           firebaseUid: firebaseUser.uid,
-          emailVerified: false, // Chưa verified
+          emailVerified: false, 
           password: userData.password
         });
-        console.log('✅ BƯỚC 2 THÀNH CÔNG: Tài khoản đã được tạo trong database.');
       } catch (dbError) {
-        console.error('❌ BƯỚC 2 THẤT BẠI: Lỗi khi tạo tài khoản trong database:', dbError);
-        // Nếu không tạo được trong database, xóa tài khoản Firebase
         await firebaseUser.delete();
         throw new Error('Không thể tạo tài khoản trong hệ thống');
       }
   
-      // --- BƯỚC 3: Gửi email xác minh cho người dùng mới ---
-      console.log('BƯỚC 3: Đang yêu cầu Firebase gửi email xác minh...');
-      await sendEmailVerification(firebaseUser);
-      console.log('✅ BƯỚC 3 THÀNH CÔNG: Đã gửi yêu cầu.');
-  
-      // Trả về kết quả để UI chuyển hướng sang trang xác minh
+      await sendEmailVerification(firebaseUser);  
       return {
         user: null,
         error: null,
@@ -179,28 +176,22 @@
         return { user: null, error: 'Email không hợp lệ' };
       }
   
-      // Lỗi chung chưa được xử lý
       return { user: null, error: firebaseError.message || 'Có lỗi xảy ra khi tạo tài khoản' };
     }
   };
 
   export const completeRegistration = async () => {
     try {
+      // Lấy thông tin user hiện tại từ Firebase
       const currentUser = auth.currentUser;
       if (!currentUser) {
         return { user: null, error: 'Không tìm thấy thông tin xác thực' };
       }
-      
-      const userData = JSON.parse(pendingData);
-      
-      const response = await apiClient.post('/Auth/register', {
-        username: userData.username,
-        email: userData.email,
-        displayName: userData.displayName,
-        role: userData.role,
-        firebaseUid: userData.firebaseUid,
-        emailVerified: true,
-        password: userData.password || null
+
+      // Gọi API để cập nhật trạng thái email verified
+      const response = await apiClient.put('/Auth/verify-email', {
+        firebaseUid: currentUser.uid,
+        email: currentUser.email
       });
 
       const data = response.data;
@@ -263,15 +254,21 @@
   export const resendVerificationEmail = async () => {
     try {
       const user = auth.currentUser;
+      console.log('📧 Đang kiểm tra Firebase currentUser:', user?.email || 'null');
+      
       if (user) {
+        console.log('📤 Đang gửi email verification đến:', user.email);
         // Firebase sẽ tự động xử lý việc gửi lại email cho người dùng đang đăng nhập
         await sendEmailVerification(user);
+        console.log('✅ Đã gửi email verification thành công');
         return { success: true };
       }
+      
+      console.log('❌ Không có Firebase currentUser');
       // Trường hợp này xảy ra nếu người dùng không còn trong phiên đăng nhập của Firebase
       return { success: false, error: 'Không tìm thấy phiên đăng nhập. Vui lòng thử đăng ký lại.' };
     } catch (error) {
-      console.error("Resend email error:", error);
+      console.error("❌ Resend email error:", error);
       if (error.code === 'auth/too-many-requests') {
           return { success: false, error: 'Bạn đã yêu cầu quá nhiều lần. Vui lòng thử lại sau.' };
       }

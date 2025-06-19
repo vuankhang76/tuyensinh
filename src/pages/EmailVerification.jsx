@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,12 +14,13 @@ const EmailVerification = () => {
     const [isChecking, setIsChecking] = useState(false);
     const [isCompleting, setIsCompleting] = useState(false);
     const [email, setEmail] = useState('');
-    
+
     const [cooldown, setCooldown] = useState(0);
 
     useEffect(() => {
         const emailFromState = location.state?.email;
         const shouldResendEmail = location.state?.shouldResendEmail;
+        const navigationKey = location.state?.navigationKey;
 
         let userEmail = '';
         if (emailFromState) {
@@ -31,6 +32,7 @@ const EmailVerification = () => {
         setEmail(userEmail);
 
         const lastSentTime = localStorage.getItem(`resend_timestamp_${userEmail}`);
+
         if (lastSentTime) {
             const timePassed = (Date.now() - parseInt(lastSentTime)) / 1000;
             if (timePassed < RESEND_COOLDOWN_SECONDS) {
@@ -38,7 +40,12 @@ const EmailVerification = () => {
             }
         }
 
-        if (shouldResendEmail && userEmail && !lastSentTime) {
+        const processedKey = `processed_${navigationKey}`;
+        const hasProcessed = localStorage.getItem(processedKey);
+
+        if (shouldResendEmail && userEmail && navigationKey && !hasProcessed) {
+            localStorage.setItem(processedKey, 'true');
+
             setTimeout(() => {
                 handleResendEmailAutomatic(userEmail);
             }, 500);
@@ -59,7 +66,6 @@ const EmailVerification = () => {
             const isVerified = await checkEmailVerificationStatus();
 
             if (isVerified) {
-                toast.success('Email đã được xác minh!');
                 await handleCompleteRegistration();
             } else {
                 toast.warning('Email chưa được xác minh. Vui lòng kiểm tra hộp thư và nhấp vào link xác minh.');
@@ -88,8 +94,8 @@ const EmailVerification = () => {
         } catch (error) {
             console.error('Error completing registration:', error);
             const errorMessage = error?.response?.data?.message ||
-                                 error?.response?.data?.errors ||
-                                 'Có lỗi xảy ra khi hoàn tất đăng ký';
+                error?.response?.data?.errors ||
+                'Có lỗi xảy ra khi hoàn tất đăng ký';
             if (typeof errorMessage === 'object') {
                 const validationErrors = Object.values(errorMessage).flat();
                 toast.error('Lỗi xác thực', {
@@ -102,7 +108,7 @@ const EmailVerification = () => {
             setIsCompleting(false);
         }
     };
-    
+
     const handleResendEmail = async () => {
         if (cooldown > 0 || !email) return;
 
@@ -123,19 +129,25 @@ const EmailVerification = () => {
 
     // Hàm tự động gửi email khi được chuyển hướng từ login
     const handleResendEmailAutomatic = async (userEmail) => {
+        console.log('🚀 Tự động gửi lại email verification cho:', userEmail);
         toast.info('Đang gửi lại email xác minh...');
         try {
             const result = await resendVerificationEmail();
+            console.log('📧 Kết quả gửi email:', result);
+
             if (result.success) {
                 toast.success('Đã gửi lại email xác minh!', {
                     description: 'Vui lòng kiểm tra hộp thư để xác minh tài khoản.'
                 });
+                // Cập nhật timestamp và cooldown cho lần gửi tiếp theo
                 localStorage.setItem(`resend_timestamp_${userEmail}`, Date.now().toString());
                 setCooldown(RESEND_COOLDOWN_SECONDS);
             } else {
+                console.error('❌ Gửi email thất bại:', result.error);
                 toast.error(result.error || 'Gửi lại email thất bại.');
             }
         } catch (error) {
+            console.error('❌ Lỗi khi gửi email:', error);
             toast.error('Có lỗi xảy ra khi gửi email.');
         }
     };
@@ -203,18 +215,18 @@ const EmailVerification = () => {
 
                         {/* CẬP NHẬT: Thay thế khối văn bản tĩnh bằng nút có tương tác */}
                         <div className="text-center text-sm text-muted-foreground pt-4 border-t">
-                             <p className="mb-1">Không nhận được email?</p>
-                             <Button
-                                 variant="link"
-                                 className="p-0 h-auto font-semibold text-primary"
-                                 onClick={handleResendEmail}
-                                 disabled={cooldown > 0 || isChecking || isCompleting}
-                             >
-                                 {cooldown > 0
-                                     ? `Gửi lại sau ${cooldown} giây`
-                                     : 'Gửi lại email xác minh'}
-                             </Button>
-                         </div>
+                            <p className="mb-1">Không nhận được email?</p>
+                            <Button
+                                variant="link"
+                                className="p-0 h-auto font-semibold text-primary"
+                                onClick={handleResendEmail}
+                                disabled={cooldown > 0 || isChecking || isCompleting}
+                            >
+                                {cooldown > 0
+                                    ? `Gửi lại sau ${cooldown} giây`
+                                    : 'Gửi lại email xác minh'}
+                            </Button>
+                        </div>
                     </CardContent>
                 </Card>
             </div>

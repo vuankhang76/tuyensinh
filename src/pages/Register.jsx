@@ -61,11 +61,11 @@ const Register = () => {
 
             const result = await registerWithEmailVerification(registrationData);
             if (result.error) {
-                if (result.error.includes('username') || result.error.includes('tên đăng nhập')) {
+                if (result.error.includes('username')) {
                     toast.error("Tên đăng nhập đã được sử dụng", {
                         description: "Vui lòng chọn tên đăng nhập khác"
                     });
-                } else if (result.error.includes('email') || result.error.includes('Email')) {
+                } else if (result.error.includes('email')) {
                     toast.error("Email đã được sử dụng.", {
                         description: "Vui lòng sử dụng email khác hoặc đăng nhập"
                     });
@@ -76,12 +76,15 @@ const Register = () => {
             }
 
             if (result.requiresEmailVerification) {
-                toast.success("Tài khoản đã được tạo!", {
+                toast.warning("Tài khoản đã được tạo từ trước!", {
                     description: "Vui lòng kiểm tra email để xác minh tài khoản.",
                 });
 
                 navigate('/email-verification', { 
-                    state: { email: result.email } 
+                    state: { 
+                        email: result.email,
+                        shouldResendEmail: true 
+                    } 
                 });
             } else {
                 toast.success("Đăng ký thành công!");
