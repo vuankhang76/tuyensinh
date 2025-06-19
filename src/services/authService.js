@@ -33,6 +33,7 @@
         const errorData = error.response.data;
   
         if (errorData.code === 'EMAIL_NOT_VERIFIED') {
+          // Đăng nhập user vào Firebase để có thể gửi lại email verification
           try {
             await signInWithEmailAndPassword(auth, errorData.email, password);
           } catch (firebaseError) {
@@ -269,10 +270,7 @@
       return { success: false, error: 'Không tìm thấy phiên đăng nhập. Vui lòng thử đăng ký lại.' };
     } catch (error) {
       console.error("❌ Resend email error:", error);
-      if (error.code === 'auth/too-many-requests') {
-          return { success: false, error: 'Bạn đã yêu cầu quá nhiều lần. Vui lòng thử lại sau.' };
-      }
-      return { success: false, error: 'Có lỗi xảy ra khi gửi email.' };
+      return { success: false, error: error.message };
     }
   };
 
@@ -280,15 +278,15 @@
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
   };
-
+  
   export const getToken = () => {
     return localStorage.getItem('accessToken');
   };
-
+  
   export const isAuthenticated = () => {
     return !!localStorage.getItem('accessToken');
   };
-
+  
   export const getAuthMethod = () => {
     return localStorage.getItem('authMethod') || 'credentials';
   };
