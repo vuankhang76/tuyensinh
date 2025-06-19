@@ -60,11 +60,6 @@ const Login = () => {
               size="sm"
               onClick={() => {
                 const navigationKey = `login_${Date.now()}_${Math.random()}`;
-                console.log('🎯 Navigate từ Login với state:', {
-                  email: result.email,
-                  shouldResendEmail: true,
-                  navigationKey
-                });
                 navigate('/email-verification', { 
                   state: { 
                     email: result.email,
