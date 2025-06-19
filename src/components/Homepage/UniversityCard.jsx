@@ -65,41 +65,58 @@ const UniversityCard = ({ university }) => {
                 <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
                   <div className="flex items-center">
                     <MapPin className="text-primary h-4 w-4 mr-1" />
-                    <span>{university.location}</span>
+                    <span>{university.location || 'Chưa cập nhật'}</span>
                   </div>
-                  <div className="flex items-center">
-                    <Trophy className="text-yellow-500 h-4 w-4 mr-1" />
-                    <span>Điểm chuẩn: {university.minScore}+</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Users className="text-green-500 h-4 w-4 mr-1" />
-                    <span>{university.students?.toLocaleString()} sinh viên</span>
-                  </div>
+                  {university.ranking && (
+                    <div className="flex items-center">
+                      <Trophy className="text-yellow-500 h-4 w-4 mr-1" />
+                      <span>Xếp hạng: #{university.ranking}</span>
+                    </div>
+                  )}
+                  {university.minScore > 0 && (
+                    <div className="flex items-center">
+                      <Trophy className="text-yellow-500 h-4 w-4 mr-1" />
+                      <span>Điểm chuẩn: {university.minScore}+</span>
+                    </div>
+                  )}
+                  {university.students > 0 && (
+                    <div className="flex items-center">
+                      <Users className="text-green-500 h-4 w-4 mr-1" />
+                      <span>{university.students?.toLocaleString()} sinh viên</span>
+                    </div>
+                  )}
                   <div className="flex items-center">
                     <DollarSign className="text-purple-500 h-4 w-4 mr-1" />
-                    <span>{university.tuition?.split(' ')[0]}tr/năm</span>
+                    <span>{university.tuition || 'Liên hệ nhà trường'}</span>
                   </div>
                 </div>
 
                 {/* Major Tags */}
-                <div className="flex items-center gap-2 mb-2 lg:mb-0">
-                  <BookOpen className="text-primary h-4 w-4" />
-                  <div className="flex flex-wrap gap-1">
-                    {university.majors.slice(0, 3).map((major, idx) => (
-                      <span 
-                        key={idx}
-                        className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs font-medium"
-                      >
-                        {major}
-                      </span>
-                    ))}
-                    {university.majors.length > 3 && (
-                      <span className="px-2 py-1 bg-muted text-muted-foreground rounded-md text-xs">
-                        +{university.majors.length - 3}
-                      </span>
-                    )}
+                {university.majors && university.majors.length > 0 ? (
+                  <div className="flex items-center gap-2 mb-2 lg:mb-0">
+                    <BookOpen className="text-primary h-4 w-4" />
+                    <div className="flex flex-wrap gap-1">
+                      {university.majors.slice(0, 3).map((major, idx) => (
+                        <span 
+                          key={idx}
+                          className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs font-medium"
+                        >
+                          {major}
+                        </span>
+                      ))}
+                      {university.majors.length > 3 && (
+                        <span className="px-2 py-1 bg-muted text-muted-foreground rounded-md text-xs">
+                          +{university.majors.length - 3}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-center gap-2 mb-2 lg:mb-0">
+                    <BookOpen className="text-primary h-4 w-4" />
+                    <span className="text-sm text-muted-foreground">Liên hệ nhà trường để biết thông tin ngành học</span>
+                  </div>
+                )}
               </div>
 
               {/* Action Section */}

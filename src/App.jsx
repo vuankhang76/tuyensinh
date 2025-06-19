@@ -21,6 +21,7 @@ import MajorManagement from './pages/admin/Majors/MajorManagement'
 import AdmissionNewsManagement from './pages/admin/AdmissionNews/AdmissionNewsManagement'
 import ProgramManagement from './pages/admin/Programs/ProgramManagement'
 import UniversityAdmin from './pages/university/UniversityAdmin'
+import UserProfile from './pages/user/UserProfile'
 import AIChat from './pages/AIChat'
 import Unauthorized from './pages/Unauthorized'
 
@@ -88,10 +89,10 @@ function App() {
                     <Route path="/register" element={<Register />} />
                     <Route path="/email-verification" element={<EmailVerification />} />
                     
-                    {/* Protected routes example */}
+                    {/* Protected routes */}
                     <Route path="/profile" element={
-                      <ProtectedRoute>
-                        <div className="p-8">Profile Page</div>
+                      <ProtectedRoute requiredRole="student">
+                        <UserProfile />
                       </ProtectedRoute>
                     } />
                     

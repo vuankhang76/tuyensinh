@@ -46,10 +46,7 @@ const Navbar = () => {
   const [activeDropdown, setActiveDropdown] = useState(null)
   const navigate = useNavigate()
 
-  // Use auth context
   const { user, isAuthenticated, logout } = useAuth()
-  
-
 
   const handleDropdownToggle = (key) => {
     setActiveDropdown(activeDropdown === key ? null : key)

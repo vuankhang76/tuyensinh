@@ -10,7 +10,7 @@ import {
   LogOut, 
   Bell,
 } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 const AdminNavbar = () => {
   const { user, logout } = useAuth();

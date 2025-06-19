@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import {
   Plus,
   Edit,
@@ -86,10 +86,7 @@ const MajorManagement = () => {
   const handleDeleteConfirm = () => {
     if (majorToDelete) {
       setMajors(majors.filter(m => m.Id !== majorToDelete.Id));
-      toast({
-        title: "Thành công",
-        description: "Đã xóa ngành học thành công",
-      });
+      toast.success("Đã xóa ngành học thành công");
     }
     setDeleteDialogOpen(false);
     setMajorToDelete(null);
@@ -110,10 +107,7 @@ const MajorManagement = () => {
           UniversityName: universities.find(u => u.Id === values.UniversityId)?.Name || ''
         } : m
       ));
-      toast({
-        title: "Thành công",
-        description: "Đã cập nhật thông tin ngành học",
-      });
+      toast.success("Đã cập nhật thông tin ngành học");
     } else {
       // Add new major
       const newMajor = { 
@@ -122,10 +116,7 @@ const MajorManagement = () => {
         UniversityName: universities.find(u => u.Id === values.UniversityId)?.Name || ''
       };
       setMajors([...majors, newMajor]);
-      toast({
-        title: "Thành công",
-        description: "Đã thêm ngành học mới",
-      });
+      toast.success("Đã thêm ngành học mới");
     }
     setIsModalVisible(false);
     setEditingRecord(null);

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import {
   Plus,
   Edit,
@@ -92,20 +92,14 @@ const UserManagement = () => {
 
   const handleEdit = (record) => {
     // TODO: Open edit modal
-    toast({
-      title: "Thông báo",
-      description: "Chức năng sửa thông tin người dùng",
-    });
+    toast.info("Chức năng sửa thông tin người dùng");
   };
 
   const handleVerify = (id) => {
     setUsers(users.map(u => 
       u.id === id ? { ...u, verified: true, status: 'active' } : u
     ));
-    toast({
-      title: "Thành công",
-      description: "Đã xác minh người dùng thành công",
-    });
+    toast.success("Đã xác minh người dùng thành công");
   };
 
   const handleDeleteClick = (user) => {
@@ -116,10 +110,7 @@ const UserManagement = () => {
   const handleDeleteConfirm = () => {
     if (userToDelete) {
       setUsers(users.filter(u => u.id !== userToDelete.id));
-      toast({
-        title: "Thành công",
-        description: "Đã xóa người dùng thành công",
-      });
+      toast.success("Đã xóa người dùng thành công");
     }
     setDeleteDialogOpen(false);
     setUserToDelete(null);
@@ -127,10 +118,7 @@ const UserManagement = () => {
 
   const handleAdd = () => {
     // TODO: Open add user modal
-    toast({
-      title: "Thông báo",
-      description: "Chức năng thêm người dùng mới",
-    });
+    toast.info("Chức năng thêm người dùng mới");
   };
 
   // Filter functions

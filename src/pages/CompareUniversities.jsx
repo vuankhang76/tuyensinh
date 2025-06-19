@@ -23,6 +23,8 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react'
+import universityService from '../services/universityService'
+import LoadingSkeleton from '../components/common/Loading/LoadingSkeleton'
 
 const CompareUniversities = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -30,9 +32,70 @@ const CompareUniversities = () => {
   const [isAddModalVisible, setIsAddModalVisible] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [searchSuggestions, setSuggestions] = useState([])
+  const [allUniversities, setAllUniversities] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  // Mock data - trong thực tế sẽ fetch từ API
-  const allUniversities = [
+  // Fetch universities from API
+  useEffect(() => {
+    const fetchUniversities = async () => {
+      try {
+        setLoading(true)
+        const data = await universityService.getAllUniversities()
+        
+        // Transform API data to match component expectations
+        const transformedData = data.map(uni => ({
+          id: uni.id,
+          name: uni.name,
+          code: uni.shortName || uni.name.split(' ').map(w => w[0]).join(''),
+          slug: uni.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
+          location: Array.isArray(uni.locations) ? uni.locations[0] : uni.locations || 'Chưa cập nhật',
+          type: uni.type || 'Chưa phân loại',
+          minScore: 0, // API không có thông tin này - sẽ cần thêm vào model
+          maxScore: 0,
+          majors: [], // API không có thông tin này - sẽ cần thêm vào model
+          tuitionRange: 'Liên hệ nhà trường',
+          tuitionMin: 0,
+          tuitionMax: 0,
+          ranking: uni.ranking || 0,
+          internationalRanking: null,
+          quota: 0,
+          students: 0,
+          establishedYear: 1900,
+          website: uni.officialWebsite,
+          admissionMethods: ['Thi THPT', 'Xét học bạ'], // Default values
+          programs: ['Chuẩn'],
+          scholarships: ['Học bổng khuyến khích học tập'],
+          facilities: {
+            library: true,
+            dormitory: false,
+            gym: false,
+            lab: true,
+            hospital: false
+          },
+          accreditation: ['Kiểm định chất lượng'],
+          employmentRate: 85,
+          averageSalary: 8,
+          topEmployers: ['Các doanh nghiệp hàng đầu'],
+          strengths: ['Chất lượng đào tạo'],
+          weaknesses: ['Cần cải thiện cơ sở vật chất']
+        }))
+        
+        setAllUniversities(transformedData)
+      } catch (err) {
+        console.error('Error fetching universities:', err)
+        setError('Không thể tải dữ liệu trường đại học')
+        setAllUniversities([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUniversities()
+  }, [])
+
+  // Mock data structure (kept for reference)
+  const mockUniversities = [
     {
       id: 1,
       name: "Đại học Bách khoa Hà Nội",
@@ -590,32 +653,65 @@ const CompareUniversities = () => {
             </div>
 
             <div className="text-sm text-gray-600">
-              Gợi ý: Hãy thử tìm "Bách khoa", "FPT", "Kinh tế"...
+              {loading ? 'Đang tải danh sách trường...' : 'Gợi ý: Hãy thử tìm "Bách khoa", "FPT", "Kinh tế"...'}
             </div>
 
-            <div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto">
-              {filteredUniversities.map(university => (
-                <Card 
-                  key={university.id}
-                  className="cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => addUniversity(university.id)}
+            {/* Loading State */}
+            {loading && (
+              <div className="space-y-3 max-h-60 overflow-y-auto">
+                {[...Array(3)].map((_, index) => (
+                  <LoadingSkeleton key={index} type="university" />
+                ))}
+              </div>
+            )}
+
+            {/* Error State */}
+            {error && !loading && (
+              <div className="text-center py-8">
+                <div className="text-red-400 text-4xl mb-2">⚠️</div>
+                <div className="text-red-600 font-medium">{error}</div>
+                <Button 
+                  onClick={() => window.location.reload()}
+                  className="mt-2"
+                  size="sm"
                 >
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <div className="font-medium">{university.name}</div>
-                        <div className="text-sm text-gray-600">
-                          {university.location} • {university.type} • #{university.ranking}
+                  Thử lại
+                </Button>
+              </div>
+            )}
+
+            {/* Universities List */}
+            {!loading && !error && (
+              <div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto">
+                {filteredUniversities.map(university => (
+                  <Card 
+                    key={university.id}
+                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => addUniversity(university.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <div className="font-medium">{university.name}</div>
+                          <div className="text-sm text-gray-600">
+                            {university.location} • {university.type} • #{university.ranking || 'N/A'}
+                          </div>
                         </div>
+                        <Button size="sm">
+                          Chọn
+                        </Button>
                       </div>
-                      <Button size="sm">
-                        Chọn
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                
+                {filteredUniversities.length === 0 && searchTerm && (
+                  <div className="text-center py-8 text-gray-500">
+                    Không tìm thấy trường nào phù hợp
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
