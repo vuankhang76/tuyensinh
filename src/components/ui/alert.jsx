@@ -1,23 +1,16 @@
 import * as React from "react"
 import { cva } from "class-variance-authority"
-import { AlertCircle, CheckCircle2, Info, AlertTriangle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
 const alertVariants = cva(
-  "relative w-full rounded-lg border px-4 py-3 text-sm",
+  "relative w-full rounded-lg border px-4 py-3 text-sm grid has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-0.5 items-start [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current",
   {
     variants: {
       variant: {
-        default: "bg-background text-foreground",
+        default: "bg-card text-card-foreground",
         destructive:
-          "border-destructive/50 text-destructive dark:border-destructive",
-        warning:
-          "border-yellow-500/50 text-yellow-700 bg-yellow-50 dark:border-yellow-500 dark:text-yellow-300 dark:bg-yellow-950/30",
-        success:
-          "border-green-500/50 text-green-700 bg-green-50 dark:border-green-500 dark:text-green-300 dark:bg-green-950/30",
-        info:
-          "border-blue-500/50 text-blue-700 bg-blue-50 dark:border-blue-500 dark:text-blue-300 dark:bg-blue-950/30",
+          "text-destructive bg-card [&>svg]:text-current *:data-[slot=alert-description]:text-destructive/90",
       },
     },
     defaultVariants: {
@@ -26,52 +19,41 @@ const alertVariants = cva(
   }
 )
 
-const Alert = React.forwardRef(({ className, variant, children, ...props }, ref) => {
-  const getIcon = () => {
-    switch (variant) {
-      case "destructive":
-        return <AlertCircle className="h-4 w-4" />
-      case "warning":
-        return <AlertTriangle className="h-4 w-4" />
-      case "success":
-        return <CheckCircle2 className="h-4 w-4" />
-      case "info":
-        return <Info className="h-4 w-4" />
-      default:
-        return <Info className="h-4 w-4" />
-    }
-  }
-
+function Alert({ className, variant, ...props }) {
   return (
     <div
-      ref={ref}
+      data-slot="alert"
       role="alert"
-      className={cn(alertVariants({ variant }), "flex flex-row items-center gap-2 bg-yellow-500/50", className)}
+      className={cn(alertVariants({ variant }), className)}
       {...props}
-    >
-      {getIcon()}
-      <div>{children}</div>
-    </div>
+    />
   )
-})
-Alert.displayName = "Alert"
+}
 
-const AlertTitle = React.forwardRef(({ className, ...props }, ref) => (
-  <h5
-    ref={ref}
-    className={cn("mb-1 font-medium leading-none tracking-tight", className)}
-    {...props}
-  />
-))
-AlertTitle.displayName = "AlertTitle"
+function AlertTitle({ className, ...props }) {
+  return (
+    <div
+      data-slot="alert-title"
+      className={cn(
+        "col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight",
+        className
+      )}
+      {...props}
+    />
+  )
+}
 
-const AlertDescription = React.forwardRef(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("text-sm [&_p]:leading-relaxed", className)}
-    {...props}
-  />
-))
-AlertDescription.displayName = "AlertDescription"
+function AlertDescription({ className, ...props }) {
+  return (
+    <div
+      data-slot="alert-description"
+      className={cn(
+        "text-muted-foreground col-start-2 grid justify-items-start gap-1 text-sm [&_p]:leading-relaxed",
+        className
+      )}
+      {...props}
+    />
+  )
+}
 
-export { Alert, AlertTitle, AlertDescription } 
+export { Alert, AlertTitle, AlertDescription }

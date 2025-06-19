@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   User, 
   Mail, 
@@ -20,15 +19,16 @@ import {
   Camera,
   Check,
   Clock,
-  Globe
+  Globe,
+  Lock
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { updateUserProfile } from '@/services/userService';
-import { resendVerificationEmail } from '@/services/authService';
+import { userService } from '@/services';
 import ChangePasswordModal from '@/components/user/ChangePasswordModal';
 
 const UserProfile = () => {
-  const { user } = useAuth();
+  const { user: contextUser, updateUser } = useAuth();
+  const [localUser, setLocalUser] = useState(contextUser);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
@@ -37,6 +37,14 @@ const UserProfile = () => {
     username: '',
     email: ''
   });
+
+  const user = localUser || contextUser;
+
+  useEffect(() => {
+    if (contextUser) {
+      setLocalUser(contextUser);
+    }
+  }, [contextUser]);
 
   useEffect(() => {
     if (user) {
@@ -54,7 +62,6 @@ const UserProfile = () => {
 
   const handleCancel = () => {
     setIsEditing(false);
-    // Reset về dữ liệu gốc
     setEditData({
       displayName: user.displayName || '',
       username: user.username || '',
@@ -65,16 +72,26 @@ const UserProfile = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const result = await updateUserProfile(editData);
+      await userService.updateUser(user.id, editData);
       
-      if (result.error) {
-        toast.error(result.error);
-      } else {
-        toast.success('Cập nhật thông tin thành công!');
-        setIsEditing(false);
+      const updatedUser = {
+        ...user,
+        ...editData
+      };
+      
+      userService.updateCurrentUser(updatedUser);
+      
+      setLocalUser(updatedUser);
+      
+      if (updateUser) {
+        updateUser(updatedUser);
       }
+      
+      toast.success('Cập nhật thông tin thành công!');
+      setIsEditing(false);
     } catch (error) {
-      toast.error('Có lỗi xảy ra khi cập nhật thông tin');
+      console.error('Update profile error:', error);
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật thông tin');
     } finally {
       setLoading(false);
     }
@@ -87,23 +104,10 @@ const UserProfile = () => {
     }));
   };
 
-  const handleResendVerification = async () => {
-    try {
-      const result = await resendVerificationEmail();
-      if (result.success) {
-        toast.success('Đã gửi lại email xác minh!');
-      } else {
-        toast.error(result.error || 'Gửi lại email thất bại');
-      }
-    } catch (error) {
-      toast.error('Có lỗi xảy ra khi gửi email');
-    }
-  };
-
   const getRoleBadge = (role) => {
     const configs = {
       admin: { variant: 'destructive', label: 'Quản trị viên', icon: Shield },
-      university: { variant: 'primary', label: 'Trường đại học', icon: Building2 },
+      university: { variant: 'default', label: 'Trường đại học', icon: Building2 },
       student: { variant: 'secondary', label: 'Sinh viên', icon: User }
     };
     return configs[role] || configs.student;
@@ -113,9 +117,9 @@ const UserProfile = () => {
     const configs = {
       google: { variant: 'outline', label: 'Google', color: 'text-blue-600' },
       email: { variant: 'outline', label: 'Email', color: 'text-gray-600' },
-      facebook: { variant: 'outline', label: 'Facebook', color: 'text-blue-800' }
+      firebase: { variant: 'outline', label: 'Firebase', color: 'text-orange-600' }
     };
-    return configs[provider] || configs.email;
+    return configs[provider];
   };
 
   const formatDate = (dateString) => {
@@ -168,7 +172,7 @@ const UserProfile = () => {
                   <Avatar className="h-24 w-24 mx-auto">
                     <AvatarImage src={user?.photoURL} alt={user.displayName} />
                     <AvatarFallback className="text-lg">
-                      {user.displayName?.charAt(0)?.toUpperCase()}
+                      {user.email?.charAt(0)?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <Button
@@ -180,7 +184,10 @@ const UserProfile = () => {
                     <Camera className="h-4 w-4" />
                   </Button>
                 </div>
-                <CardTitle className="mt-4">{user.displayName} <span className="text-sm text-muted-foreground">#{user.id}</span></CardTitle>
+                <CardTitle className="mt-4">
+                  {user.displayName || user.email}
+                  <span className="text-sm text-muted-foreground ml-2">#{user.id}</span>
+                </CardTitle>
                 <CardDescription className="flex items-center justify-center gap-2">
                   <RoleIcon className="h-4 w-4" />
                   <Badge variant={roleConfig.variant}>{roleConfig.label}</Badge>
@@ -208,7 +215,7 @@ const UserProfile = () => {
                 </div>
 
                 {/* Provider */}
-                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg ">
+                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-2">
                     <Globe className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">Phương thức</span>
@@ -228,6 +235,21 @@ const UserProfile = () => {
                     <p className="text-sm font-medium">ID: {user.universityId}</p>
                   </div>
                 )}
+
+                {/* Actions */}
+                <div className="pt-2">
+                  {user.provider == 'email' && (  
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setShowChangePasswordModal(true)}
+                    disabled={user.provider !== 'email'}
+                  >
+                    <Lock className="h-4 w-4 mr-2" />
+                    Đổi mật khẩu
+                  </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -272,20 +294,24 @@ const UserProfile = () => {
                           id="displayName"
                           value={editData.displayName}
                           onChange={(e) => handleInputChange('displayName', e.target.value)}
-                          placeholder="Nhập tên hiển thị"
+                          pattern={/^[^\s]+$/}
+                          title="Tên hiển thị không được chứa khoảng trắng"
                         />
                       ) : (
-                        <p className="text-sm bg-muted p-3 rounded-md">
-                          {user.displayName || 'Chưa thiết lập'}
-                        </p>
+                        <Input
+                          id="displayName"
+                          value={user.displayName || 'Chưa thiết lập'}
+                          disabled
+                        />
                       )}
                     </div>
-                    {/* Email */}
+
+                    {/* Username */}
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                        <p className="text-sm bg-muted p-3 rounded-md">
-                          {user.email}
-                        </p>
+                    <Label htmlFor="email">Email</Label>
+                      <p className="text-sm bg-muted p-3 rounded-md">
+                        {user.email}
+                      </p>
                     </div>
                   </div>
                 </div>

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, Lock } from 'lucide-react';
 import { toast } from 'sonner';
-import { changePassword } from '@/services/userService';
+import { userService } from '@/services';
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
@@ -68,19 +68,16 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 
     setLoading(true);
     try {
-      const result = await changePassword({
+      await userService.changePassword({
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword
       });
 
-      if (result.error) {
-        toast.error(result.error);
-      } else {
-        toast.success('Đổi mật khẩu thành công!');
-        handleClose();
-      }
+      toast.success('Đổi mật khẩu thành công!');
+      handleClose();
     } catch (error) {
-      toast.error('Có lỗi xảy ra khi đổi mật khẩu');
+      console.error('Change password error:', error);
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đổi mật khẩu');
     } finally {
       setLoading(false);
     }
@@ -203,7 +200,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             Hủy
           </Button>
           <Button onClick={handleSubmit} disabled={loading}>
-            {loading ? 'Đang thay đổi...' : 'Đổi mật khẩu'}
+            {loading ? 'Đang xử lý...' : 'Đổi mật khẩu'}
           </Button>
         </DialogFooter>
       </DialogContent>

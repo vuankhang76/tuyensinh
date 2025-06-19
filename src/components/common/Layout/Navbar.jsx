@@ -31,8 +31,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { 
-  Avatar, 
+import {
+  Avatar,
   AvatarFallback,
 } from '@/components/ui/avatar'
 import { toast } from 'sonner';
@@ -59,7 +59,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     const result = await logout();
-    if (result.success){
+    if (result.success) {
       toast.success("Đăng xuất thành công", {
         description: "Hẹn gặp lại bạn!",
       });
@@ -82,12 +82,13 @@ const Navbar = () => {
     setIsMobileMenuOpen(false)
   }
 
-  const ListItem = React.forwardRef(({ className, title, children, ...props }, ref) => {
+  const ListItem = React.forwardRef(({ className, title, children, href, ...props }, ref) => {
     return (
       <li>
         <NavigationMenuLink asChild>
-          <a
+          <Link
             ref={ref}
+            to={href}
             className={cn(
               "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
               className
@@ -98,7 +99,7 @@ const Navbar = () => {
             <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
               {children}
             </p>
-          </a>
+          </Link>
         </NavigationMenuLink>
       </li>
     )
@@ -117,23 +118,21 @@ const Navbar = () => {
               </div>
               <div className="hidden md:block">
                 <div className="font-bold text-xl text-gray-800">TuyenSinh.edu</div>
-                <div className="text-sm text-gray-600">Thông tin tuyển sinh đại học</div>
+                <div className="text-sm text-gray-600">Thông tin tuyển sinh</div>
               </div>
             </Link>
 
             {/* Desktop Menu */}
             <div className="hidden lg:flex items-center space-x-6">
-              <NavigationMenu>
+              <NavigationMenu viewport={false}>
                 <NavigationMenuList>
                   {/* Home */}
                   <NavigationMenuItem>
-                    <Link to="/">
-                      <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                        <span>
-                          Trang chủ
-                        </span>
-                      </NavigationMenuLink>
-                    </Link>
+                    <NavigationMenuLink asChild>
+                      <Link to="/" className={navigationMenuTriggerStyle()}>
+                        Trang chủ
+                      </Link>
+                    </NavigationMenuLink>
                   </NavigationMenuItem>
 
                   {/* Universities Dropdown */}
@@ -143,11 +142,11 @@ const Navbar = () => {
                         Trường đại học
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
-                        <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+                        <ul className="grid gap-2 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
                           <li className="row-span-3">
                             <NavigationMenuLink asChild>
                               <a
-                                className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                                className="from-muted/50 to-muted flex h-full w-full flex-col justify-end rounded-md bg-linear-to-b p-6 no-underline outline-hidden select-none focus:shadow-md"
                                 href="/search"
                               >
                                 <Building2 className="h-6 w-6" />
@@ -160,7 +159,7 @@ const Navbar = () => {
                               </a>
                             </NavigationMenuLink>
                           </li>
-                          <ListItem href="/search?type=Tất cả" title="Tất cả trường">
+                          <ListItem href="/search?type=" title="Tất cả trường">
                             Danh sách đầy đủ các trường đại học
                           </ListItem>
                           <ListItem href="/search?type=Công lập" title="Trường công lập">
@@ -177,49 +176,37 @@ const Navbar = () => {
                   {/* News Dropdown */}
                   {user?.role !== 'admin' && (
                     <NavigationMenuItem>
-                    <NavigationMenuTrigger>
-                        Tin tức
-                      </NavigationMenuTrigger>
-                    <NavigationMenuContent>
-                      <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                        <li className="row-span-3">
-                          <NavigationMenuLink asChild>
-                            <a
-                              className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                              href="/search"
-                            >
-                              <div className="mb-2 mt-4 text-lg font-medium">
-                                Tin tức
-                              </div>
-                              <p className="text-sm leading-tight text-muted-foreground">
-                                Tin tức của các trường đại học trên toàn quốc
-                              </p>
-                            </a>
-                          </NavigationMenuLink>
-                        </li>
-                        <ListItem href="/news?category=admission" title="Tin tuyển sinh">
-                          Danh sách đầy đủ các trường đại học
-                        </ListItem>
-                        <ListItem href="/news?category=policy" title="Chính sách mới">
-                          Các trường đại học công lập
-                        </ListItem>
-                        <ListItem href="/news?category=scholarship" title="Học bổng">
-                          Các trường đại học tư thục
-                        </ListItem>
-                      </ul>
-                    </NavigationMenuContent>
-                  </NavigationMenuItem>
-                  )}
-
-                  {/* AI Chat */}
-                  {user?.role !== 'admin' && (
-                    <NavigationMenuItem>
-                      <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                        <button onClick={handleAIChat} className="flex items-center space-x-2">
-                          <MessageCircle className="h-4 w-4" />
-                          <span>Trợ lý AI</span>
-                        </button>
-                      </NavigationMenuLink>
+                      <NavigationMenuTrigger>Tin tức</NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="grid w-[300px] gap-4">
+                          <li>
+                            <NavigationMenuLink asChild>
+                              <Link href="/news">
+                                <div className="font-medium">Tin tức</div>
+                                <div className="text-muted-foreground">
+                                  Tin tức của các trường đại học trên toàn quốc
+                                </div>
+                              </Link>
+                            </NavigationMenuLink>
+                            <NavigationMenuLink asChild>
+                              <Link href="/news?category=admission">
+                                <div className="font-medium">Tin tuyển sinh</div>
+                                <div className="text-muted-foreground">
+                                  Thông báo, chỉ tiêu và phương án tuyển sinh từ các trường.
+                                </div>
+                              </Link>
+                            </NavigationMenuLink>
+                            <NavigationMenuLink asChild>
+                              <Link href="/news?category=policy">
+                                <div className="font-medium">Chính sách mới</div>
+                                <div className="text-muted-foreground">
+                                  Các thay đổi về quy chế, chính sách của bộ GD&ĐT.
+                                </div>
+                              </Link>
+                            </NavigationMenuLink>
+                          </li>
+                        </ul>
+                      </NavigationMenuContent>
                     </NavigationMenuItem>
                   )}
                 </NavigationMenuList>
@@ -229,23 +216,40 @@ const Navbar = () => {
             {/* User Section & Mobile Menu */}
             <div className="flex items-center">
               {/* User Section - Desktop */}
-              <div className="hidden lg:flex">
+              <div className="hidden lg:flex items-center space-x-10">
+                {/* AI Chat */}
+                <NavigationMenu>
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      {user?.role !== 'admin' && (
+                        <NavigationMenuItem>
+                          <NavigationMenuLink asChild>
+                            <button onClick={handleAIChat} className="flex flex-row items-center space-x-2">
+                              <MessageCircle className="h-4 w-4" />
+                              <span className="text-sm font-medium">Trợ lý AI</span>
+                            </button>
+                          </NavigationMenuLink>
+                        </NavigationMenuItem>
+                      )}
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
                 {isAuthenticated ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <div className="relative">
                         {user?.photoURL ? (
                           <div className="cursor-pointer">
-                            <img 
-                              src={user.photoURL} 
+                            <img
+                              src={user.photoURL}
                               alt={user?.displayName}
                               className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
                               referrerPolicy="no-referrer"
                               crossOrigin="anonymous"
                             />
-                            <div 
-                              className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center" 
-                              style={{display: 'none'}}
+                            <div
+                              className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center"
+                              style={{ display: 'none' }}
                             >
                               <User className="h-4 w-4" />
                             </div>
@@ -421,7 +425,7 @@ const Navbar = () => {
                     {activeDropdown === 'universities-mobile' && (
                       <div className="bg-gray-50">
                         <Link
-                          to="/search?type=Tất cả"
+                          to="/search?type=all"
                           className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >

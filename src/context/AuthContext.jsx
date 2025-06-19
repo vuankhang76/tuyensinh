@@ -46,6 +46,10 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
   };
 
+  const updateUser = (userData) => {
+    setUser(userData);
+  };
+
   const handleLogout = async () => {
     const result = await logoutUser();
     if (result.success) {
@@ -58,6 +62,7 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     login,
+    updateUser,
     logout: handleLogout,
     isAuthenticated: isAuthenticated(),
     authMethod: getAuthMethod()

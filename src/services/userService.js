@@ -23,11 +23,11 @@ export const userService = {
     }
   },
 
-  // PUT /api/Users/{id} - Update user
+  // PUT /api/Users/{id} - Update user (returns NoContent)
   updateUser: async (id, userData) => {
     try {
-      const response = await axios.put(`/Users/${id}`, { ...userData, id })
-      return response.data
+      await axios.put(`/Users/${id}`, { ...userData, id })
+      return true // Success indicator since API returns NoContent
     } catch (error) {
       console.error('Error updating user:', error)
       throw error
@@ -78,7 +78,13 @@ export const userService = {
   updateUserProfile: async (profileData) => {
     const currentUser = userService.getCurrentUser()
     if (currentUser && currentUser.id) {
-      const updatedUser = await userService.updateUser(currentUser.id, profileData)
+      await userService.updateUser(currentUser.id, profileData)
+      
+      const updatedUser = {
+        ...currentUser,
+        ...profileData
+      }
+      
       userService.updateCurrentUser(updatedUser)
       return updatedUser
     }
@@ -108,4 +114,4 @@ export const userService = {
   }
 }
 
-export default userService
+export default userService 

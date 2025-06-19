@@ -196,13 +196,18 @@ const Homepage = () => {
     }
 
     return (
+        
         <div className="min-h-screen bg-gray-50">
             {/* Hero Section */}
+            
             <section className="bg-gradient-to-r text-white py-15">
                 <div className="container mx-auto px-4 text-center">
                     <h1 className="text-4xl text-black font-bold mb-6">
                         Thông tin tuyển sinh
                     </h1>
+                    <h1 className="animate-in fade-in-0 duration-1000 text-2xl font-bold text-red-500">
+  DÒNG NÀY CÓ HIỆU ỨNG KHÔNG?
+</h1>
                     <p className="text-xl text-black mb-8 opacity-90">
                         Tìm thông tin trường đại học Việt Nam dễ dàng
                     </p>
