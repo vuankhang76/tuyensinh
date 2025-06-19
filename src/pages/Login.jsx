@@ -13,7 +13,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import { loginWithCredentials, loginWithGoogle } from '../services/authService';
+import { loginWithCredentials, loginWithGoogle, resendVerificationEmail } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 
@@ -39,7 +39,6 @@ const Login = () => {
     }
   }, [user, navigate]);
 
-  // Email/Password Login
   const handleCredentialsLogin = async (values) => {
     setLoading(true);
 
@@ -49,7 +48,36 @@ const Login = () => {
         values.password
       );
 
-      if (result.error) {
+      if (result.requiresEmailVerification) {
+        // Hiển thị toast với nút custom
+        toast.error(
+          <div className="flex flex-col gap-2">
+            <div className="font-semibold">Email chưa được xác minh</div>
+            <div className="text-sm text-muted-foreground">
+              Tài khoản của bạn chưa được xác minh email.
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                navigate('/email-verification', { 
+                  state: { 
+                    email: result.email,
+                    shouldResendEmail: true 
+                  } 
+                });
+                toast.dismiss(); // Đóng toast khi click
+              }}
+              className="mt-1"
+            >
+              Xác minh ngay
+            </Button>
+          </div>,
+          {
+            duration: 5000, // Hiển thị lâu hơn để user có thể click
+          }
+        );
+      } else if (result.error) {
         toast.error("Đăng nhập thất bại", {
           description: result.error,
         });

@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
-import { registerWithCredentials } from '@/services/authService';
+import { registerWithEmailVerification } from '@/services/authService';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -54,17 +54,39 @@ const Register = () => {
                 return;
             }
 
-            const result = await registerWithCredentials(normalizedValues);
+            const registrationData = {
+                ...normalizedValues,
+                role: 'student'
+            };
+
+            const result = await registerWithEmailVerification(registrationData);
             if (result.error) {
-                toast.error(result.error);
+                if (result.error.includes('username') || result.error.includes('tên đăng nhập')) {
+                    toast.error("Tên đăng nhập đã được sử dụng", {
+                        description: "Vui lòng chọn tên đăng nhập khác"
+                    });
+                } else if (result.error.includes('email') || result.error.includes('Email')) {
+                    toast.error("Email đã được sử dụng.", {
+                        description: "Vui lòng sử dụng email khác hoặc đăng nhập"
+                    });
+                } else {
+                    toast.error(result.error);
+                }
                 return;
             }
 
-            toast.success("Đăng ký thành công!", {
-                description: "Tài khoản đã được tạo. Vui lòng đăng nhập.",
-            });
+            if (result.requiresEmailVerification) {
+                toast.success("Tài khoản đã được tạo!", {
+                    description: "Vui lòng kiểm tra email để xác minh tài khoản.",
+                });
 
-            navigate('/login');
+                navigate('/email-verification', { 
+                    state: { email: result.email } 
+                });
+            } else {
+                toast.success("Đăng ký thành công!");
+                navigate('/login');
+            }
         } catch (error) {
             toast.error("Có lỗi xảy ra khi đăng ký", {
                 description: "Vui lòng thử lại sau."
@@ -98,19 +120,15 @@ const Register = () => {
                                         className="pl-10"
                                         {...register('displayName', {
                                             required: 'Vui lòng nhập họ và tên!',
-                                            minLength: {
-                                                value: 3,
-                                                message: 'Họ và tên phải có ít nhất 3 ký tự'
-                                            },
                                             pattern: {
-                                                value: /^[a-zA-ZÀ-ỹ\s]+$/,
-                                                message: 'Họ và tên chỉ được chứa chữ cái và khoảng trắng'
+                                                value: /^[A-ZÀ-Ỹ][a-zà-ỹ]+( [A-ZÀ-Ỹ][a-zà-ỹ]+)+$/,
+                                                message: 'Vui lòng nhập tên hợp lệ'
                                             }
                                         })}
                                     />
                                 </div>
-                                {errors.fullName && (
-                                    <p className="text-sm text-destructive mt-1">{errors.fullName.message}</p>
+                                {errors.displayName && (
+                                    <p className="text-sm text-destructive mt-1">{errors.displayName.message}</p>
                                 )}
                             </div>
                             <div>

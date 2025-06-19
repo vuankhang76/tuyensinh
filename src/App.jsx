@@ -11,6 +11,7 @@ import SearchResults from './pages/SearchResults'
 import CompareUniversities from './pages/CompareUniversities'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import EmailVerification from './pages/EmailVerification'
 import AdminLayout from './pages/admin/AdminLayout'
 import Overview from './pages/admin/Dashboard/Overview'
 import UniversityManagement from './pages/admin/Universities/UniversityManagement'
@@ -85,6 +86,7 @@ function App() {
                     
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
+                    <Route path="/email-verification" element={<EmailVerification />} />
                     
                     {/* Protected routes example */}
                     <Route path="/profile" element={
