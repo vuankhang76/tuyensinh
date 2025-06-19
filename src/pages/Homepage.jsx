@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import SearchSection from '../components/Homepage/SearchSection'
-import UniversityCard from '../components/Homepage/UniversityCard'
-import FilterSection from '../components/Homepage/FilterSection'
 import FeaturedUniversities from '../components/Homepage/FeaturedUniversities'
 import NewsSection from '../components/Homepage/NewsSection'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'

@@ -18,7 +18,6 @@ import {
   ChevronDown
 } from 'lucide-react'
 import UniversityCard from '../components/Homepage/UniversityCard'
-import FilterSection from '../components/Homepage/FilterSection'
 import Loading from '../components/common/Loading/LoadingSkeleton'
 import { Link } from 'react-router-dom'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -288,15 +287,6 @@ const SearchResults = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-
-              <Button
-                variant={showFilters ? "default" : "outline"}
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <Filter className="h-4 w-4 mr-2" />
-                Bộ lọc
-              </Button>
-
               {(query || region || type) && (
                 <Button
                   variant="ghost"
@@ -315,18 +305,6 @@ const SearchResults = () => {
       {/* Results Section */}
       <div className="container mx-auto p-4">
         <div className="flex gap-8">
-          {/* Filters Sidebar */}
-          {showFilters && (
-            <div className="w-80 flex-shrink-0">
-              <FilterSection
-                selectedRegion={region}
-                setSelectedRegion={handleRegionChange}
-                selectedType={type}
-                setSelectedType={handleTypeChange}
-              />
-            </div>
-          )}
-
           {/* Results */}
           <div className="flex-1">
             {/* Results Header */}

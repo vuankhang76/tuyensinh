@@ -8,7 +8,7 @@ import debounce from 'lodash.debounce'
 const SearchSection = ({ searchTerm, setSearchTerm, selectedRegion, setSelectedRegion }) => {
   const navigate = useNavigate()
   const [selectedMajor, setSelectedMajor] = useState('')
-
+ 
   const regions = [
     { value: 'all', label: 'Tất cả khu vực' },
     { value: 'Hà Nội', label: 'Hà Nội' },

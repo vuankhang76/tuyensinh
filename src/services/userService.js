@@ -1,73 +1,111 @@
-import apiClient from '../api/axios';
+import axios from '../api/axios'
 
-export const getUserProfile = async () => {
-  try {
-    const response = await apiClient.get('/User/profile');
-    return { data: response.data, error: null };
-  } catch (error) {
-    console.error('Get user profile error:', error);
-    return { 
-      data: null, 
-      error: error.response?.data?.message || 'Không thể lấy thông tin người dùng' 
-    };
-  }
-};
+export const userService = {
+  // GET /api/Users - Get all users (requires auth)
+  getAllUsers: async () => {
+    try {
+      const response = await axios.get('/Users')
+      return response.data
+    } catch (error) {
+      console.error('Error fetching users:', error)
+      throw error
+    }
+  },
 
-export const updateUserProfile = async (profileData) => {
-  try {
-    const response = await apiClient.put('/User/profile', profileData);
-    return { data: response.data, error: null };
-  } catch (error) {
-    console.error('Update user profile error:', error);
-    return { 
-      data: null, 
-      error: error.response?.data?.message || 'Không thể cập nhật thông tin người dùng' 
-    };
-  }
-};
+  // GET /api/Users/{id} - Get user by id
+  getUserById: async (id) => {
+    try {
+      const response = await axios.get(`/Users/${id}`)
+      return response.data
+    } catch (error) {
+      console.error('Error fetching user by id:', error)
+      throw error
+    }
+  },
 
-export const changePassword = async (passwordData) => {
-  try {
-    const response = await apiClient.put('/User/change-password', passwordData);
-    return { data: response.data, error: null };
-  } catch (error) {
-    console.error('Change password error:', error);
-    return { 
-      data: null, 
-      error: error.response?.data?.message || 'Không thể đổi mật khẩu' 
-    };
-  }
-};
+  // PUT /api/Users/{id} - Update user
+  updateUser: async (id, userData) => {
+    try {
+      const response = await axios.put(`/Users/${id}`, { ...userData, id })
+      return response.data
+    } catch (error) {
+      console.error('Error updating user:', error)
+      throw error
+    }
+  },
 
-export const deleteAccount = async () => {
-  try {
-    const response = await apiClient.delete('/User/account');
-    return { data: response.data, error: null };
-  } catch (error) {
-    console.error('Delete account error:', error);
-    return { 
-      data: null, 
-      error: error.response?.data?.message || 'Không thể xóa tài khoản' 
-    };
-  }
-};
+  // DELETE /api/Users/{id} - Delete user
+  deleteUser: async (id) => {
+    try {
+      await axios.delete(`/Users/${id}`)
+      return true
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      throw error
+    }
+  },
 
-export const uploadProfilePhoto = async (photoFile) => {
-  try {
-    const formData = new FormData();
-    formData.append('photo', photoFile);
-    
-    const response = await apiClient.post('/User/profile-photo', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return { data: response.data, error: null };
-  } catch (error) {
-    console.error('Upload profile photo error:', error);
-    return { 
-      data: null, 
-      error: error.response?.data?.message || 'Không thể tải lên ảnh đại diện' 
-    };
+  // Helper methods
+  getCurrentUser: () => {
+    try {
+      const user = localStorage.getItem('user')
+      return user ? JSON.parse(user) : null
+    } catch (error) {
+      console.error('Error getting current user:', error)
+      return null
+    }
+  },
+
+  updateCurrentUser: (userData) => {
+    try {
+      localStorage.setItem('user', JSON.stringify(userData))
+      return userData
+    } catch (error) {
+      console.error('Error updating current user in localStorage:', error)
+      throw error
+    }
+  },
+
+  // Legacy methods for backward compatibility
+  getUserProfile: async () => {
+    const currentUser = userService.getCurrentUser()
+    if (currentUser && currentUser.id) {
+      return userService.getUserById(currentUser.id)
+    }
+    throw new Error('No current user found')
+  },
+
+  updateUserProfile: async (profileData) => {
+    const currentUser = userService.getCurrentUser()
+    if (currentUser && currentUser.id) {
+      const updatedUser = await userService.updateUser(currentUser.id, profileData)
+      userService.updateCurrentUser(updatedUser)
+      return updatedUser
+    }
+    throw new Error('No current user found')
+  },
+
+  changePassword: async (passwordData) => {
+    // This endpoint might need to be implemented in the backend
+    try {
+      const response = await axios.put('/Auth/change-password', passwordData)
+      return response.data
+    } catch (error) {
+      console.error('Error changing password:', error)
+      throw error
+    }
+  },
+
+  deleteAccount: async () => {
+    const currentUser = userService.getCurrentUser()
+    if (currentUser && currentUser.id) {
+      await userService.deleteUser(currentUser.id)
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('user')
+      return true
+    }
+    throw new Error('No current user found')
   }
-}; 
+}
+
+export default userService
