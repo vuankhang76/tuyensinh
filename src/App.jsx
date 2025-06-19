@@ -11,6 +11,7 @@ import SearchResults from './pages/SearchResults'
 import CompareUniversities from './pages/CompareUniversities'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import EmailVerification from './pages/EmailVerification'
 import AdminLayout from './pages/admin/AdminLayout'
 import Overview from './pages/admin/Dashboard/Overview'
 import UniversityManagement from './pages/admin/Universities/UniversityManagement'
@@ -23,13 +24,10 @@ import UniversityAdmin from './pages/university/UniversityAdmin'
 import AIChat from './pages/AIChat'
 import Unauthorized from './pages/Unauthorized'
 
-// Layout components
 import Navbar from './components/common/Layout/Navbar'
 import Footer from './components/common/Layout/Footer'
-import DemoInfo from './components/common/DemoInfo'
-import ProtectedRoute from './components/common/ProtectedRoute'
+import ProtectedRoute from './routes/ProtectedRoute'
 
-// Toast components
 import { Toaster } from './components/ui/sonner'
 
 function App() {
@@ -85,8 +83,10 @@ function App() {
                     <Route path="/university/:slug" element={<UniversityDetail />} />
                     <Route path="/search" element={<SearchResults />} />
                     <Route path="/compare" element={<CompareUniversities />} />
+                    
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
+                    <Route path="/email-verification" element={<EmailVerification />} />
                     
                     {/* Protected routes example */}
                     <Route path="/profile" element={
@@ -102,9 +102,6 @@ function App() {
               </>
             } />
           </Routes>
-
-          <DemoInfo />
-
           <Toaster />
         </div>
       </Router>

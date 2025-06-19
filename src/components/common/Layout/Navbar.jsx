@@ -4,8 +4,6 @@ import {
   Menu,
   Home,
   Building2,
-  BookOpen,
-  Bell,
   ChevronDown,
   X,
   User,
@@ -35,9 +33,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { 
   Avatar, 
-  AvatarImage,
   AvatarFallback,
 } from '@/components/ui/avatar'
+import { toast } from 'sonner';
 
 import logo from '../../../assets/images/logo/logo_full.png'
 import { useAuth } from '../../../context/AuthContext'
@@ -63,7 +61,16 @@ const Navbar = () => {
   }
 
   const handleLogout = async () => {
-    await logout()
+    const result = await logout();
+    if (result.success){
+      toast.success("Đăng xuất thành công", {
+        description: "Hẹn gặp lại bạn!",
+      });
+    } else {
+      toast.error("Lỗi đăng xuất", {
+        description: result.error,
+      });
+    }
     setActiveDropdown(null)
     navigate('/')
   }

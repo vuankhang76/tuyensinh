@@ -118,7 +118,6 @@
   }
 }
 
-/* Toast Styling */
 @layer components {
   /* Success Toast - Green */
   [data-sonner-toast][data-type="success"] {

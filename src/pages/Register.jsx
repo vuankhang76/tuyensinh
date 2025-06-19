@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,36 +14,82 @@ import {
     Mail
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '../context/AuthContext';
+import { registerWithEmailVerification } from '@/services/authService';
 
 const Register = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const { user } = useAuth();
 
     const { register, handleSubmit, formState: { errors }, watch, control } = useForm();
     const password = watch('password');
 
-    // Handle Registration
+    useEffect(() => {
+        if (user) {
+            if (user.role === 'admin') {
+                navigate('/admin', { replace: true });
+            } else if (user.role === 'university') {
+                navigate('/university', { replace: true });
+            } else {
+                navigate('/', { replace: true });
+            }
+        }
+    }, [user, navigate]);
+
     const handleRegister = async (values) => {
         setLoading(true);
 
         try {
-            // Validate password confirmation
-            if (values.password !== values.confirmPassword) {
+            const normalizedValues = {
+                ...values,
+                username: values.username.toLowerCase(),
+                email: values.email.toLowerCase(),
+            };
+
+            if (normalizedValues.password !== normalizedValues.confirmPassword) {
                 toast.error("Mật khẩu xác nhận không khớp");
                 return;
             }
 
-            // In real app, call API to register
-            console.log('Registration:', values);
+            const registrationData = {
+                ...normalizedValues,
+                role: 'student'
+            };
 
-            toast.success("Đăng ký thành công!", {
-                description: "Tài khoản đã được tạo. Vui lòng đăng nhập.",
-            });
+            const result = await registerWithEmailVerification(registrationData);
+            if (result.error) {
+                if (result.error.includes('username')) {
+                    toast.error("Tên đăng nhập đã được sử dụng", {
+                        description: "Vui lòng chọn tên đăng nhập khác"
+                    });
+                } else if (result.error.includes('email')) {
+                    toast.error("Email đã được sử dụng.", {
+                        description: "Vui lòng sử dụng email khác hoặc đăng nhập"
+                    });
+                } else {
+                    toast.error(result.error);
+                }
+                return;
+            }
 
-            navigate('/login');
+            if (result.requiresEmailVerification) {
+                toast.warning("Tài khoản đã được tạo từ trước!", {
+                    description: "Vui lòng kiểm tra email để xác minh tài khoản.",
+                });
 
+                navigate('/email-verification', { 
+                    state: { 
+                        email: result.email,
+                        shouldResendEmail: true 
+                    } 
+                });
+            } else {
+                toast.success("Đăng ký thành công!");
+                navigate('/login');
+            }
         } catch (error) {
             toast.error("Có lỗi xảy ra khi đăng ký", {
                 description: "Vui lòng thử lại sau."
@@ -68,31 +114,51 @@ const Register = () => {
                     <CardContent>
                         <form onSubmit={handleSubmit(handleRegister)} className="space-y-4">
                             <div>
-                                <Label htmlFor="fullName">Họ và tên</Label>
+                                <Label htmlFor="displayName">Họ và tên</Label>
                                 <div className="relative">
                                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                                     <Input
-                                        id="fullName"
+                                        id="displayName"
                                         placeholder="Nguyễn Văn A"
                                         className="pl-10"
-                                        {...register('fullName', {
+                                        {...register('displayName', {
                                             required: 'Vui lòng nhập họ và tên!',
-                                            minLength: {
-                                                value: 3,
-                                                message: 'Họ và tên phải có ít nhất 3 ký tự'
-                                            },
                                             pattern: {
-                                                value: /^[a-zA-ZÀ-ỹ\s]+$/,
-                                                message: 'Họ và tên chỉ được chứa chữ cái và khoảng trắng'
+                                                value: /^[A-ZÀ-Ỹ][a-zà-ỹ]+( [A-ZÀ-Ỹ][a-zà-ỹ]+)+$/,
+                                                message: 'Vui lòng nhập tên hợp lệ'
                                             }
                                         })}
                                     />
                                 </div>
-                                {errors.fullName && (
-                                    <p className="text-sm text-destructive mt-1">{errors.fullName.message}</p>
+                                {errors.displayName && (
+                                    <p className="text-sm text-destructive mt-1">{errors.displayName.message}</p>
                                 )}
                             </div>
-
+                            <div>
+                                <Label htmlFor="username">Tên đăng nhập</Label>
+                                <div className="relative">
+                                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                                    <Input
+                                        id="username"
+                                        placeholder="username"
+                                        className="pl-10"
+                                        {...register('username', {
+                                            required: 'Vui lòng nhập tên đăng nhập!',
+                                            minLength: {
+                                                value: 6,
+                                                message: 'Tên đăng nhập phải có ít nhất 6 ký tự'
+                                            },
+                                            pattern:{
+                                                value: /^[a-zA-Z0-9]+$/,
+                                                message: 'Tên đăng nhập chỉ được chứa chữ cái và số'
+                                            }
+                                        })}
+                                    />
+                                </div>
+                                {errors.username && (
+                                    <p className="text-sm text-destructive mt-1">{errors.username.message}</p>
+                                )}
+                            </div>
                             <div>
                                 <Label htmlFor="email">Email</Label>
                                 <div className="relative">
@@ -128,8 +194,12 @@ const Register = () => {
                                         {...register('password', {
                                             required: 'Vui lòng nhập mật khẩu!',
                                             minLength: {
-                                                value: 6,
-                                                message: 'Mật khẩu phải có ít nhất 6 ký tự'
+                                                value: 5,
+                                                message: 'Mật khẩu phải có ít nhất 5 ký tự'
+                                            },
+                                            pattern: {
+                                                value: /^\S+$/,
+                                                message: 'Mật khẩu không được chứa khoảng trắng'
                                             }
                                         })}
                                     />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import { loginWithCredentials, loginWithGoogle } from '../services/authService';
+import { loginWithCredentials, loginWithGoogle, resendVerificationEmail } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 
@@ -25,14 +25,20 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { user, login } = useAuth();
 
-  // Handle redirect parameter from URL
-  const urlParams = new URLSearchParams(location.search);
-  const redirectTo = urlParams.get('redirect');
-  const from = location.state?.from?.pathname || (redirectTo ? `/${redirectTo}` : '/');
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'admin') {
+        navigate('/admin', { replace: true });
+      } else if (user.role === 'university') {
+        navigate('/university', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [user, navigate]);
 
-  // Email/Password Login
   const handleCredentialsLogin = async (values) => {
     setLoading(true);
 
@@ -42,7 +48,42 @@ const Login = () => {
         values.password
       );
 
-      if (result.error) {
+      if (result.requiresEmailVerification) {
+        toast.error(
+          <div className="flex flex-col gap-2">
+            <div className="font-semibold">Email chưa được xác minh</div>
+            <div className="text-sm text-muted-foreground">
+              Tài khoản của bạn chưa được xác minh email.
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const navigationKey = `login_${Date.now()}_${Math.random()}`;
+                console.log('🎯 Navigate từ Login với state:', {
+                  email: result.email,
+                  shouldResendEmail: true,
+                  navigationKey
+                });
+                navigate('/email-verification', { 
+                  state: { 
+                    email: result.email,
+                    shouldResendEmail: true,
+                    navigationKey
+                  } 
+                });
+                toast.dismiss();
+              }}
+              className="mt-1"
+            >
+              Xác minh ngay
+            </Button>
+          </div>,
+          {
+            duration: 5000,
+          }
+        );
+      } else if (result.error) {
         toast.error("Đăng nhập thất bại", {
           description: result.error,
         });
@@ -55,9 +96,9 @@ const Login = () => {
         if (result.user.role === 'admin') {
           navigate('/admin', { replace: true });
         } else if (result.user.role === 'university') {
-          navigate('/university-admin', { replace: true });
+          navigate('/university', { replace: true });
         } else {
-          navigate(from, { replace: true });
+          navigate('/', { replace: true });
         }
       }
     } catch (error) {
@@ -83,16 +124,16 @@ const Login = () => {
       } else {
         login(result.user);
         toast.success("Đăng nhập thành công", {
-          description: `Chào mừng ${result.user.email}!`,
+          description: `Chào mừng ${result.user.displayName}!`,
         });
 
         // Redirect admin to admin panel
         if (result.user.role === 'admin') {
           navigate('/admin', { replace: true });
         } else if (result.user.role === 'university') {
-          navigate('/university-admin', { replace: true });
+          navigate('/university', { replace: true });
         } else {
-          navigate(from, { replace: true });
+          navigate('/', { replace: true });
         }
       }
     } catch (error) {
@@ -184,8 +225,8 @@ const Login = () => {
                     {...register('password', {
                       required: 'Vui lòng nhập mật khẩu!',
                       minLength: {
-                        value: 6,
-                        message: 'Mật khẩu phải có ít nhất 6 ký tự'
+                        value: 3,
+                        message: 'Mật khẩu phải có ít nhất 3 ký tự'
                       }
                     })}
                   />
