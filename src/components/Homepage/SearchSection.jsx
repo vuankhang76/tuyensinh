@@ -42,7 +42,7 @@ const SearchSection = ({ searchTerm, setSearchTerm, selectedRegion, setSelectedR
       if (searchValue?.trim()) params.set('q', searchValue.trim())
       if (region && region !== 'all') params.set('region', region)
       if (major && major !== 'all') params.set('major', major)
-      
+
       if (params.toString()) {
         navigate(`/search?${params.toString()}`)
       }
@@ -52,7 +52,7 @@ const SearchSection = ({ searchTerm, setSearchTerm, selectedRegion, setSelectedR
 
   useEffect(() => {
     debouncedSearch(searchTerm, selectedRegion, selectedMajor)
-    
+
     return () => {
       debouncedSearch.cancel()
     }
@@ -68,63 +68,24 @@ const SearchSection = ({ searchTerm, setSearchTerm, selectedRegion, setSelectedR
         <div className="space-y-6">
           {/* Main Search */}
           <div>
-            <div className="space-y-4">
-              {/* Search Input */}
-              <div className="relative">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-                  <Input
-                    placeholder="Nhập tên trường đại học, ngành học... (tự động tìm kiếm)"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="h-12 pl-10 pr-10 shadow-sm border-gray-200 rounded-3xl text-base bg-white placeholder-gray-400 text-gray-900"
-                  />
-                  {searchTerm && (
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <div className="flex items-center space-x-2">
-                        <div className="animate-pulse text-primary text-xs">
-                          Đang tìm kiếm...
-                        </div>
-                      </div>
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+              <Input
+                placeholder="Nhập tên trường đại học, ngành học... (tự động tìm kiếm)"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-12 pl-10 pr-10 shadow-sm border-gray-200 rounded-full text-base bg-white placeholder-gray-400 text-gray-900"
+              />
+              {searchTerm && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-pulse text-foreground text-sm">
+                      Đang tìm kiếm...
                     </div>
-                  )}
+                  </div>
                 </div>
-              </div>
-
-              {/* Filters */}
-              <div className="grid grid-cols-2 gap-4 px-4">
-                <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                  <SelectTrigger className="h-12 w-full shadow-sm text-foreground">
-                    <div className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <SelectValue placeholder="Chọn khu vực" className="text-foreground"/>
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border-border">
-                    {regions.map(region => (
-                      <SelectItem key={region.value} value={region.value} className="text-foreground hover:bg-accent hover:text-accent-foreground cursor-pointer">
-                        {region.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={selectedMajor} onValueChange={setSelectedMajor}>
-                  <SelectTrigger className="h-12 w-full shadow-sm text-foreground">
-                    <div className="flex items-center">
-                      <BookOpen className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <SelectValue placeholder="Chọn ngành học" className="text-foreground" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border-border">
-                    {popularMajors.map(major => (
-                      <SelectItem key={major.value} value={major.value} className="text-foreground hover:bg-accent hover:text-accent-foreground cursor-pointer">
-                        {major.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              )}
             </div>
           </div>
 

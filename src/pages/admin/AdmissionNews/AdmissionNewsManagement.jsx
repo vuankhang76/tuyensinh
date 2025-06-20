@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import {
   Plus,
   Edit,
@@ -104,10 +104,7 @@ const AdmissionNewsManagement = () => {
   };
 
   const handleView = (record) => {
-    toast({
-      title: "Thông tin",
-      description: "Chức năng xem chi tiết tin tức",
-    });
+    toast.info("Chức năng xem chi tiết tin tức");
   };
 
   const handleEdit = (record) => {
@@ -123,10 +120,7 @@ const AdmissionNewsManagement = () => {
   const handleDeleteConfirm = () => {
     if (newsToDelete) {
       setAdmissionNews(admissionNews.filter(n => n.Id !== newsToDelete.Id));
-      toast({
-        title: "Thành công",
-        description: "Đã xóa tin tức thành công",
-      });
+      toast.success("Đã xóa tin tức thành công");
     }
     setDeleteDialogOpen(false);
     setNewsToDelete(null);
@@ -148,10 +142,7 @@ const AdmissionNewsManagement = () => {
           PublishDate: values.PublishDate?.toISOString() || values.PublishDate
         } : n
       ));
-      toast({
-        title: "Thành công",
-        description: "Đã cập nhật tin tức thành công",
-      });
+      toast.success("Đã cập nhật tin tức thành công");
     } else {
       // Add new news
       const newNews = { 
@@ -162,10 +153,7 @@ const AdmissionNewsManagement = () => {
         Status: values.Status || 'draft'
       };
       setAdmissionNews([...admissionNews, newNews]);
-      toast({
-        title: "Thành công",
-        description: "Đã thêm tin tức mới",
-      });
+      toast.success("Đã thêm tin tức mới");
     }
     setIsModalVisible(false);
     setEditingRecord(null);

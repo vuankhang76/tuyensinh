@@ -12,13 +12,11 @@
 
   export const loginWithCredentials = async (emailOrUsername, password) => {
     try {
-      // Gọi API login của backend như bình thường
       const response = await apiClient.post('/Auth/login', {
         emailOrUsername,
         password
       });
   
-      // Nếu thành công, luồng vẫn như cũ
       const data = response.data;
       localStorage.setItem('accessToken', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
@@ -33,11 +31,10 @@
         const errorData = error.response.data;
   
         if (errorData.code === 'EMAIL_NOT_VERIFIED') {
-          // Đăng nhập user vào Firebase để có thể gửi lại email verification
           try {
             await signInWithEmailAndPassword(auth, errorData.email, password);
           } catch (firebaseError) {
-            console.error('❌ Lỗi đăng nhập Firebase:', firebaseError.message);
+              console.error('Lỗi đăng nhập Firebase:', firebaseError.message);
           }
           
           return {
@@ -116,6 +113,7 @@
           return { user: null, error: checkError.response.data.message || 'Validation failed' };
         }
       }
+
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         userData.email,
@@ -151,7 +149,6 @@
         try {
           const signInResult = await signInWithEmailAndPassword(auth, userData.email, userData.password);
           if (!signInResult.user.emailVerified) {
-            console.log('-> Tình huống: Người dùng tồn tại nhưng CHƯA xác minh. Gửi lại email.');
             await sendEmailVerification(signInResult.user);
             return {
               user: null,

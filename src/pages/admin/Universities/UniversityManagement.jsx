@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,63 +9,49 @@ import {
   Plus,
   Edit,
   Building2,
+  Trash2,
+  RefreshCw,
 } from 'lucide-react';
 import UniversityModal from './UniversityModal';
+import universityService from '../../../services/universityService';
+import LoadingSkeleton from '../../../components/common/Loading/LoadingSkeleton';
 
 const UniversityManagement = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
+  const [universities, setUniversities] = useState([]);
+  const [error, setError] = useState(null);
 
-  // Sample data - in real app, this would come from API
-  const [universities, setUniversities] = useState([
-    {
-      id: 1,
-      name: 'Đại học Bách Khoa Hà Nội',
-      code: 'HUST',
-      address: 'Hà Nội',
-      phone: '024-3868-3008',
-      email: 'info@hust.edu.vn',
-      website: 'https://hust.edu.vn',
-      status: 'active',
-      logo: 'https://example.com/logo1.png',
-      description: 'Trường đại học hàng đầu về kỹ thuật và công nghệ',
-      established: '1956',
-      type: 'Công lập'
-    },
-    {
-      id: 2,
-      name: 'Đại học Quốc gia Hà Nội',
-      code: 'VNU',
-      address: 'Hà Nội',
-      phone: '024-3754-7506',
-      email: 'info@vnu.edu.vn',
-      website: 'https://vnu.edu.vn',
-      status: 'active',
-      logo: 'https://example.com/logo2.png',
-      description: 'Đại học quốc gia đa ngành',
-      established: '1906',
-      type: 'Công lập'
-    },
-    {
-      id: 3,
-      name: 'Đại học FPT',
-      code: 'FPT',
-      address: 'Hà Nội',
-      phone: '024-7300-1866',
-      email: 'info@fpt.edu.vn',
-      website: 'https://fpt.edu.vn',
-      status: 'active',
-      logo: 'https://example.com/logo3.png',
-      description: 'Trường đại học tư thục chuyên về công nghệ',
-      established: '2006',
-      type: 'Tư thục'
+  // Fetch universities from API
+  useEffect(() => {
+    fetchUniversities();
+  }, []);
+
+  const fetchUniversities = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await universityService.getAllUniversities();
+      setUniversities(data);
+    } catch (err) {
+      console.error('Error fetching universities:', err);
+      setError('Không thể tải danh sách trường đại học');
+      toast.error('Có lỗi xảy ra khi tải dữ liệu');
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
   const handleView = (record) => {
     navigate(`/admin/universities/${record.id}`);
+  };
+
+  const handleEdit = (record) => {
+    setEditingRecord(record);
+    setIsModalVisible(true);
   };
 
   const handleAdd = () => {
@@ -73,25 +59,71 @@ const UniversityManagement = () => {
     setIsModalVisible(true);
   };
 
-  const handleSubmit = (values) => {
-    if (editingRecord) {
-      // Update existing university
-      setUniversities(universities.map(u => 
-        u.id === editingRecord.id ? { ...u, ...values } : u
-      ));
-      toast.success("Đã cập nhật thông tin trường đại học");
-    } else {
-      // Add new university
-      const newUniversity = { 
-        ...values, 
-        id: Date.now(),
-        status: values.status || 'active'
-      };
-      setUniversities([...universities, newUniversity]);
-      toast.success("Đã thêm trường đại học mới");
+  const handleDelete = async (id) => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa trường đại học này?')) {
+      try {
+        setSubmitting(true);
+        await universityService.deleteUniversity(id);
+        setUniversities(universities.filter(u => u.id !== id));
+        toast.success("Đã xóa trường đại học");
+      } catch (error) {
+        console.error('Error deleting university:', error);
+        toast.error("Có lỗi xảy ra khi xóa trường đại học");
+      } finally {
+        setSubmitting(false);
+      }
     }
-    setIsModalVisible(false);
-    setEditingRecord(null);
+  };
+
+  const handleSubmit = async (values) => {
+    try {
+      setSubmitting(true);
+      
+      if (editingRecord) {
+        // Update existing university
+        const updatedUniversity = await universityService.updateUniversity(editingRecord.id, {
+          name: values.name,
+          shortName: values.shortName || values.code,
+          introduction: values.description || values.introduction,
+          officialWebsite: values.website,
+          admissionWebsite: values.admissionWebsite || values.website,
+          ranking: values.ranking || null,
+          rankingCriteria: values.rankingCriteria || 'Không có',
+          locations: values.address || values.locations,
+          type: values.type
+        });
+        
+        // Update local state
+        setUniversities(universities.map(u => 
+          u.id === editingRecord.id ? updatedUniversity : u
+        ));
+        toast.success("Đã cập nhật thông tin trường đại học");
+      } else {
+        // Add new university
+        const newUniversity = await universityService.createUniversity({
+          name: values.name,
+          shortName: values.shortName || values.code,
+          introduction: values.description || values.introduction || '',
+          officialWebsite: values.website,
+          admissionWebsite: values.admissionWebsite || values.website,
+          ranking: values.ranking || null,
+          rankingCriteria: values.rankingCriteria || 'Không có',
+          locations: values.address || values.locations || '',
+          type: values.type
+        });
+        
+        setUniversities([...universities, newUniversity]);
+        toast.success("Đã thêm trường đại học mới");
+      }
+      
+      setIsModalVisible(false);
+      setEditingRecord(null);
+    } catch (error) {
+      console.error('Error saving university:', error);
+      toast.error(editingRecord ? "Có lỗi xảy ra khi cập nhật" : "Có lỗi xảy ra khi thêm trường đại học");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -99,11 +131,24 @@ const UniversityManagement = () => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-2xl font-bold">Quản lý Trường Đại học</h2>
+          {error && (
+            <p className="text-red-600 text-sm mt-1">{error}</p>
+          )}
         </div>
-        <Button onClick={handleAdd}>
-          <Plus className="h-4 w-4 mr-2" />
-          Thêm trường mới
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={fetchUniversities}
+            disabled={loading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Làm mới
+          </Button>
+          <Button onClick={handleAdd} disabled={loading}>
+            <Plus className="h-4 w-4 mr-2" />
+            Thêm trường mới
+          </Button>
+        </div>
       </div>
 
       <div className="rounded-md border">
@@ -119,55 +164,104 @@ const UniversityManagement = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {universities.map((university) => (
-              <TableRow 
-                key={university.id}
-                className="hover:bg-muted/50 transition-colors"
-              >
-                <TableCell>{university.id}</TableCell>
-                <TableCell className="font-medium">
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={university.logo} alt={university.name} />
-                      <AvatarFallback>
-                        <Building2 className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-medium">{university.name}</div>
-                      <div className="text-sm text-muted-foreground truncate max-w-xs">
-                        {university.description}
+            {loading ? (
+              // Loading skeletons
+              Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={index}>
+                  <TableCell><LoadingSkeleton className="h-4 w-8" /></TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-3">
+                      <LoadingSkeleton className="h-8 w-8 rounded-full" />
+                      <div>
+                        <LoadingSkeleton className="h-4 w-32 mb-1" />
+                        <LoadingSkeleton className="h-3 w-24" />
                       </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline">{university.code}</Badge>
-                </TableCell>
-                <TableCell className="max-w-xs truncate">{university.address}</TableCell>
-                <TableCell>
-                  <span>
-                    {university.type}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="cursor-pointer hover:bg-primary/10 transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleView(university);
-                      }}
-                      title="Chỉnh sửa"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
+                  </TableCell>
+                  <TableCell><LoadingSkeleton className="h-4 w-16" /></TableCell>
+                  <TableCell><LoadingSkeleton className="h-4 w-20" /></TableCell>
+                  <TableCell><LoadingSkeleton className="h-4 w-16" /></TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <LoadingSkeleton className="h-8 w-8" />
+                      <LoadingSkeleton className="h-8 w-8" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : universities.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8">
+                  <div className="text-gray-500">
+                    {error ? 'Có lỗi xảy ra khi tải dữ liệu' : 'Chưa có trường đại học nào'}
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              universities.map((university) => (
+                <TableRow 
+                  key={university.id}
+                  className="hover:bg-muted/50 transition-colors"
+                >
+                  <TableCell>{university.id}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={university.logo} alt={university.name} />
+                        <AvatarFallback>
+                          <Building2 className="h-4 w-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">{university.name}</div>
+                        <div className="text-sm text-muted-foreground truncate max-w-xs">
+                          {university.introduction || university.description || 'Chưa có mô tả'}
+                        </div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{university.shortName || university.code}</Badge>
+                  </TableCell>
+                  <TableCell className="max-w-xs truncate">
+                    {university.locations || university.address || 'Chưa cập nhật'}
+                  </TableCell>
+                  <TableCell>
+                    <span>{university.type}</span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="cursor-pointer hover:bg-primary/10 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(university);
+                        }}
+                        title="Chỉnh sửa"
+                        disabled={submitting}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="cursor-pointer hover:bg-red-100 transition-colors text-red-600"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(university.id);
+                        }}
+                        title="Xóa"
+                        disabled={submitting}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
@@ -175,7 +269,7 @@ const UniversityManagement = () => {
       {/* Pagination placeholder */}
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="text-sm text-muted-foreground">
-          Hiển thị 1-{universities.length} của {universities.length} trường
+          {loading ? 'Đang tải...' : `Hiển thị 1-${universities.length} của ${universities.length} trường`}
         </div>
       </div>
 
@@ -187,6 +281,7 @@ const UniversityManagement = () => {
         }}
         onSubmit={handleSubmit}
         editingRecord={editingRecord}
+        loading={submitting}
       />
     </div>
   );

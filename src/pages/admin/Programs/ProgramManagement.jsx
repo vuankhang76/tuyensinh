@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import {
   Plus,
   Edit,
@@ -91,10 +91,7 @@ const ProgramManagement = () => {
   const handleDeleteConfirm = () => {
     if (programToDelete) {
       setPrograms(programs.filter(p => p.Id !== programToDelete.Id));
-      toast({
-        title: "Thành công",
-        description: "Đã xóa chương trình thành công",
-      });
+      toast.success("Đã xóa chương trình thành công");
     }
     setDeleteDialogOpen(false);
     setProgramToDelete(null);
@@ -115,10 +112,7 @@ const ProgramManagement = () => {
           UniversityName: universities.find(u => u.Id === values.UniversityId)?.Name || ''
         } : p
       ));
-      toast({
-        title: "Thành công",
-        description: "Đã cập nhật thông tin chương trình",
-      });
+      toast.success("Đã cập nhật thông tin chương trình");
     } else {
       // Add new program
       const newProgram = { 
@@ -127,10 +121,7 @@ const ProgramManagement = () => {
         UniversityName: universities.find(u => u.Id === values.UniversityId)?.Name || ''
       };
       setPrograms([...programs, newProgram]);
-      toast({
-        title: "Thành công",
-        description: "Đã thêm chương trình mới",
-      });
+      toast.success("Đã thêm chương trình mới");
     }
     setIsModalVisible(false);
     setEditingRecord(null);

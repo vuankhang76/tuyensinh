@@ -18,10 +18,10 @@ import {
   ChevronDown
 } from 'lucide-react'
 import UniversityCard from '../components/Homepage/UniversityCard'
-import FilterSection from '../components/Homepage/FilterSection'
 import Loading from '../components/common/Loading/LoadingSkeleton'
 import { Link } from 'react-router-dom'
 import { useDebounce } from '@/hooks/useDebounce'
+import universityService from '../services/universityService'
 
 const SearchResults = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -60,169 +60,86 @@ const SearchResults = () => {
     }
   }, [query, searchInput])
 
-  // Mock data - trong thực tế sẽ fetch từ API
-  const mockUniversities = [
-    {
-      id: 1,
-      name: "Đại học Bách khoa Hà Nội",
-      code: "HUST",
-      slug: "dai-hoc-bach-khoa-ha-noi",
-      image: "/images/hust.jpg",
-      location: "Hà Nội",
-      type: "Công lập",
-      minScore: 27.5,
-      majors: ["Công nghệ thông tin", "Kỹ thuật điện", "Cơ khí", "Hóa học"],
-      tuition: "24-30 triệu VNĐ/năm",
-      ranking: 2,
-      featured: true,
-      description: "Trường đại học kỹ thuật hàng đầu Việt Nam",
-      quota: 9680,
-      students: 35000,
-      establishedYear: 1956,
-      website: "https://hust.edu.vn"
-    },
-    {
-      id: 2,
-      name: "Đại học FPT",
-      code: "FPU",
-      slug: "dai-hoc-fpt",
-      image: "/images/fpu.jpg",
-      location: "Hà Nội",
-      type: "Tư thục",
-      minScore: 22.0,
-      majors: ["Công nghệ thông tin", "Kinh doanh", "Thiết kế đồ họa", "Marketing"],
-      tuition: "65-70 triệu VNĐ/năm",
-      ranking: 15,
-      featured: false,
-      description: "Trường tư thục mạnh về CNTT và Kinh doanh",
-      quota: 5000,
-      students: 15000,
-      establishedYear: 2006,
-      website: "https://fpt.edu.vn"
-    },
-    {
-      id: 3,
-      name: "Đại học Kinh tế Quốc dân",
-      code: "NEU",
-      slug: "dai-hoc-kinh-te-quoc-dan",
-      image: "/images/neu.jpg",
-      location: "Hà Nội",
-      type: "Công lập",
-      minScore: 26.5,
-      majors: ["Kinh tế", "Tài chính", "Quản trị kinh doanh", "Kế toán"],
-      tuition: "20-28 triệu VNĐ/năm",
-      ranking: 5,
-      featured: true,
-      description: "Trường kinh tế hàng đầu Việt Nam",
-      quota: 7200,
-      students: 28000,
-      establishedYear: 1956,
-      website: "https://neu.edu.vn"
-    },
-    {
-      id: 4,
-      name: "Đại học Y Hà Nội",
-      code: "HMU",
-      slug: "dai-hoc-y-ha-noi",
-      image: "/images/hmu.jpg",
-      location: "Hà Nội",
-      type: "Công lập",
-      minScore: 28.0,
-      majors: ["Y khoa", "Răng hàm mặt", "Dược học", "Y tế công cộng"],
-      tuition: "25-35 triệu VNĐ/năm",
-      ranking: 1,
-      featured: true,
-      description: "Trường y hàng đầu Việt Nam",
-      quota: 2500,
-      students: 12000,
-      establishedYear: 1902,
-      website: "https://hmu.edu.vn"
-    },
-    {
-      id: 5,
-      name: "Đại học Quốc gia TP.HCM",
-      code: "VNU-HCM",
-      slug: "dai-hoc-quoc-gia-tp-hcm",
-      image: "/images/vnu-hcm.jpg",
-      location: "TP. Hồ Chí Minh",
-      type: "Công lập",
-      minScore: 26.0,
-      majors: ["Kinh tế", "Luật", "Khoa học tự nhiên", "Công nghệ thông tin"],
-      tuition: "18-25 triệu VNĐ/năm",
-      ranking: 1,
-      featured: true,
-      description: "Đại học đa ngành hàng đầu miền Nam",
-      quota: 8500,
-      students: 40000,
-      establishedYear: 1995,
-      website: "https://vnuhcm.edu.vn"
-    }
-  ]
-
-  // Simulate API call with debounced search
+  // Fetch and filter universities from API
   useEffect(() => {
-    setLoading(true)
+    const fetchAndFilterUniversities = async () => {
+      try {
+        setLoading(true)
 
-    // Simulate API delay
-    const timeoutId = setTimeout(() => {
-      let filtered = [...mockUniversities]
+        const data = await universityService.searchUniversities(query, {
+          type: type,
+          region: region
+        })
 
-      // Filter by search query
-      if (query) {
-        filtered = filtered.filter(uni =>
-          uni.name.toLowerCase().includes(query.toLowerCase()) ||
-          uni.majors.some(major => major.toLowerCase().includes(query.toLowerCase()))
-        )
+        // Transform API data to match component expectations
+        const transformedData = data.map(uni => ({
+          id: uni.id,
+          name: uni.name,
+          code: uni.shortName || uni.name.split(' ').map(w => w[0]).join(''),
+          slug: uni.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
+          image: `/images/${uni.shortName?.toLowerCase() || 'default'}.jpg`,
+          location: Array.isArray(uni.locations) ? uni.locations[0] : uni.locations || 'Chưa cập nhật',
+          type: uni.type || 'Chưa phân loại',
+          minScore: 0, // API không có thông tin này
+          majors: [], // API không có thông tin này
+          tuition: 'Liên hệ nhà trường',
+          ranking: uni.ranking || 0,
+          featured: uni.ranking <= 10,
+          description: uni.introduction || 'Chưa có mô tả',
+          quota: 0,
+          students: 0,
+          establishedYear: 1900,
+          website: uni.officialWebsite,
+          admissionWebsite: uni.admissionWebsite
+        }))
+
+        let filtered = [...transformedData]
+
+        // Apply additional filters
+        if (major) {
+          filtered = filtered.filter(uni =>
+            uni.majors.some(m => m.toLowerCase().includes(major.toLowerCase()))
+          )
+        }
+
+        // Apply sorting
+        switch (sortBy) {
+          case 'name':
+            filtered.sort((a, b) => a.name.localeCompare(b.name))
+            break
+          case 'score':
+            filtered.sort((a, b) => b.minScore - a.minScore)
+            break
+          case 'ranking':
+            filtered.sort((a, b) => a.ranking - b.ranking)
+            break
+          case 'tuition':
+            // Since we don't have actual tuition data, sort by name as fallback
+            filtered.sort((a, b) => a.name.localeCompare(b.name))
+            break
+          default:
+            filtered.sort((a, b) => {
+              if (a.featured && !b.featured) return -1
+              if (!a.featured && b.featured) return 1
+              return a.ranking - b.ranking
+            })
+        }
+
+        setUniversities(transformedData)
+        setFilteredUniversities(filtered)
+        setTotalResults(filtered.length)
+      } catch (error) {
+        console.error('Error fetching universities:', error)
+        // Set empty results on error
+        setUniversities([])
+        setFilteredUniversities([])
+        setTotalResults(0)
+      } finally {
+        setLoading(false)
       }
+    }
 
-      // Filter by region
-      if (region && region !== 'clear') {
-        filtered = filtered.filter(uni => uni.location === region)
-      }
-
-      // Filter by type
-      if (type && type !== 'clear') {
-        filtered = filtered.filter(uni => uni.type === type)
-      }
-
-      if (major) {
-        filtered = filtered.filter(uni =>
-          uni.majors.some(m => m.toLowerCase().includes(major.toLowerCase()))
-        )
-      }
-
-      switch (sortBy) {
-        case 'name':
-          filtered.sort((a, b) => a.name.localeCompare(b.name))
-          break
-        case 'score':
-          filtered.sort((a, b) => b.minScore - a.minScore)
-          break
-        case 'ranking':
-          filtered.sort((a, b) => a.ranking - b.ranking)
-          break
-        case 'tuition':
-          filtered.sort((a, b) => {
-            const aTuition = parseInt(a.tuition.split('-')[0])
-            const bTuition = parseInt(b.tuition.split('-')[0])
-            return aTuition - bTuition
-          })
-          break
-        default:
-          filtered.sort((a, b) => {
-            if (a.featured && !b.featured) return -1
-            if (!a.featured && b.featured) return 1
-            return a.ranking - b.ranking
-          })
-      }
-
-      setUniversities(mockUniversities)
-      setFilteredUniversities(filtered)
-      setTotalResults(filtered.length)
-      setLoading(false)
-    }, 300)
-
-    return () => clearTimeout(timeoutId)
+    fetchAndFilterUniversities()
   }, [query, region, type, major, sortBy])
 
   const updateSearchParams = (newParams) => {
@@ -280,9 +197,11 @@ const SearchResults = () => {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/" className="flex items-center">
-                  <Home className="h-4 w-4" />
-                  <span className="ml-1 font-normal text-foreground">Trang chủ</span>
+                <BreadcrumbLink>
+                  <Link to="/" className="flex items-center">
+                    <Home className="h-4 w-4" />
+                    <span className="ml-1">Trang chủ</span>
+                  </Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
@@ -297,6 +216,31 @@ const SearchResults = () => {
                   </BreadcrumbItem>
                 </>
               )}
+              {region && (
+                <>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{region}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </>
+              )}
+              {type && (
+                <>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{type}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </>
+              )}
+              {major && (
+                <>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{major}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </>
+              )}
+
             </BreadcrumbList>
           </Breadcrumb>
         </div>
@@ -304,7 +248,7 @@ const SearchResults = () => {
 
       {/* Search Bar */}
       <div className="bg-white">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto p-4">
           <div className="flex flex-col lg:flex-row gap-3">
             <div className="flex-1 relative">
               <Command className="rounded-lg border border-gray-200 focus:border-gray-500">
@@ -370,15 +314,6 @@ const SearchResults = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-
-              <Button
-                variant={showFilters ? "default" : "outline"}
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <Filter className="h-4 w-4 mr-2" />
-                Bộ lọc
-              </Button>
-
               {(query || region || type) && (
                 <Button
                   variant="ghost"
@@ -397,18 +332,6 @@ const SearchResults = () => {
       {/* Results Section */}
       <div className="container mx-auto p-4">
         <div className="flex gap-8">
-          {/* Filters Sidebar */}
-          {showFilters && (
-            <div className="w-80 flex-shrink-0">
-              <FilterSection
-                selectedRegion={region}
-                setSelectedRegion={handleRegionChange}
-                selectedType={type}
-                setSelectedType={handleTypeChange}
-              />
-            </div>
-          )}
-
           {/* Results */}
           <div className="flex-1">
             {/* Results Header */}

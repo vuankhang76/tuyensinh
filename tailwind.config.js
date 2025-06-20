@@ -63,12 +63,57 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "collapsible-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-collapsible-content-height)" },
+        },
+        "collapsible-up": {
+          from: { height: "var(--radix-collapsible-content-height)" },
+          to: { height: "0" },
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        "fade-out": {
+          from: { opacity: "1" },
+          to: { opacity: "0" },
+        },
+        "slide-from-left": {
+          from: { transform: "translateX(-100%)" },
+          to: { transform: "translateX(0)" },
+        },
+        "slide-to-left": {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(-100%)" },
+        },
+        "slide-from-right": {
+          from: { transform: "translateX(100%)" },
+          to: { transform: "translateX(0)" },
+        },
+        "slide-to-right": {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(100%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "collapsible-down": "collapsible-down 0.2s ease-in-out",
+        "collapsible-up": "collapsible-up 0.2s ease-in-out",
+        "fade-in": "fade-in 0.3s ease-in-out",
+        "fade-out": "fade-out 0.3s ease-in-out",
+        "slide-from-left": "slide-from-left 0.3s ease-in-out",
+        "slide-to-left": "slide-to-left 0.3s ease-in-out",
+        "slide-from-right": "slide-from-right 0.3s ease-in-out",
+        "slide-to-right": "slide-to-right 0.3s ease-in-out",
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require("tailwindcss-animation"),
+    require("@tailwindcss/forms"),
+    require("@tailwindcss/typography")
+  ],
 };
