@@ -15,9 +15,11 @@ import {
   Heart,
   Share,
   Info,
-  AlertCircle
+  AlertCircle,
+  Home
 } from 'lucide-react'
 import Loading from '../../components/common/Loading/LoadingSkeleton'
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb'
 
 const UniversityDetail = () => {
   const { slug } = useParams()
@@ -144,13 +146,24 @@ const UniversityDetail = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Breadcrumb */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-3">
-          <div className="text-sm text-gray-600">
-            <Link to="/" className="hover:text-blue-600">Trang chủ</Link>
-            <span className="mx-2">/</span>
-            <span className="text-gray-800">{university.name}</span>
-          </div>
+      <div className="bg-white shadow-sm">
+        <div className="container mx-auto px-4 py-4">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink>
+                  <Link to="/" className="flex items-center">
+                    <Home className="h-4 w-4" />
+                    <span className="ml-1">Trang chủ</span>
+                  </Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{university.name}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
         </div>
       </div>
 

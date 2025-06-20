@@ -197,9 +197,11 @@ const SearchResults = () => {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/" className="flex items-center">
-                  <Home className="h-4 w-4" />
-                  <span className="ml-1 font-normal text-foreground">Trang chủ</span>
+                <BreadcrumbLink>
+                  <Link to="/" className="flex items-center">
+                    <Home className="h-4 w-4" />
+                    <span className="ml-1">Trang chủ</span>
+                  </Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
@@ -214,6 +216,31 @@ const SearchResults = () => {
                   </BreadcrumbItem>
                 </>
               )}
+              {region && (
+                <>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{region}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </>
+              )}
+              {type && (
+                <>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{type}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </>
+              )}
+              {major && (
+                <>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{major}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </>
+              )}
+
             </BreadcrumbList>
           </Breadcrumb>
         </div>
@@ -221,7 +248,7 @@ const SearchResults = () => {
 
       {/* Search Bar */}
       <div className="bg-white">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto p-4">
           <div className="flex flex-col lg:flex-row gap-3">
             <div className="flex-1 relative">
               <Command className="rounded-lg border border-gray-200 focus:border-gray-500">

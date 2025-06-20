@@ -245,11 +245,11 @@ const Login = () => {
                     checked={rememberMe}
                     onCheckedChange={setRememberMe}
                   />
-                  <Label htmlFor="remember" className="text-sm mt-2">Ghi nhớ đăng nhập</Label>
+                  <Label htmlFor="remember" className="text-sm">Ghi nhớ đăng nhập</Label>
                 </div>
                 <Link
                   to="/forgot-password"
-                  className="text-primary hover:text-primary/80 text-sm"
+                  className="text-primary text-sm"
                 >
                   Quên mật khẩu?
                 </Link>
@@ -272,7 +272,7 @@ const Login = () => {
                 </div>
                 <Link
                   to="/register"
-                  className="text-primary hover:text-primary/80 font-medium text-sm"
+                  className="text-primary hover:text-primary/80 text-sm"
                 >
                   Đăng ký
                 </Link>

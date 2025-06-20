@@ -216,12 +216,12 @@ const Navbar = () => {
             {/* User Section & Mobile Menu */}
             <div className="flex items-center">
               {/* User Section - Desktop */}
-              <div className="hidden lg:flex items-center space-x-10">
+              <div className="hidden lg:flex items-center space-x-4">
                 {/* AI Chat */}
                 <NavigationMenu>
                   <NavigationMenuList>
                     <NavigationMenuItem>
-                      {user?.role !== 'admin' && (
+                      {isAuthenticated && (
                         <NavigationMenuItem>
                           <NavigationMenuLink asChild>
                             <button onClick={handleAIChat} className="flex flex-row items-center space-x-2">
@@ -491,7 +491,7 @@ const Navbar = () => {
                 )}
 
                 {/* AI Chat Mobile */}
-                {user?.role !== 'admin' && (
+                {isAuthenticated && (
                   <button
                     onClick={handleAIChat}
                     className="w-full flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"

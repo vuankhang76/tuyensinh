@@ -294,13 +294,13 @@ const UserProfile = () => {
                           id="displayName"
                           value={editData.displayName}
                           onChange={(e) => handleInputChange('displayName', e.target.value)}
-                          pattern={/^[^\s]+$/}
-                          title="Tên hiển thị không được chứa khoảng trắng"
+                          pattern={/^[A-ZÀ-Ỹ][a-zà-ỹ]+( [A-ZÀ-Ỹ][a-zà-ỹ]+)+$/}
+                          title="Nhập tên hợp lệ"
                         />
                       ) : (
                         <Input
                           id="displayName"
-                          value={user.displayName || 'Chưa thiết lập'}
+                          value={user.displayName || 'Unkown'}
                           disabled
                         />
                       )}
@@ -308,10 +308,12 @@ const UserProfile = () => {
 
                     {/* Username */}
                     <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                      <p className="text-sm bg-muted p-3 rounded-md">
-                        {user.email}
-                      </p>
+                    <Label variant="default" htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        value={user.email || 'Unknown'}
+                        disabled
+                      />
                     </div>
                   </div>
                 </div>
