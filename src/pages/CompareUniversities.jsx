@@ -24,7 +24,6 @@ import {
   XCircle
 } from 'lucide-react'
 import universityService from '../services/universityService'
-import LoadingSkeleton from '../components/common/Loading/LoadingSkeleton'
 
 const CompareUniversities = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -655,15 +654,6 @@ const CompareUniversities = () => {
             <div className="text-sm text-gray-600">
               {loading ? 'Đang tải danh sách trường...' : 'Gợi ý: Hãy thử tìm "Bách khoa", "FPT", "Kinh tế"...'}
             </div>
-
-            {/* Loading State */}
-            {loading && (
-              <div className="space-y-3 max-h-60 overflow-y-auto">
-                {[...Array(3)].map((_, index) => (
-                  <LoadingSkeleton key={index} type="university" />
-                ))}
-              </div>
-            )}
 
             {/* Error State */}
             {error && !loading && (

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { toast } from 'sonner';
 import {
   Plus,
@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import UniversityModal from './UniversityModal';
 import universityService from '../../../services/universityService';
-import LoadingSkeleton from '../../../components/common/Loading/LoadingSkeleton';
+
 
 const UniversityManagement = () => {
   const navigate = useNavigate();
@@ -23,9 +23,12 @@ const UniversityManagement = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [universities, setUniversities] = useState([]);
+  const [allUniversities, setAllUniversities] = useState([]);
+  const [totalResults, setTotalResults] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const [error, setError] = useState(null);
 
-  // Fetch universities from API
   useEffect(() => {
     fetchUniversities();
   }, []);
@@ -35,7 +38,9 @@ const UniversityManagement = () => {
       setLoading(true);
       setError(null);
       const data = await universityService.getAllUniversities();
-      setUniversities(data);
+      setAllUniversities(data);
+      setTotalResults(data.length);
+      setCurrentPage(1);
     } catch (err) {
       console.error('Error fetching universities:', err);
       setError('Không thể tải danh sách trường đại học');
@@ -43,10 +48,6 @@ const UniversityManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleView = (record) => {
-    navigate(`/admin/universities/${record.id}`);
   };
 
   const handleEdit = (record) => {
@@ -64,7 +65,10 @@ const UniversityManagement = () => {
       try {
         setSubmitting(true);
         await universityService.deleteUniversity(id);
-        setUniversities(universities.filter(u => u.id !== id));
+        const updatedData = allUniversities.filter(u => u.id !== id);
+        setAllUniversities(updatedData);
+        setTotalResults(updatedData.length);
+        setCurrentPage(1);
         toast.success("Đã xóa trường đại học");
       } catch (error) {
         console.error('Error deleting university:', error);
@@ -78,44 +82,44 @@ const UniversityManagement = () => {
   const handleSubmit = async (values) => {
     try {
       setSubmitting(true);
-      
+
       if (editingRecord) {
-        // Update existing university
         const updatedUniversity = await universityService.updateUniversity(editingRecord.id, {
           name: values.name,
-          shortName: values.shortName || values.code,
-          introduction: values.description || values.introduction,
+          shortName: values.shortName,
+          introduction: values.introduction,
           officialWebsite: values.website,
-          admissionWebsite: values.admissionWebsite || values.website,
-          ranking: values.ranking || null,
-          rankingCriteria: values.rankingCriteria || 'Không có',
-          locations: values.address || values.locations,
+          admissionWebsite: values.admissionWebsite,
+          ranking: values.ranking,
+          rankingCriteria: values.rankingCriteria,
+          locations: values.locations,
           type: values.type
         });
-        
-        // Update local state
-        setUniversities(universities.map(u => 
+        const updatedData = allUniversities.map(u =>
           u.id === editingRecord.id ? updatedUniversity : u
-        ));
+        );
+        setAllUniversities(updatedData);
         toast.success("Đã cập nhật thông tin trường đại học");
       } else {
-        // Add new university
+
         const newUniversity = await universityService.createUniversity({
           name: values.name,
-          shortName: values.shortName || values.code,
-          introduction: values.description || values.introduction || '',
+          shortName: values.code,
+          introduction: values.introduction,
           officialWebsite: values.website,
-          admissionWebsite: values.admissionWebsite || values.website,
-          ranking: values.ranking || null,
-          rankingCriteria: values.rankingCriteria || 'Không có',
-          locations: values.address || values.locations || '',
+          admissionWebsite: values.admissionWebsite,
+          ranking: values.ranking,
+          rankingCriteria: values.rankingCriteria,
+          locations: values.locations,
           type: values.type
         });
-        
-        setUniversities([...universities, newUniversity]);
+
+        const updatedData = [...allUniversities, newUniversity];
+        setAllUniversities(updatedData);
+        setTotalResults(updatedData.length);
         toast.success("Đã thêm trường đại học mới");
       }
-      
+
       setIsModalVisible(false);
       setEditingRecord(null);
     } catch (error) {
@@ -125,6 +129,14 @@ const UniversityManagement = () => {
       setSubmitting(false);
     }
   };
+
+  const totalPages = Math.ceil(totalResults / pageSize)
+  const startResult = (currentPage - 1) * pageSize + 1
+  const endResult = Math.min(currentPage * pageSize, totalResults)  
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * pageSize
+    setUniversities(allUniversities.slice(startIndex, startIndex + pageSize))
+  }, [allUniversities, currentPage, pageSize])
 
   return (
     <div>
@@ -136,8 +148,8 @@ const UniversityManagement = () => {
           )}
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={fetchUniversities}
             disabled={loading}
           >
@@ -156,35 +168,42 @@ const UniversityManagement = () => {
           <TableHeader>
             <TableRow>
               <TableHead className="w-10 font-bold">Id</TableHead>
-              <TableHead className="w-50 font-bold">Tên trường</TableHead>
+              <TableHead className="w-80 font-bold">Tên trường</TableHead>
               <TableHead className="w-24 font-bold">Mã trường</TableHead>
-              <TableHead className="w-24 font-bold">Địa chỉ</TableHead>
+              <TableHead className="font-bold">Địa chỉ</TableHead>
               <TableHead className="w-24 font-bold">Loại hình</TableHead>
               <TableHead className="w-20 font-bold">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
-              // Loading skeletons
               Array.from({ length: 5 }).map((_, index) => (
                 <TableRow key={index}>
-                  <TableCell><LoadingSkeleton className="h-4 w-8" /></TableCell>
+                  <TableCell>
+                    <div className="animate-pulse h-4 w-8 bg-slate-300 dark:bg-slate-600 rounded"></div>
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-3">
-                      <LoadingSkeleton className="h-8 w-8 rounded-full" />
+                      <div className="animate-pulse h-8 w-8 bg-slate-300 dark:bg-slate-600 rounded-full"></div>
                       <div>
-                        <LoadingSkeleton className="h-4 w-32 mb-1" />
-                        <LoadingSkeleton className="h-3 w-24" />
+                        <div className="animate-pulse h-4 w-32 bg-slate-300 dark:bg-slate-600 rounded mb-1"></div>
+                        <div className="animate-pulse h-3 w-24 bg-slate-300 dark:bg-slate-600 rounded"></div>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell><LoadingSkeleton className="h-4 w-16" /></TableCell>
-                  <TableCell><LoadingSkeleton className="h-4 w-20" /></TableCell>
-                  <TableCell><LoadingSkeleton className="h-4 w-16" /></TableCell>
+                  <TableCell>
+                    <div className="animate-pulse h-4 w-16 bg-slate-300 dark:bg-slate-600 rounded"></div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="animate-pulse h-4 w-20 bg-slate-300 dark:bg-slate-600 rounded"></div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="animate-pulse h-4 w-16 bg-slate-300 dark:bg-slate-600 rounded"></div>
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
-                      <LoadingSkeleton className="h-8 w-8" />
-                      <LoadingSkeleton className="h-8 w-8" />
+                      <div className="animate-pulse h-8 w-8 bg-slate-300 dark:bg-slate-600 rounded"></div>
+                      <div className="animate-pulse h-8 w-8 bg-slate-300 dark:bg-slate-600 rounded"></div>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -199,32 +218,35 @@ const UniversityManagement = () => {
               </TableRow>
             ) : (
               universities.map((university) => (
-                <TableRow 
+                <TableRow
                   key={university.id}
                   className="hover:bg-muted/50 transition-colors"
                 >
                   <TableCell>{university.id}</TableCell>
                   <TableCell className="font-medium">
                     <div className="flex items-center space-x-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={university.logo} alt={university.name} />
-                        <AvatarFallback>
-                          <Building2 className="h-4 w-4" />
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="h-10 w-10 flex-shrink-0 rounded-md flex items-center justify-center border-none">
+                        {university.logo ? (
+                          <img
+                            src={university.logo}
+                            alt={`Logo ${university.name}`}
+                            className="h-full w-full object-contain mix-blend-multiply"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <Building2 className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </div>
                       <div>
                         <div className="font-medium">{university.name}</div>
-                        <div className="text-sm text-muted-foreground truncate max-w-xs">
-                          {university.introduction || university.description || 'Chưa có mô tả'}
-                        </div>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{university.shortName || university.code}</Badge>
+                    <Badge variant="outline">{university.shortName}</Badge>
                   </TableCell>
                   <TableCell className="max-w-xs truncate">
-                    {university.locations || university.address || 'Chưa cập nhật'}
+                    {university.locations}
                   </TableCell>
                   <TableCell>
                     <span>{university.type}</span>
@@ -267,11 +289,77 @@ const UniversityManagement = () => {
       </div>
 
       {/* Pagination placeholder */}
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="text-sm text-muted-foreground">
-          {loading ? 'Đang tải...' : `Hiển thị 1-${universities.length} của ${universities.length} trường`}
-        </div>
-      </div>
+        {totalResults > 0 && (
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex items-center justify-between w-full">
+            <div className="text-sm text-gray-600">
+              Hiển thị {startResult}-{endResult} của {totalResults} kết quả
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Hiển thị:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="px-2 py-1 border rounded text-sm"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+              <span className="text-sm text-gray-600">mục/trang</span>
+            </div>
+          </div>
+
+           {totalPages > 1 && (
+             <Pagination>
+               <PaginationContent>
+                 <PaginationItem>
+                   <PaginationPrevious
+                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                     className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                   />
+                 </PaginationItem>
+
+                 {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                   let pageNum;
+                   if (totalPages <= 5) {
+                     pageNum = i + 1;
+                   } else if (currentPage <= 3) {
+                     pageNum = i + 1;
+                   } else if (currentPage >= totalPages - 2) {
+                     pageNum = totalPages - 4 + i;
+                   } else {
+                     pageNum = currentPage - 2 + i;
+                   }
+
+                   return (
+                     <PaginationItem key={pageNum}>
+                       <PaginationLink
+                         isActive={currentPage === pageNum}
+                         onClick={() => setCurrentPage(pageNum)}
+                         className="cursor-pointer"
+                       >
+                         {pageNum}
+                       </PaginationLink>
+                     </PaginationItem>
+                   );
+                 })}
+
+                 <PaginationItem>
+                   <PaginationNext
+                     onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                     className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                   />
+                 </PaginationItem>
+               </PaginationContent>
+             </Pagination>
+           )}
+         </div>
+       )}
 
       <UniversityModal
         visible={isModalVisible}

@@ -220,18 +220,16 @@ const Navbar = () => {
                 {/* AI Chat */}
                 <NavigationMenu>
                   <NavigationMenuList>
-                    <NavigationMenuItem>
-                      {isAuthenticated && (
-                        <NavigationMenuItem>
-                          <NavigationMenuLink asChild>
-                            <button onClick={handleAIChat} className="flex flex-row items-center space-x-2">
-                              <MessageCircle className="h-4 w-4" />
-                              <span className="text-sm font-medium">Trợ lý AI</span>
-                            </button>
-                          </NavigationMenuLink>
-                        </NavigationMenuItem>
-                      )}
-                    </NavigationMenuItem>
+                    {isAuthenticated && (
+                      <NavigationMenuItem>
+                        <NavigationMenuLink asChild>
+                          <button onClick={handleAIChat} className="flex flex-row items-center space-x-2">
+                            <MessageCircle className="h-4 w-4" />
+                            <span className="text-sm font-medium">Trợ lý AI</span>
+                          </button>
+                        </NavigationMenuLink>
+                      </NavigationMenuItem>
+                    )}
                   </NavigationMenuList>
                 </NavigationMenu>
                 {isAuthenticated ? (

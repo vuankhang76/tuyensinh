@@ -81,7 +81,7 @@ function App() {
                 <main>
                   <Routes>
                     <Route path="/" element={<Homepage />} />
-                    <Route path="/university/:slug" element={<UniversityDetail />} />
+                    <Route path="/university/:id" element={<UniversityDetail />} />
                     <Route path="/search" element={<SearchResults />} />
                     <Route path="/compare" element={<CompareUniversities />} />
                     

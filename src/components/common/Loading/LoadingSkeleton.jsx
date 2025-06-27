@@ -1,6 +1,5 @@
 import React from 'react';
 
-// University Card Skeleton - phù hợp với UniversityCard component
 const UniversityCardSkeleton = ({ className = "" }) => {
   return (
     <div className={`animate-pulse border border-gray-200 rounded-lg p-4 bg-white mb-4 ${className}`}>
