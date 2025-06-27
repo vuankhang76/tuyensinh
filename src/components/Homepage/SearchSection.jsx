@@ -11,11 +11,11 @@ const SearchSection = ({ searchTerm, setSearchTerm, selectedRegion, setSelectedR
 
   const regions = [
     { value: 'all', label: 'Tất cả khu vực' },
-    { value: 'Hà Nội', label: 'Hà Nội' },
-    { value: 'TP. Hồ Chí Minh', label: 'TP. Hồ Chí Minh' },
-    { value: 'Đà Nẵng', label: 'Đà Nẵng' },
-    { value: 'Cần Thơ', label: 'Cần Thơ' },
-    { value: 'Hải Phòng', label: 'Hải Phòng' }
+    { value: 'hanoi', label: 'Hà Nội' },
+    { value: 'hcm', label: 'TP. Hồ Chí Minh' },
+    { value: 'danang', label: 'Đà Nẵng' },
+    { value: 'cantho', label: 'Cần Thơ' },
+    { value: 'haiphong', label: 'Hải Phòng' }
   ]
 
   const popularMajors = [
@@ -40,7 +40,19 @@ const SearchSection = ({ searchTerm, setSearchTerm, selectedRegion, setSelectedR
     debounce((searchValue, region, major) => {
       const params = new URLSearchParams()
       if (searchValue?.trim()) params.set('q', searchValue.trim())
-      if (region && region !== 'all') params.set('region', region)
+      
+      // Map region values to actual province names
+      if (region && region !== 'all') {
+        const regionMap = {
+          'Hà Nội': 'Hà Nội',
+          'TP. Hồ Chí Minh': 'TP. Hồ Chí Minh',
+          'Đà Nẵng': 'Đà Nẵng',
+          'Cần Thơ': 'Cần Thơ',
+          'Hải Phòng': 'Hải Phòng'
+        }
+        params.set('region', regionMap[region] || region)
+      }
+      
       if (major && major !== 'all') params.set('major', major)
 
       if (params.toString()) {
@@ -97,7 +109,7 @@ const SearchSection = ({ searchTerm, setSearchTerm, selectedRegion, setSelectedR
             <div className="flex flex-wrap justify-center gap-2">
               {quickSearches.map((search, index) => (
                 <button
-                  key={index}
+                  key={`quick-search-${index}-${search.replace(/\s+/g, '-')}`}
                   onClick={() => handleQuickSearch(search)}
                   className="px-3 py-1.5 bg-muted hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-full text-sm transition-all duration-200 border border-border hover:border-primary/20"
                 >

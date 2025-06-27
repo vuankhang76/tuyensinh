@@ -1,14 +1,21 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import UniversityCard from './UniversityCard'
+import Loading from '@/components/common/Loading/LoadingSkeleton'
 
-const FeaturedUniversities = ({ universities }) => {
-  // Lấy top 5 trường có ranking cao nhất (số thấp = ranking cao)
+const FeaturedUniversities = ({ universities, loading = false }) => {
+  const [isLoading, setIsLoading] = useState(true)
+  useEffect(() => {
+    if (universities && universities.length > 0) {
+      setIsLoading(false)
+    }
+  }, [universities])
+
   const topUniversities = universities
-    .filter(uni => uni.ranking && uni.ranking > 0) // Chỉ lấy trường có ranking
-    .sort((a, b) => a.ranking - b.ranking) // Sắp xếp tăng dần (1, 2, 3...)
-    .slice(0, 5); // Chỉ lấy 5 trường đầu
+    .filter(uni => uni.ranking && uni.ranking > 0)
+    .sort((a, b) => a.ranking - b.ranking)
+    .slice(0, 5);
 
   return (
     <section className="py-16 bg-muted/50">
@@ -23,7 +30,7 @@ const FeaturedUniversities = ({ universities }) => {
         </div>
 
         <div className="space-y-3">
-          {topUniversities.length > 0 ? (
+          {!loading && topUniversities.length > 0 ? (
             topUniversities.map((university) => (
               <UniversityCard
                 key={university.id}
@@ -31,14 +38,12 @@ const FeaturedUniversities = ({ universities }) => {
               />
             ))
           ) : (
-            <div className="text-center py-8">
-              <div className="text-gray-400 text-6xl mb-4">🏫</div>
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                Chưa có dữ liệu xếp hạng
-              </h3>
-              <p className="text-gray-500">
-                Hệ thống đang cập nhật thông tin xếp hạng các trường đại học
-              </p>
+            <div className="space-y-4">
+              <Loading type="university" />
+              <Loading type="university" />
+              <Loading type="university" />
+              <Loading type="university" />
+              <Loading type="university" />
             </div>
           )}
         </div>
@@ -47,7 +52,8 @@ const FeaturedUniversities = ({ universities }) => {
           <Link to="/search">
             <Button 
               size="lg"
-              className="h-12 px-8 font-medium"
+              variant="default"
+              className="h-12 px-8 cursor-pointer"
             >
               Khám phá tất cả trường đại học →
             </Button>

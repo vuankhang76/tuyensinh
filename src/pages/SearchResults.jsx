@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -6,7 +6,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Command, CommandInput } from '@/components/ui/command'
+import Loading from '@/components/common/Loading/LoadingSkeleton'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
 import {
@@ -18,12 +19,11 @@ import {
   ChevronDown
 } from 'lucide-react'
 import UniversityCard from '../components/Homepage/UniversityCard'
-import Loading from '../components/common/Loading/LoadingSkeleton'
 import { Link } from 'react-router-dom'
 import { useDebounce } from '@/hooks/useDebounce'
 import universityService from '../services/universityService'
 
-const SearchResults = () => {
+const SearchResults = React.memo(() => {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
 
@@ -37,30 +37,29 @@ const SearchResults = () => {
   const [sortBy, setSortBy] = useState('relevance')
   const [showFilters, setShowFilters] = useState(false)
 
-  // Get search parameters
-  const query = searchParams.get('q') || ''
-  const region = searchParams.get('region') || ''
-  const type = searchParams.get('type') || ''
-  const major = searchParams.get('major') || ''
+  const query = searchParams.get('q')
+  const region = searchParams.get('region')
+  const type = searchParams.get('type')
+  const major = searchParams.get('major')
 
-  // Debounced search value
   const debouncedSearchInput = useDebounce(searchInput, 500)
 
-  // Update URL when debounced search value changes
-  useEffect(() => {
+   useEffect(() => {
     if (debouncedSearchInput !== query) {
-      updateSearchParams({ q: debouncedSearchInput })
+      const params = new URLSearchParams(searchParams)
+      if (debouncedSearchInput && typeof debouncedSearchInput === 'string' && debouncedSearchInput.trim()) {
+        params.set('q', debouncedSearchInput)
+      } else {
+        params.delete('q')
+      }
+      setSearchParams(params)
     }
-  }, [debouncedSearchInput])
+  }, [debouncedSearchInput, query, searchParams, setSearchParams])
 
-  // Sync search input with URL params when navigating
   useEffect(() => {
-    if (query !== searchInput) {
-      setSearchInput(query)
-    }
-  }, [query, searchInput])
+    setSearchInput(query || '')
+  }, [])
 
-  // Fetch and filter universities from API
   useEffect(() => {
     const fetchAndFilterUniversities = async () => {
       try {
@@ -71,17 +70,14 @@ const SearchResults = () => {
           region: region
         })
 
-        // Transform API data to match component expectations
         const transformedData = data.map(uni => ({
           id: uni.id,
           name: uni.name,
           code: uni.shortName || uni.name.split(' ').map(w => w[0]).join(''),
-          slug: uni.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
-          image: `/images/${uni.shortName?.toLowerCase() || 'default'}.jpg`,
+          logo: uni.logo,
           location: Array.isArray(uni.locations) ? uni.locations[0] : uni.locations || 'Chưa cập nhật',
           type: uni.type || 'Chưa phân loại',
-          minScore: 0, // API không có thông tin này
-          majors: [], // API không có thông tin này
+          majors: [],
           tuition: 'Liên hệ nhà trường',
           ranking: uni.ranking || 0,
           featured: uni.ranking <= 10,
@@ -95,14 +91,12 @@ const SearchResults = () => {
 
         let filtered = [...transformedData]
 
-        // Apply additional filters
         if (major) {
           filtered = filtered.filter(uni =>
             uni.majors.some(m => m.toLowerCase().includes(major.toLowerCase()))
           )
         }
 
-        // Apply sorting
         switch (sortBy) {
           case 'name':
             filtered.sort((a, b) => a.name.localeCompare(b.name))
@@ -114,7 +108,6 @@ const SearchResults = () => {
             filtered.sort((a, b) => a.ranking - b.ranking)
             break
           case 'tuition':
-            // Since we don't have actual tuition data, sort by name as fallback
             filtered.sort((a, b) => a.name.localeCompare(b.name))
             break
           default:
@@ -130,7 +123,6 @@ const SearchResults = () => {
         setTotalResults(filtered.length)
       } catch (error) {
         console.error('Error fetching universities:', error)
-        // Set empty results on error
         setUniversities([])
         setFilteredUniversities([])
         setTotalResults(0)
@@ -142,7 +134,7 @@ const SearchResults = () => {
     fetchAndFilterUniversities()
   }, [query, region, type, major, sortBy])
 
-  const updateSearchParams = (newParams) => {
+  const updateSearchParams = useCallback((newParams) => {
     const params = new URLSearchParams(searchParams)
     Object.entries(newParams).forEach(([key, value]) => {
       if (value && value.trim()) {
@@ -152,33 +144,36 @@ const SearchResults = () => {
       }
     })
     setSearchParams(params)
-  }
+  }, [searchParams, setSearchParams])
 
-  const handleRegionChange = (value) => {
+  const handleRegionChange = useCallback((value) => {
     updateSearchParams({ region: value === 'clear' ? '' : value })
     setCurrentPage(1)
-  }
+  }, [updateSearchParams])
 
-  const handleTypeChange = (value) => {
+  const handleTypeChange = useCallback((value) => {
     updateSearchParams({ type: value === 'clear' ? '' : value })
     setCurrentPage(1)
-  }
+  }, [updateSearchParams])
 
-  const clearAllFilters = () => {
+  const clearAllFilters = useCallback(() => {
     setSearchInput('')
     updateSearchParams({ q: '', region: '', type: '', major: '' })
     setCurrentPage(1)
-  }
+  }, [updateSearchParams])
 
-  const handleSuggestionClick = (suggestion) => {
+  const handleSuggestionClick = useCallback((suggestion) => {
     const params = new URLSearchParams(searchParams)
-    params.set('q', suggestion)
+    params.set('q', suggestion || '')
     setSearchParams(params)
-    setSearchInput(suggestion)
+    setSearchInput(suggestion || '')
     setCurrentPage(1)
-  }
+  }, [searchParams, setSearchParams])
 
-  // Paginated results
+  const handleInputChange = useCallback((e) => {
+    setSearchInput(e.target.value)
+  }, [])
+
   const paginatedResults = filteredUniversities.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
@@ -189,6 +184,73 @@ const SearchResults = () => {
   const startResult = (currentPage - 1) * pageSize + 1
   const endResult = Math.min(currentPage * pageSize, totalResults)
 
+  const RegionOptions = [
+    { value: 'clear', label: 'Tất cả khu vực' },
+    { value: 'Hà Nội', label: 'Hà Nội' },
+    { value: 'TP. Hồ Chí Minh', label: 'TP. Hồ Chí Minh' },
+    { value: 'Đà Nẵng', label: 'Đà Nẵng' },
+    { value: 'An Giang', label: 'An Giang' },
+    { value: 'Bà Rịa - Vũng Tàu', label: 'Bà Rịa - Vũng Tàu' },
+    { value: 'Bắc Giang', label: 'Bắc Giang' },
+    { value: 'Bắc Kạn', label: 'Bắc Kạn' },
+    { value: 'Bạc Liêu', label: 'Bạc Liêu' },
+    { value: 'Bắc Ninh', label: 'Bắc Ninh' },
+    { value: 'Bến Tre', label: 'Bến Tre' },
+    { value: 'Bình Định', label: 'Bình Định' },
+    { value: 'Bình Dương', label: 'Bình Dương' },
+    { value: 'Bình Phước', label: 'Bình Phước' },
+    { value: 'Bình Thuận', label: 'Bình Thuận' },
+    { value: 'Cà Mau', label: 'Cà Mau' },
+    { value: 'Cần Thơ', label: 'Cần Thơ' },
+    { value: 'Cao Bằng', label: 'Cao Bằng' },
+    { value: 'Đắk Lắk', label: 'Đắk Lắk' },
+    { value: 'Đắk Nông', label: 'Đắk Nông' },
+    { value: 'Điện Biên', label: 'Điện Biên' },
+    { value: 'Đồng Nai', label: 'Đồng Nai' },
+    { value: 'Đồng Tháp', label: 'Đồng Tháp' },
+    { value: 'Gia Lai', label: 'Gia Lai' },
+    { value: 'Hà Giang', label: 'Hà Giang' },
+    { value: 'Hà Nam', label: 'Hà Nam' },
+    { value: 'Hà Tĩnh', label: 'Hà Tĩnh' },
+    { value: 'Hải Dương', label: 'Hải Dương' },
+    { value: 'Hải Phòng', label: 'Hải Phòng' },
+    { value: 'Hậu Giang', label: 'Hậu Giang' },
+    { value: 'Hòa Bình', label: 'Hòa Bình' },
+    { value: 'Hưng Yên', label: 'Hưng Yên' },
+    { value: 'Khánh Hòa', label: 'Khánh Hòa' },
+    { value: 'Kiên Giang', label: 'Kiên Giang' },
+    { value: 'Kon Tum', label: 'Kon Tum' },
+    { value: 'Lai Châu', label: 'Lai Châu' },
+    { value: 'Lâm Đồng', label: 'Lâm Đồng' },
+    { value: 'Lạng Sơn', label: 'Lạng Sơn' },
+    { value: 'Lào Cai', label: 'Lào Cai' },
+    { value: 'Long An', label: 'Long An' },
+    { value: 'Nam Định', label: 'Nam Định' },
+    { value: 'Nghệ An', label: 'Nghệ An' },
+    { value: 'Ninh Bình', label: 'Ninh Bình' },
+    { value: 'Ninh Thuận', label: 'Ninh Thuận' },
+    { value: 'Phú Thọ', label: 'Phú Thọ' },
+    { value: 'Phú Yên', label: 'Phú Yên' },
+    { value: 'Quảng Bình', label: 'Quảng Bình' },
+    { value: 'Quảng Nam', label: 'Quảng Nam' },
+    { value: 'Quảng Ngãi', label: 'Quảng Ngãi' },
+    { value: 'Quảng Ninh', label: 'Quảng Ninh' },
+    { value: 'Quảng Trị', label: 'Quảng Trị' },
+    { value: 'Sóc Trăng', label: 'Sóc Trăng' },
+    { value: 'Sơn La', label: 'Sơn La' },
+    { value: 'Tây Ninh', label: 'Tây Ninh' },
+    { value: 'Thái Bình', label: 'Thái Bình' },
+    { value: 'Thái Nguyên', label: 'Thái Nguyên' },
+    { value: 'Thanh Hóa', label: 'Thanh Hóa' },
+    { value: 'Thừa Thiên Huế', label: 'Thừa Thiên Huế' },
+    { value: 'Tiền Giang', label: 'Tiền Giang' },
+    { value: 'Trà Vinh', label: 'Trà Vinh' },
+    { value: 'Tuyên Quang', label: 'Tuyên Quang' },
+    { value: 'Vĩnh Long', label: 'Vĩnh Long' },
+    { value: 'Vĩnh Phúc', label: 'Vĩnh Phúc' },
+    { value: 'Yên Bái', label: 'Yên Bái' },
+  ]
+  
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -197,7 +259,7 @@ const SearchResults = () => {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink>
+                <BreadcrumbLink asChild>
                   <Link to="/" className="flex items-center">
                     <Home className="h-4 w-4" />
                     <span className="ml-1">Trang chủ</span>
@@ -251,51 +313,43 @@ const SearchResults = () => {
         <div className="container mx-auto p-4">
           <div className="flex flex-col lg:flex-row gap-3">
             <div className="flex-1 relative">
-              <Command className="rounded-lg border border-gray-200 focus:border-gray-500">
-                <CommandInput
-                  placeholder="Tìm kiếm trường đại học, ngành học..."
-                  value={searchInput}
-                  onValueChange={setSearchInput}
-                />
-                {searchInput !== query && (
-                  <div className="absolute right-5 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
-                    Đang tìm...
-                  </div>
-                )}
-              </Command>
+              <Input
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Tìm kiếm trường đại học, ngành học..."
+                value={searchInput || ''}
+                onChange={handleInputChange}
+                type="text"
+              />
+              {searchInput !== query && (
+                <div className="absolute right-5 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
+                  Đang tìm...
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="w-[150px] justify-between">
-                    {region || "Khu vực"}
+                    {region || "Tất cả khu vực"}
                     <ChevronDown className="h-4 w-4 opacity-50" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-[150px]">
-                  <DropdownMenuItem onClick={() => handleRegionChange('clear')}>
-                    Tất cả khu vực
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleRegionChange('Hà Nội')}>
-                    Hà Nội
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleRegionChange('TP. Hồ Chí Minh')}>
-                    TP.HCM
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleRegionChange('Đà Nẵng')}>
-                    Đà Nẵng
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleRegionChange('Khác')}>
-                    Khác
-                  </DropdownMenuItem>
+                  <ScrollArea className="h-[200px]">
+                    {RegionOptions.map((option, index) => (
+                      <DropdownMenuItem key={`region-${option.value}-${index}`} onClick={() => handleRegionChange(option.value)}>
+                        {option.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </ScrollArea>
                 </DropdownMenuContent>
               </DropdownMenu>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-[120px] justify-between">
-                    {type || "Loại hình"}
+                  <Button variant="outline" className="w-[150px] justify-between">
+                    {type || "Tất cả loại hình"}
                     <ChevronDown className="h-4 w-4 opacity-50" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -409,7 +463,6 @@ const SearchResults = () => {
               </div>
             )}
 
-            {/* No Results */}
             {!loading && totalResults === 0 && (
               <Card className="text-center py-12">
                 <CardContent>
@@ -423,7 +476,7 @@ const SearchResults = () => {
                     <div className="space-y-2">
                       <div className="text-sm text-gray-600">Gợi ý:</div>
                       <div className="flex flex-wrap justify-center gap-2">
-                                                 {['Đại học Bách khoa', 'Công nghệ thông tin', 'Y khoa', 'Kinh tế'].map(suggestion => (
+                          {['Đại học Bách khoa', 'Công nghệ thông tin', 'Y khoa', 'Kinh tế'].map(suggestion => (
                           <Button
                             key={suggestion}
                             variant="outline"
@@ -440,7 +493,6 @@ const SearchResults = () => {
               </Card>
             )}
 
-            {/* Results List */}
             {!loading && totalResults > 0 && (
               <>
                 <div className="space-y-4 mb-8">
@@ -508,6 +560,6 @@ const SearchResults = () => {
       </div>
     </div>
   )
-}
+})
 
 export default SearchResults

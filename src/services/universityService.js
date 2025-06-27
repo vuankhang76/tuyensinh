@@ -34,17 +34,6 @@ export const universityService = {
     }
   },
 
-  // GET /api/Universities/{id}/details - Get university with details
-  getUniversityDetails: async (id) => {
-    try {
-      const response = await axios.get(`/Universities/${id}/details`)
-      return response.data
-    } catch (error) {
-      console.error('Error fetching university details:', error)
-      throw error
-    }
-  },
-
   // POST /api/Universities - Create new university
   createUniversity: async (universityData) => {
     try {
@@ -98,13 +87,17 @@ export const universityService = {
         filtered = filtered.filter(uni => uni.type === filters.type)
       }
 
-      // Filter by location
       if (filters.region && filters.region !== 'clear') {
-        filtered = filtered.filter(uni => 
-          uni.locations?.some(location => 
-            location.toLowerCase().includes(filters.region.toLowerCase())
-          )
-        )
+        filtered = filtered.filter(uni => {
+          if (typeof uni.locations === 'string') {
+            return uni.locations.toLowerCase().includes(filters.region.toLowerCase())
+          } else if (Array.isArray(uni.locations)) {
+            return uni.locations.some(location => 
+              location.toLowerCase().includes(filters.region.toLowerCase())
+            )
+          }
+          return false
+        })
       }
 
       return filtered
