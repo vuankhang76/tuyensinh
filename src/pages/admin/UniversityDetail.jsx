@@ -18,7 +18,7 @@ import {
   admissionScoreService,
   scholarshipService
 } from '@/services'
-
+import Loading from '@/components/common/Loading/LoadingSkeleton'
 import UniversityHero from '@/components/university/UniversityHero'
 import UniversityStats from '@/components/university/UniversityStats'
 import OverviewTab from '@/components/university/tabs/OverviewTab'
