@@ -56,72 +56,61 @@ const UniversityDetail = () => {
       try {
         setLoading(true)
         setError(null)
-        try {
-          const universityData = await universityService.getUniversityById(id)
-          setUniversity(universityData)
-          setLoadingStates(prev => ({ ...prev, university: false }))
-        } catch (err) {
-          console.error('Error fetching university:', err)
-          setError('Không thể tải thông tin trường đại học')
-          setLoadingStates(prev => ({ ...prev, university: false }))
-        }
 
-        try {
-          const programsData = await academicProgramService.getProgramsByUniversity(id)
-          setPrograms(programsData || [])
-        } catch (err) {
-          console.error('Error fetching programs:', err)
-          setPrograms([])
-        }
+        const [
+          universityResult,
+          programsResult,
+          majorsResult,
+          newsResult,
+          methodsResult,
+          scholarshipsResult
+        ] = await Promise.all([
+          universityService.getUniversityById(id),
+          academicProgramService.getProgramsByUniversity(id),
+          majorService.getMajorsByUniversity(id),
+          admissionNewsService.getAdmissionNewsByUniversity(id),
+          admissionMethodService.getAdmissionMethodsByUniversity(id),
+          scholarshipService.getScholarshipsByUniversity(id)
+        ])
+
+        setUniversity(universityResult)
+        setLoadingStates(prev => ({ ...prev, university: false }))
+
+        setPrograms(programsResult)
         setLoadingStates(prev => ({ ...prev, programs: false }))
 
-        try {
-          const majorsData = await majorService.getMajorsByUniversity(id)
-          setMajors(majorsData || [])
+        setMajors(majorsResult)
+        setLoadingStates(prev => ({ ...prev, majors: false }))
 
-          if (majorsData && majorsData.length > 0) {
-            const scoresPromises = majorsData.map(major =>
-              admissionScoreService.getAdmissionScoresByMajor(major.id)
-                .catch(err => {
-                  console.error(`Error fetching scores for major ${major.id}:`, err)
-                  return []
-                })
-            )
-            const scoresResults = await Promise.all(scoresPromises)
-            const allScores = scoresResults.flat()
+        if (majorsResult.length > 0) {
+          const scoresPromises = majorsResult.map(major =>
+            admissionScoreService.getAdmissionScoresByMajor(major.id).catch(err => {
+              return []
+            })
+          )
+
+          try {
+            const scoresResults = await Promise.allSettled(scoresPromises)
+            const allScores = scoresResults
+              .filter(result => result.status === 'fulfilled')
+              .map(result => result.value)
+              .flat()
             setAdmissionScores(allScores)
+          } catch (err) {
+            setAdmissionScores([])
           }
-        } catch (err) {
-          console.error('Error fetching majors:', err)
-          setMajors([])
+        } else {
+          setAdmissionScores([])
         }
-        setLoadingStates(prev => ({ ...prev, majors: false, scores: false }))
+        setLoadingStates(prev => ({ ...prev, scores: false }))
 
-        try {
-          const newsData = await admissionNewsService.getAdmissionNewsByUniversity(id)
-          setAdmissionNews(newsData || [])
-        } catch (err) {
-          console.error('Error fetching admission news:', err)
-          setAdmissionNews([])
-        }
+        setAdmissionNews(newsResult)
         setLoadingStates(prev => ({ ...prev, news: false }))
 
-        try {
-          const methodsData = await admissionMethodService.getAdmissionMethodsByUniversity(id)
-          setAdmissionMethods(methodsData || [])
-        } catch (err) {
-          console.error('Error fetching admission methods:', err)
-          setAdmissionMethods([])
-        }
+        setAdmissionMethods(methodsResult)
         setLoadingStates(prev => ({ ...prev, methods: false }))
 
-        try {
-          const scholarshipsData = await scholarshipService.getScholarshipsByUniversity(id)
-          setScholarships(scholarshipsData || [])
-        } catch (err) {
-          console.error('Error fetching scholarships:', err)
-          setScholarships([])
-        }
+        setScholarships(scholarshipsResult)
         setLoadingStates(prev => ({ ...prev, scholarships: false }))
 
       } catch (error) {
@@ -135,10 +124,6 @@ const UniversityDetail = () => {
 
     fetchUniversityData()
   }, [id])
-
-  const handleFavorite = () => {
-    toast.success('Đã thêm vào danh sách yêu thích!')
-  }
 
   const handleShare = () => {
     if (navigator.share) {
@@ -203,7 +188,7 @@ const UniversityDetail = () => {
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link to="/universities">Danh sách trường</Link>
+                  <Link to="/search">Danh sách trường</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
@@ -218,7 +203,6 @@ const UniversityDetail = () => {
       {/* Hero Section */}
       <UniversityHero
         university={university}
-        onFavorite={handleFavorite}
         onShare={handleShare}
       />
 

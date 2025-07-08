@@ -254,7 +254,7 @@ const Navbar = () => {
                           </div>
                         ) : (
                           <Avatar className="cursor-pointer">
-                            <AvatarFallback className="bg-primary text-primary-foreground">
+                            <AvatarFallback className="bg-gray-200 text-gray-800">
                               <User className="h-4 w-4" />
                             </AvatarFallback>
                           </Avatar>

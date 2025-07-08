@@ -36,6 +36,7 @@ const SearchResults = React.memo(() => {
   const [totalResults, setTotalResults] = useState(0)
   const [sortBy, setSortBy] = useState('relevance')
   const [showFilters, setShowFilters] = useState(false)
+  const [isSearching, setIsSearching] = useState(false)
 
   const query = searchParams.get('q')
   const region = searchParams.get('region')
@@ -44,7 +45,7 @@ const SearchResults = React.memo(() => {
 
   const debouncedSearchInput = useDebounce(searchInput, 500)
 
-   useEffect(() => {
+  useEffect(() => {
     if (debouncedSearchInput !== query) {
       const params = new URLSearchParams(searchParams)
       if (debouncedSearchInput && typeof debouncedSearchInput === 'string' && debouncedSearchInput.trim()) {
@@ -53,6 +54,7 @@ const SearchResults = React.memo(() => {
         params.delete('q')
       }
       setSearchParams(params)
+      setIsSearching(false)
     }
   }, [debouncedSearchInput, query, searchParams, setSearchParams])
 
@@ -160,6 +162,7 @@ const SearchResults = React.memo(() => {
     setSearchInput('')
     updateSearchParams({ q: '', region: '', type: '', major: '' })
     setCurrentPage(1)
+    setIsSearching(false)
   }, [updateSearchParams])
 
   const handleSuggestionClick = useCallback((suggestion) => {
@@ -168,11 +171,17 @@ const SearchResults = React.memo(() => {
     setSearchParams(params)
     setSearchInput(suggestion || '')
     setCurrentPage(1)
+    setIsSearching(false)
   }, [searchParams, setSearchParams])
 
   const handleInputChange = useCallback((e) => {
     setSearchInput(e.target.value)
-  }, [])
+    if (e.target.value.trim() && e.target.value !== query) {
+      setIsSearching(true)
+    } else {
+      setIsSearching(false)
+    }
+  }, [query])
 
   const paginatedResults = filteredUniversities.slice(
     (currentPage - 1) * pageSize,
@@ -320,7 +329,7 @@ const SearchResults = React.memo(() => {
                 onChange={handleInputChange}
                 type="text"
               />
-              {searchInput !== query && (
+              {isSearching && searchInput.trim() && (
                 <div className="absolute right-5 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
                   Đang tìm...
                 </div>
@@ -408,8 +417,8 @@ const SearchResults = React.memo(() => {
                           {region}
                           <Button
                             variant="ghost"
-                            size="sm"
-                            className="h-auto p-0 ml-1 hover:bg-transparent"
+                            size="md"
+                            className="h-auto ml-1"
                             onClick={() => handleRegionChange('clear')}
                           >
                             <X className="h-3 w-3" />

@@ -163,14 +163,14 @@ const UniversityManagement = () => {
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-10 font-bold">Id</TableHead>
-              <TableHead className="w-80 font-bold">Tên trường</TableHead>
+              <TableHead className="w-60 font-bold">Tên trường</TableHead>
               <TableHead className="w-24 font-bold">Mã trường</TableHead>
-              <TableHead className="font-bold">Địa chỉ</TableHead>
+              <TableHead className="w-40 font-bold">Địa chỉ</TableHead>
               <TableHead className="w-24 font-bold">Loại hình</TableHead>
               <TableHead className="w-20 font-bold">Thao tác</TableHead>
             </TableRow>

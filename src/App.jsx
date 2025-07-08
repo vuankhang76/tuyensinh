@@ -6,7 +6,7 @@ import { AuthProvider } from './context/AuthContext'
 
 // Pages
 import Homepage from './pages/Homepage'
-import UniversityDetail from './pages/admin/UniversityDetail'
+import UniversityDetail from './pages/UniversityDetail'
 import SearchResults from './pages/SearchResults'
 import CompareUniversities from './pages/CompareUniversities'
 import Login from './pages/Login'
@@ -24,7 +24,6 @@ import UniversityAdmin from './pages/university/UniversityAdmin'
 import UserProfile from './pages/user/UserProfile'
 import AIChat from './pages/AIChat'
 import Unauthorized from './pages/Unauthorized'
-
 import Navbar from './components/common/Layout/Navbar'
 import Footer from './components/common/Layout/Footer'
 import ProtectedRoute from './routes/ProtectedRoute'
