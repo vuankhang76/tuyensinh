@@ -7,11 +7,13 @@ import { AuthProvider } from './context/AuthContext'
 // Pages
 import Homepage from './pages/Homepage'
 import UniversityDetail from './pages/UniversityDetail'
+import NotFoundPage from './pages/NotFoundPage'
 import SearchResults from './pages/SearchResults'
-import CompareUniversities from './pages/CompareUniversities'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import EmailVerification from './pages/EmailVerification'
+import AllUniversities from './pages/AllUniversities'
+import AllNews from './pages/AllNews'
 import AdminLayout from './pages/admin/AdminLayout'
 import Overview from './pages/admin/Dashboard/Overview'
 import UniversityManagement from './pages/admin/Universities/UniversityManagement'
@@ -81,9 +83,9 @@ function App() {
                   <Routes>
                     <Route path="/" element={<Homepage />} />
                     <Route path="/university/:id" element={<UniversityDetail />} />
+                    <Route path="/universities" element={<AllUniversities />} />
+                    <Route path="/news" element={<AllNews />} />
                     <Route path="/search" element={<SearchResults />} />
-                    <Route path="/compare" element={<CompareUniversities />} />
-                    
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/email-verification" element={<EmailVerification />} />
@@ -96,6 +98,7 @@ function App() {
                     } />
                     
                     <Route path="/unauthorized" element={<Unauthorized />} />
+                    <Route path="*" element={<NotFoundPage />} />
                   </Routes>
                 </main>
                 <Footer />

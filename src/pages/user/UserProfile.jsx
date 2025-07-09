@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +21,7 @@ import {
   Check,
   Clock,
   Globe,
-  Lock
+  Lock,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { userService } from '@/services';
@@ -28,6 +29,7 @@ import ChangePasswordModal from '@/components/user/ChangePasswordModal';
 
 const UserProfile = () => {
   const { user: contextUser, updateUser } = useAuth();
+  const navigate = useNavigate();
   const [localUser, setLocalUser] = useState(contextUser);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -250,19 +252,24 @@ const UserProfile = () => {
                 )}
 
                 {/* Actions */}
-                <div className="pt-2">
-                  {user.provider == 'email' && (
+                {user.provider == 'email' && (
+                  <div className="pt-2 space-y-3">
                     <Button
                       variant="outline"
                       className="w-full"
-                      onClick={() => setShowChangePasswordModal(true)}
-                      disabled={user.provider !== 'email'}
+                      onClick={() => {
+                        if (user.provider !== 'email' && user.provider !== 'firebase') {
+                          toast.info('Chỉ tài khoản đăng ký bằng email mới có thể đổi mật khẩu');
+                          return;
+                        }
+                        setShowChangePasswordModal(true);
+                      }}
                     >
                       <Lock className="h-4 w-4 mr-2" />
                       Đổi mật khẩu
                     </Button>
-                  )}
-                </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

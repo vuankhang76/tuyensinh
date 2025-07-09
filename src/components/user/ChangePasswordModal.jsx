@@ -68,7 +68,12 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 
     setLoading(true);
     try {
-      await userService.changePassword({
+      const currentUser = userService.getCurrentUser();
+      if (!currentUser || !currentUser.id) {
+        throw new Error('Không tìm thấy thông tin người dùng');
+      }
+
+      await userService.changePassword(currentUser.id, {
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword
       });

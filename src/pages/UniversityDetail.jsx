@@ -188,7 +188,7 @@ const UniversityDetail = () => {
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link to="/search">Danh sách trường</Link>
+                  <Link to="/universities">Danh sách trường</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />

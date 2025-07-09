@@ -15,10 +15,6 @@ import {
   Edit,
   Building2,
   MapPin,
-  Phone,
-  Mail,
-  Globe,
-  Calendar,
   Users,
   BookOpen,
   Award
@@ -30,7 +26,6 @@ const UniversityDetailPage = () => {
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
   
-  // Sample data - in real app, this would come from API
   const [university, setUniversity] = useState({
     id: 1,
     name: 'Đại học Bách Khoa Hà Nội',
