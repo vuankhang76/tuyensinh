@@ -82,13 +82,13 @@ function App() {
                 <main>
                   <Routes>
                     <Route path="/" element={<Homepage />} />
-                    <Route path="/university/:id" element={<UniversityDetail />} />
-                    <Route path="/universities" element={<AllUniversities />} />
-                    <Route path="/news" element={<AllNews />} />
+                    <Route path="/danh-sach-truong-dai-hoc/:id" element={<UniversityDetail />} />
+                    <Route path="/danh-sach-truong-dai-hoc" element={<AllUniversities />} />
+                    <Route path="/tin-tuc" element={<AllNews />} />
                     <Route path="/search" element={<SearchResults />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/email-verification" element={<EmailVerification />} />
+                    <Route path="/dang-nhap" element={<Login />} />
+                    <Route path="/dang-ky" element={<Register />} />
+                    <Route path="/xac-minh-email" element={<EmailVerification />} />
                     
                     {/* Protected routes */}
                     <Route path="/profile" element={

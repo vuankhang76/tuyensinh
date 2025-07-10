@@ -26,7 +26,7 @@ const EmailVerification = () => {
         if (emailFromState) {
             userEmail = emailFromState;
         } else {
-            navigate('/register');
+            navigate('/dang-ky');
             return;
         }
         setEmail(userEmail);
@@ -71,7 +71,6 @@ const EmailVerification = () => {
                 toast.warning('Email chưa được xác minh. Vui lòng kiểm tra hộp thư và nhấp vào link xác minh.');
             }
         } catch (error) {
-            console.error('Error checking verification:', error);
             toast.error('Có lỗi xảy ra khi kiểm tra xác minh email');
         } finally {
             setIsChecking(false);
@@ -90,9 +89,8 @@ const EmailVerification = () => {
             toast.success('Đăng ký thành công!', {
                 description: 'Vui lòng đăng nhập để tiếp tục!'
             });
-            navigate('/login', { replace: true });
+            navigate('/dang-nhap', { replace: true });
         } catch (error) {
-            console.error('Error completing registration:', error);
             const errorMessage = error?.response?.data?.message ||
                 error?.response?.data?.errors ||
                 'Có lỗi xảy ra khi hoàn tất đăng ký';
@@ -127,33 +125,26 @@ const EmailVerification = () => {
         }
     };
 
-    // Hàm tự động gửi email khi được chuyển hướng từ login
     const handleResendEmailAutomatic = async (userEmail) => {
-        console.log('🚀 Tự động gửi lại email verification cho:', userEmail);
         toast.info('Đang gửi lại email xác minh...');
         try {
             const result = await resendVerificationEmail();
-            console.log('📧 Kết quả gửi email:', result);
-
             if (result.success) {
                 toast.success('Đã gửi lại email xác minh!', {
                     description: 'Vui lòng kiểm tra hộp thư để xác minh tài khoản.'
                 });
-                // Cập nhật timestamp và cooldown cho lần gửi tiếp theo
                 localStorage.setItem(`resend_timestamp_${userEmail}`, Date.now().toString());
                 setCooldown(RESEND_COOLDOWN_SECONDS);
             } else {
-                console.error('❌ Gửi email thất bại:', result.error);
                 toast.error(result.error || 'Gửi lại email thất bại.');
             }
         } catch (error) {
-            console.error('❌ Lỗi khi gửi email:', error);
             toast.error('Có lỗi xảy ra khi gửi email.');
         }
     };
 
     const handleBackToRegister = () => {
-        navigate('/register');
+        navigate('/dang-ky');
     };
 
     return (

@@ -42,7 +42,6 @@ const UniversityManagement = () => {
       setTotalResults(data.length);
       setCurrentPage(1);
     } catch (err) {
-      console.error('Error fetching universities:', err);
       setError('Không thể tải danh sách trường đại học');
       toast.error('Có lỗi xảy ra khi tải dữ liệu');
     } finally {
@@ -71,7 +70,6 @@ const UniversityManagement = () => {
         setCurrentPage(1);
         toast.success("Đã xóa trường đại học");
       } catch (error) {
-        console.error('Error deleting university:', error);
         toast.error("Có lỗi xảy ra khi xóa trường đại học");
       } finally {
         setSubmitting(false);
@@ -123,7 +121,6 @@ const UniversityManagement = () => {
       setIsModalVisible(false);
       setEditingRecord(null);
     } catch (error) {
-      console.error('Error saving university:', error);
       toast.error(editingRecord ? "Có lỗi xảy ra khi cập nhật" : "Có lỗi xảy ra khi thêm trường đại học");
     } finally {
       setSubmitting(false);

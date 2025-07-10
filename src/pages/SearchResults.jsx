@@ -11,7 +11,6 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
 import {
-  Filter,
   ArrowUpDown,
   Home,
   MapPin,
@@ -121,7 +120,6 @@ const SearchResults = React.memo(() => {
         setFilteredUniversities(filtered)
         setTotalResults(filtered.length)
       } catch (error) {
-        console.error('Error fetching universities:', error)
         setUniversities([])
         setFilteredUniversities([])
         setTotalResults(0)
@@ -156,7 +154,7 @@ const SearchResults = React.memo(() => {
   }, [updateSearchParams])
 
   const clearAllFilters = useCallback(() => {
-    navigate('/universities')
+    navigate('/danh-sach-truong-dai-hoc')
   }, [navigate])
 
   const handleSuggestionClick = useCallback((suggestion) => {
@@ -395,7 +393,13 @@ const SearchResults = React.memo(() => {
                   )}
                 </h1>
                 <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <span>Tìm thấy {totalResults} kết quả</span>
+                  {loading ? (
+                    <div className="animate-pulse">
+                      <div className="h-4 bg-slate-300 rounded w-24"></div>
+                    </div>
+                  ) : (
+                    <span>Tìm thấy {totalResults} trường đại học</span>
+                  )}
                   {(region || type) && (
                     <div className="flex items-center gap-2">
                       <span>Bộ lọc:</span>
@@ -417,9 +421,9 @@ const SearchResults = React.memo(() => {
                         <Badge variant="secondary" className="gap-1">
                           {type}
                           <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-auto p-0 ml-1 hover:bg-transparent"
+                            variant="secondary"
+                            size="md"
+                            className="h-auto ml-1 hover:bg-zinc-200 cursor-pointer"
                             onClick={() => handleTypeChange('clear')}
                           >
                             <X className="h-3 w-3" />

@@ -54,7 +54,7 @@ const Navbar = () => {
   }
 
   const handleLogin = () => {
-    navigate('/login')
+    navigate('/dang-nhap')
     setActiveDropdown(null)
   }
 
@@ -75,7 +75,7 @@ const Navbar = () => {
 
   const handleAIChat = () => {
     if (!isAuthenticated) {
-      navigate('/login?redirect=ai-chat')
+      navigate('/dang-nhap?redirect=ai-chat')
     } else {
       navigate('/ai-chat')
     }
@@ -144,7 +144,7 @@ const Navbar = () => {
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
                         <ul className="grid w-[300px] gap-4">
-                          <ListItem href="/universities" title="Tất cả trường">
+                          <ListItem href="/danh-sach-truong-dai-hoc" title="Tất cả trường">
                             Danh sách đầy đủ các trường đại học
                           </ListItem>
                           <ListItem href="/search?type=Công lập" title="Trường công lập">
@@ -162,7 +162,7 @@ const Navbar = () => {
                   {user?.role !== 'admin' && (
                     <NavigationMenuItem>
                       <NavigationMenuLink asChild>
-                        <Link to="/news" className={navigationMenuTriggerStyle()}>
+                        <Link to="/tin-tuc" className={navigationMenuTriggerStyle()}>
                           Tin tức
                         </Link>
                       </NavigationMenuLink>
@@ -413,7 +413,7 @@ const Navbar = () => {
                     {activeDropdown === 'news-mobile' && (
                       <div className="bg-gray-50">
                         <Link
-                          to="/news"
+                          to="/tin-tuc"
                           className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >

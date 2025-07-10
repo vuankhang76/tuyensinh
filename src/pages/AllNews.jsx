@@ -8,12 +8,14 @@ import {
 } from "@/components/ui/accordion"
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Calendar, Building2, Search, ArrowLeft, Filter, Clock, ExternalLink } from 'lucide-react'
+import { Calendar, Search, Filter, Clock, ExternalLink } from 'lucide-react'
 import { admissionNewsService } from '@/services/admissionNewsService'
 import { useDebounce } from '@/hooks/useDebounce'
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
+import { NewsSkeleton } from '@/components/common/Loading/LoadingSkeleton'
+
 const AllNews = () => {
   const [news, setNews] = useState([])
   const [filteredNews, setFilteredNews] = useState([])
@@ -24,7 +26,6 @@ const AllNews = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const newsPerPage = 10
 
-  // Debounce search term to improve performance
   const debouncedSearchTerm = useDebounce(searchInput, 500)
 
   useEffect(() => {
@@ -39,7 +40,6 @@ const AllNews = () => {
         setNews(sortedNews)
         setFilteredNews(sortedNews)
       } catch (err) {
-        console.error('Error fetching news:', err)
         setError('Không thể tải tin tức')
       } finally {
         setLoading(false)
@@ -82,9 +82,12 @@ const AllNews = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p className="ml-4 text-gray-600 text-lg">Đang tải tin tức...</p>
+          <div className='mb-4'>
+            <div className="p-0">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <NewsSkeleton key={index} />
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -110,7 +113,7 @@ const AllNews = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <h1 className="text-4xl font-bold text-gray-800 mb-2">
@@ -129,8 +132,7 @@ const AllNews = () => {
         </div>
 
         {/* Search and Filter */}
-        <Card className="mb-4">
-          <CardContent className="">
+        <div className='mb-4'>
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -157,9 +159,7 @@ const AllNews = () => {
                 </Select>
               </div>
             </div>
-          </CardContent>
-        </Card>
-
+        </div>
         {/* News List */}
         {filteredNews.length === 0 ? (
           <Card className='mb-4'>

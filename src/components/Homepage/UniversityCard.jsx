@@ -72,7 +72,7 @@ const UniversityCard = ({ university }) => {
               {/* Action Section */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-4 lg:mt-0 w-full md:w-auto">
                 {/* View Details Button */}
-                <Link to={`/university/${university.id}`}>
+                <Link to={`/danh-sach-truong-dai-hoc/${university.id}`}>
                   <Button
                     size="default"
                     variant="secondary"

@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar, Building2, ExternalLink } from 'lucide-react'
 import { admissionNewsService } from '@/services/admissionNewsService'
-
+import { NewsSkeleton } from '@/components/common/Loading/LoadingSkeleton'
 const NewsSection = () => {
   const [news, setNews] = useState([])
   const [loading, setLoading] = useState(true)
@@ -30,7 +30,6 @@ const NewsSection = () => {
         
         setNews(sortedNews)
       } catch (err) {
-        console.error('Error fetching news:', err)
         setError('Không thể tải tin tức')
       } finally {
         setLoading(false)
@@ -42,14 +41,11 @@ const NewsSection = () => {
 
   if (loading) {
     return (
-      <section className="py-8 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-            <p className="ml-4 text-gray-600">Đang tải tin tức...</p>
-          </div>
-        </div>
-      </section>
+      <div className="space-y-4">
+        {[...Array(5)].map((_, i) => (
+          <NewsSkeleton key={i} />
+        ))}
+      </div>
     )
   }
 
@@ -90,7 +86,7 @@ const NewsSection = () => {
             </p>
           </div>
           <Link to="/news">
-            <Button>
+            <Button variant="outline">
               Xem tất cả tin tức
             </Button>
           </Link>

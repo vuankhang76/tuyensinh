@@ -26,7 +26,6 @@ import universityService from '../services/universityService'
 const AllUniversities = React.memo(() => {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
-
   const [loading, setLoading] = useState(false)
   const [searchInput, setSearchInput] = useState('')
   const [isSearching, setIsSearching] = useState(false)
@@ -36,16 +35,14 @@ const AllUniversities = React.memo(() => {
   const [pageSize, setPageSize] = useState(10)
   const [totalResults, setTotalResults] = useState(0)
   const [sortBy, setSortBy] = useState('relevance')
-
   const region = searchParams.get('region')
   const type = searchParams.get('type')
 
   const debouncedSearchInput = useDebounce(searchInput, 500)
 
-  // Auto search when user types (debounced)
   useEffect(() => {
     if (debouncedSearchInput.trim()) {
-      setIsSearching(false) // Reset searching state before navigate
+      setIsSearching(false)
       navigate(`/search?q=${encodeURIComponent(debouncedSearchInput.trim())}`)
     }
   }, [debouncedSearchInput, navigate])
@@ -80,7 +77,6 @@ const AllUniversities = React.memo(() => {
 
         let filtered = [...transformedData]
 
-        // Apply sorting
         switch (sortBy) {
           case 'name':
             filtered.sort((a, b) => a.name.localeCompare(b.name))
@@ -106,7 +102,6 @@ const AllUniversities = React.memo(() => {
         setFilteredUniversities(filtered)
         setTotalResults(filtered.length)
       } catch (error) {
-        console.error('Error fetching universities:', error)
         setUniversities([])
         setFilteredUniversities([])
         setTotalResults(0)
@@ -117,18 +112,6 @@ const AllUniversities = React.memo(() => {
 
     fetchAllUniversities()
   }, [region, type, sortBy])
-
-  const updateSearchParams = useCallback((newParams) => {
-    const params = new URLSearchParams(searchParams)
-    Object.entries(newParams).forEach(([key, value]) => {
-      if (value && value.trim()) {
-        params.set(key, value)
-      } else {
-        params.delete(key)
-      }
-    })
-    setSearchParams(params)
-  }, [searchParams, setSearchParams])
 
   const handleRegionChange = useCallback((value) => {
     const regionValue = value === 'clear' ? '' : value
@@ -148,7 +131,6 @@ const AllUniversities = React.memo(() => {
     } else if (region) {
       navigate(`/search?region=${encodeURIComponent(region)}`)
     } else {
-      // If clearing and no other filters, stay on all universities page
       setCurrentPage(1)
     }
   }, [navigate, region])
@@ -391,7 +373,13 @@ const AllUniversities = React.memo(() => {
             <div className="flex justify-between items-center mb-6 md:flex-row flex-col gap-4">
               <div>
                 <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <span>Tìm thấy {totalResults} trường đại học</span>
+                  {loading ? (
+                    <div className="animate-pulse">
+                      <div className="h-4 bg-slate-300 rounded w-24"></div>
+                    </div>
+                  ) : (
+                    <span>Tìm thấy {totalResults} trường đại học</span>
+                  )}
                   {(region || type) && (
                     <div className="flex items-center gap-2">
                       <span>Bộ lọc:</span>
@@ -445,7 +433,6 @@ const AllUniversities = React.memo(() => {
               </div>
             </div>
 
-            {/* Loading State */}
             {loading && (
               <div className="space-y-4">
                 {[...Array(5)].map((_, i) => (
@@ -455,8 +442,7 @@ const AllUniversities = React.memo(() => {
             )}
 
             {!loading && totalResults === 0 && (
-              <Card className="text-center py-12">
-                <CardContent>
+              <div className="text-center py-12">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-600 mb-2">
                       Không tìm thấy trường đại học nào
@@ -465,8 +451,7 @@ const AllUniversities = React.memo(() => {
                       Hãy thử điều chỉnh bộ lọc để xem kết quả khác
                     </p>
                   </div>
-                </CardContent>
-              </Card>
+              </div>
             )}
 
             {!loading && totalResults > 0 && (
@@ -480,12 +465,10 @@ const AllUniversities = React.memo(() => {
                   ))}
                 </div>
 
-                {/* Pagination */}
                 <div className="flex flex-col items-center gap-4">
                   <div className="text-sm text-gray-600">
                     Hiển thị {startResult}-{endResult} của {totalResults} trường
                   </div>
-
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
@@ -519,7 +502,6 @@ const AllUniversities = React.memo(() => {
                           </PaginationItem>
                         );
                       })}
-
                       <PaginationItem>
                         <PaginationNext
                           onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}

@@ -43,7 +43,6 @@ const Homepage = () => {
                 
                 setUniversities(transformedData)
             } catch (err) {
-                console.error('Error fetching universities:', err)
                 setError('Không thể tải dữ liệu trường đại học')
                 setUniversities([])
             } finally {
@@ -80,7 +79,7 @@ const Homepage = () => {
     return (
         
         <div className="min-h-screen bg-gray-50">
-            <section className="bg-gradient-to-r text-white py-15">
+            <section className="bg-gradient-to-r text-white py-18">
                 <div className="container mx-auto px-4 text-center">
                     <h1 className="text-4xl text-black font-bold mb-6">
                         Thông tin tuyển sinh

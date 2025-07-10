@@ -12,7 +12,6 @@ export const academicProgramService = {
     }
   },
 
-  // GET /api/AcademicPrograms/{id} - Get academic program by id
   getProgramById: async (id) => {
     try {
       const response = await axios.get(`/AcademicPrograms/${id}`)
