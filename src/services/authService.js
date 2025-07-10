@@ -53,21 +53,14 @@
     }
   };
 
-  // Google login → Firebase → Sync with your Database
   export const loginWithGoogle = async () => {
     try {
-      // 1. Firebase Google login
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({
         prompt: 'select_account'
       });
-      
       const result = await signInWithPopup(auth, provider);
       const firebaseUser = result.user;
-      
-      console.log('✅ Firebase Google login successful:', firebaseUser.email);
-      
-      // 2. Send Firebase user to your backend for sync
       const response = await apiClient.post('/Auth/google-sync', {
         firebaseUid: firebaseUser.uid,
         email: firebaseUser.email,
@@ -82,7 +75,6 @@
       localStorage.setItem('user', JSON.stringify(data.user));
       localStorage.setItem('authMethod', 'google');
       
-      console.log('✅ Database sync successful:', data.user);
       return { user: data.user, error: null };
     } catch (error) {
       console.error('Google login error:', error);
@@ -251,22 +243,13 @@
 
   export const resendVerificationEmail = async () => {
     try {
-      const user = auth.currentUser;
-      console.log('📧 Đang kiểm tra Firebase currentUser:', user?.email || 'null');
-      
+      const user = auth.currentUser;      
       if (user) {
-        console.log('📤 Đang gửi email verification đến:', user.email);
-        // Firebase sẽ tự động xử lý việc gửi lại email cho người dùng đang đăng nhập
         await sendEmailVerification(user);
-        console.log('✅ Đã gửi email verification thành công');
         return { success: true };
       }
-      
-      console.log('❌ Không có Firebase currentUser');
-      // Trường hợp này xảy ra nếu người dùng không còn trong phiên đăng nhập của Firebase
       return { success: false, error: 'Không tìm thấy phiên đăng nhập. Vui lòng thử đăng ký lại.' };
     } catch (error) {
-      console.error("❌ Resend email error:", error);
       return { success: false, error: error.message };
     }
   };

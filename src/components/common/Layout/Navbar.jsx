@@ -11,7 +11,8 @@ import {
   LogOut,
   LogIn,
   LayoutDashboard,
-  MessageCircle
+  MessageCircle,
+  Newspaper
 } from 'lucide-react'
 import {
   NavigationMenu,
@@ -53,7 +54,7 @@ const Navbar = () => {
   }
 
   const handleLogin = () => {
-    navigate('/login')
+    navigate('/dang-nhap')
     setActiveDropdown(null)
   }
 
@@ -74,7 +75,7 @@ const Navbar = () => {
 
   const handleAIChat = () => {
     if (!isAuthenticated) {
-      navigate('/login?redirect=ai-chat')
+      navigate('/dang-nhap?redirect=ai-chat')
     } else {
       navigate('/ai-chat')
     }
@@ -142,24 +143,8 @@ const Navbar = () => {
                         Trường đại học
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
-                        <ul className="grid gap-2 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                          <li className="row-span-3">
-                            <NavigationMenuLink asChild>
-                              <a
-                                className="from-muted/50 to-muted flex h-full w-full flex-col justify-end rounded-md bg-linear-to-b p-6 no-underline outline-hidden select-none focus:shadow-md"
-                                href="/search"
-                              >
-                                <Building2 className="h-6 w-6" />
-                                <div className="mb-2 mt-4 text-lg font-medium">
-                                  Trường đại học
-                                </div>
-                                <p className="text-sm leading-tight text-muted-foreground">
-                                  Tìm kiếm thông tin các trường đại học trên toàn quốc
-                                </p>
-                              </a>
-                            </NavigationMenuLink>
-                          </li>
-                          <ListItem href="/search?type=" title="Tất cả trường">
+                        <ul className="grid w-[300px] gap-4">
+                          <ListItem href="/danh-sach-truong-dai-hoc" title="Tất cả trường">
                             Danh sách đầy đủ các trường đại học
                           </ListItem>
                           <ListItem href="/search?type=Công lập" title="Trường công lập">
@@ -176,37 +161,11 @@ const Navbar = () => {
                   {/* News Dropdown */}
                   {user?.role !== 'admin' && (
                     <NavigationMenuItem>
-                      <NavigationMenuTrigger>Tin tức</NavigationMenuTrigger>
-                      <NavigationMenuContent>
-                        <ul className="grid w-[300px] gap-4">
-                          <li>
-                            <NavigationMenuLink asChild>
-                              <Link href="/news">
-                                <div className="font-medium">Tin tức</div>
-                                <div className="text-muted-foreground">
-                                  Tin tức của các trường đại học trên toàn quốc
-                                </div>
-                              </Link>
-                            </NavigationMenuLink>
-                            <NavigationMenuLink asChild>
-                              <Link href="/news?category=admission">
-                                <div className="font-medium">Tin tuyển sinh</div>
-                                <div className="text-muted-foreground">
-                                  Thông báo, chỉ tiêu và phương án tuyển sinh từ các trường.
-                                </div>
-                              </Link>
-                            </NavigationMenuLink>
-                            <NavigationMenuLink asChild>
-                              <Link href="/news?category=policy">
-                                <div className="font-medium">Chính sách mới</div>
-                                <div className="text-muted-foreground">
-                                  Các thay đổi về quy chế, chính sách của bộ GD&ĐT.
-                                </div>
-                              </Link>
-                            </NavigationMenuLink>
-                          </li>
-                        </ul>
-                      </NavigationMenuContent>
+                      <NavigationMenuLink asChild>
+                        <Link to="/tin-tuc" className={navigationMenuTriggerStyle()}>
+                          Tin tức
+                        </Link>
+                      </NavigationMenuLink>
                     </NavigationMenuItem>
                   )}
                 </NavigationMenuList>
@@ -254,7 +213,7 @@ const Navbar = () => {
                           </div>
                         ) : (
                           <Avatar className="cursor-pointer">
-                            <AvatarFallback className="bg-primary text-primary-foreground">
+                            <AvatarFallback className="bg-gray-200 text-gray-800">
                               <User className="h-4 w-4" />
                             </AvatarFallback>
                           </Avatar>
@@ -283,14 +242,12 @@ const Navbar = () => {
                           <span>Quản lý trường</span>
                         </DropdownMenuItem>
                       )}
+                      {user?.role !== 'admin' && user?.role !== 'university' && (
                       <DropdownMenuItem onClick={() => navigate('/profile')}>
                         <User className="mr-2 h-4 w-4" />
                         <span>Thông tin cá nhân</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate('/settings')}>
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Cài đặt</span>
-                      </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={handleLogout}>
                         <LogOut className="mr-2 h-4 w-4" />
@@ -368,14 +325,6 @@ const Navbar = () => {
                     >
                       <User className="h-4 w-4" />
                       <span>Thông tin cá nhân</span>
-                    </Link>
-                    <Link
-                      to="/settings"
-                      className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Settings className="h-4 w-4" />
-                      <span>Cài đặt</span>
                     </Link>
                     <button
                       onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
@@ -456,6 +405,7 @@ const Navbar = () => {
                       onClick={() => handleDropdownToggle('news-mobile')}
                     >
                       <div className="flex items-center space-x-3">
+                        <Newspaper className="h-4 w-4" />
                         <span>Tin tức</span>
                       </div>
                       <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${activeDropdown === 'news-mobile' ? 'rotate-180' : ''}`} />
@@ -463,25 +413,11 @@ const Navbar = () => {
                     {activeDropdown === 'news-mobile' && (
                       <div className="bg-gray-50">
                         <Link
-                          to="/news?category=admission"
+                          to="/tin-tuc"
                           className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
-                          Tin tuyển sinh
-                        </Link>
-                        <Link
-                          to="/news?category=policy"
-                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          Chính sách mới
-                        </Link>
-                        <Link
-                          to="/news?category=scholarship"
-                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          Học bổng
+                          Tất cả tin tức
                         </Link>
                       </div>
                     )}

@@ -12,7 +12,7 @@ import {
   Building2
 } from 'lucide-react'
 
-const UniversityHero = ({ university, onFavorite, onShare }) => {
+const UniversityHero = ({ university, onShare }) => {
   const getLocationString = (locations) => {
     if (!locations) return 'Chưa có thông tin'
     if (typeof locations === 'string') return locations
@@ -44,14 +44,11 @@ const UniversityHero = ({ university, onFavorite, onShare }) => {
               <Badge variant="default" className="text-xs">
                 {university.type}
               </Badge>
-              <Badge variant="secondary" className="text-xs">
-                {getLocationString(university.locations)}
-              </Badge>
-              {university.establishedYear && (
-                <Badge variant="outline" className="text-xs">
-                  Thành lập {university.establishedYear}
+              {getLocationString(university.locations).split(',').filter(loc => loc !== '').map((location, index) => (
+                <Badge key={index} variant="secondary" className="text-xs">
+                  {location}
                 </Badge>
-              )}
+              ))}
             </div>
 
             <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
@@ -101,10 +98,6 @@ const UniversityHero = ({ university, onFavorite, onShare }) => {
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3">
-            <Button onClick={onFavorite} className="flex items-center gap-2">
-              <Heart className="h-4 w-4" />
-              Yêu thích
-            </Button>
             <Button variant="outline" onClick={onShare}>
               <Share className="h-4 w-4 mr-2" />
               Chia sẻ

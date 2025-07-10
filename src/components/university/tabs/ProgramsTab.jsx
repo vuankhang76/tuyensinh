@@ -9,13 +9,6 @@ import {
   Globe
 } from 'lucide-react'
 
-// Utility function for currency formatting
-const formatCurrency = (amount, unit) => {
-  if (typeof amount != 'number') return amount;
-  const formattedAmount = new Intl.NumberFormat('vi-VN').format(amount);
-  return `${formattedAmount} ${unit}`;
-}
-
 const ProgramsTab = ({ programs, loading }) => {
   if (loading) {
   }
@@ -33,35 +26,22 @@ const ProgramsTab = ({ programs, loading }) => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
         {programs.map((program, index) => (
           <Card key={program.id || index} className="transition-shadow hover:shadow-md">
-            <CardHeader>
-              <CardTitle className="flex items-start justify-between">
-                <span>{program.name}</span>
-                <Badge variant="secondary">{program.level || 'Đại học'}</Badge>
-              </CardTitle>
-            </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {program.description && (
-                  <p className="text-gray-700">{program.description}</p>
-                )}
-                <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
-                  {/* Cải tiến: Hiển thị học phí đã định dạng */}
+                <CardTitle className="flex items-start justify-between">
+                  <span>{program.name}</span>
+                  <Badge variant="outline">{program.year}</Badge>
+                </CardTitle>
+                <p className="text-gray-700">{program.description}</p>
+                <div className="gap-4 text-sm">
                   {program.tuition && (
                     <div className="flex items-center gap-2">
                       <DollarSign className="w-4 h-4 text-green-500" />
-                      <span>Học phí: {formatCurrency(program.tuition, program.tuitionUnit)}</span>
+                      <span>Học phí: {program.tuition} {program.tuitionUnit}</span>
                     </div>
-                  )}
-                  {/* Mới: Hiển thị năm áp dụng */}
-                  {program.year && (
-                     <div className="flex items-center gap-2">
-                       <Calendar className="w-4 h-4 text-purple-500" />
-                       <span>Năm áp dụng: {program.year}</span>
-                     </div>
                   )}
                    {/* Giữ lại các trường cũ phòng trường hợp dữ liệu có chúng */}
                   {program.duration && (
@@ -82,7 +62,6 @@ const ProgramsTab = ({ programs, loading }) => {
           </Card>
         ))}
       </div>
-    </div>
   );
 };
 

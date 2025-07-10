@@ -6,12 +6,14 @@ import { AuthProvider } from './context/AuthContext'
 
 // Pages
 import Homepage from './pages/Homepage'
-import UniversityDetail from './pages/admin/UniversityDetail'
+import UniversityDetail from './pages/UniversityDetail'
+import NotFoundPage from './pages/NotFoundPage'
 import SearchResults from './pages/SearchResults'
-import CompareUniversities from './pages/CompareUniversities'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import EmailVerification from './pages/EmailVerification'
+import AllUniversities from './pages/AllUniversities'
+import AllNews from './pages/AllNews'
 import AdminLayout from './pages/admin/AdminLayout'
 import Overview from './pages/admin/Dashboard/Overview'
 import UniversityManagement from './pages/admin/Universities/UniversityManagement'
@@ -24,7 +26,6 @@ import UniversityAdmin from './pages/university/UniversityAdmin'
 import UserProfile from './pages/user/UserProfile'
 import AIChat from './pages/AIChat'
 import Unauthorized from './pages/Unauthorized'
-
 import Navbar from './components/common/Layout/Navbar'
 import Footer from './components/common/Layout/Footer'
 import ProtectedRoute from './routes/ProtectedRoute'
@@ -81,13 +82,13 @@ function App() {
                 <main>
                   <Routes>
                     <Route path="/" element={<Homepage />} />
-                    <Route path="/university/:id" element={<UniversityDetail />} />
+                    <Route path="/danh-sach-truong-dai-hoc/:id" element={<UniversityDetail />} />
+                    <Route path="/danh-sach-truong-dai-hoc" element={<AllUniversities />} />
+                    <Route path="/tin-tuc" element={<AllNews />} />
                     <Route path="/search" element={<SearchResults />} />
-                    <Route path="/compare" element={<CompareUniversities />} />
-                    
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/email-verification" element={<EmailVerification />} />
+                    <Route path="/dang-nhap" element={<Login />} />
+                    <Route path="/dang-ky" element={<Register />} />
+                    <Route path="/xac-minh-email" element={<EmailVerification />} />
                     
                     {/* Protected routes */}
                     <Route path="/profile" element={
@@ -97,6 +98,7 @@ function App() {
                     } />
                     
                     <Route path="/unauthorized" element={<Unauthorized />} />
+                    <Route path="*" element={<NotFoundPage />} />
                   </Routes>
                 </main>
                 <Footer />

@@ -91,7 +91,7 @@ const Login = () => {
         if (result.user.role === 'admin') {
           navigate('/admin', { replace: true });
         } else if (result.user.role === 'university') {
-          navigate('/university', { replace: true });
+          navigate('/university-admin', { replace: true });
         } else {
           navigate('/', { replace: true });
         }

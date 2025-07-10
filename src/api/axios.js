@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: 'https://tuyensinh-api.up.railway.app/api',
-  timeout: 10000,
+  baseURL: 'https://tuyensinh-infor.up.railway.app/api',
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   },

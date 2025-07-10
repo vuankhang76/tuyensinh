@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,11 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { 
-  User, 
-  Mail, 
-  Calendar, 
-  Shield, 
+import {
+  User,
+  Mail,
+  Calendar,
+  Shield,
   Building2,
   Edit,
   Save,
@@ -20,7 +21,7 @@ import {
   Check,
   Clock,
   Globe,
-  Lock
+  Lock,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { userService } from '@/services';
@@ -28,6 +29,7 @@ import ChangePasswordModal from '@/components/user/ChangePasswordModal';
 
 const UserProfile = () => {
   const { user: contextUser, updateUser } = useAuth();
+  const navigate = useNavigate();
   const [localUser, setLocalUser] = useState(contextUser);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -73,20 +75,20 @@ const UserProfile = () => {
     setLoading(true);
     try {
       await userService.updateUser(user.id, editData);
-      
+
       const updatedUser = {
         ...user,
         ...editData
       };
-      
+
       userService.updateCurrentUser(updatedUser);
-      
+
       setLocalUser(updatedUser);
-      
+
       if (updateUser) {
         updateUser(updatedUser);
       }
-      
+
       toast.success('Cập nhật thông tin thành công!');
       setIsEditing(false);
     } catch (error) {
@@ -169,16 +171,29 @@ const UserProfile = () => {
             <Card>
               <CardHeader className="text-center">
                 <div className="relative mx-auto">
-                  <Avatar className="h-24 w-24 mx-auto">
-                    <AvatarImage src={user?.photoURL} alt={user.displayName} />
-                    <AvatarFallback className="text-lg">
-                      {user.email?.charAt(0)?.toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  {user?.photoURL ? (
+                    <div className="mx-auto">
+                      <img
+                        src={user.photoURL}
+                        alt={user?.displayName}
+                        className="h-24 w-24 rounded-full object-cover border-2 border-gray-200"
+                        referrerPolicy="no-referrer"
+                        crossOrigin="anonymous"
+                      />
+                    </div>
+                  ) : (
+                    <div className="mx-auto">
+                      <Avatar className="h-24 w-24 mx-auto">
+                        <AvatarFallback className="bg-gray-200 text-gray-800">
+                          <User className="h-4 w-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                  )}
                   <Button
                     size="sm"
                     variant="outline"
-                    className="absolute bottom-0 right-0 h-8 w-8 rounded-full p-0"
+                    className="absolute bottom-0 right-0 h-8 w-8 rounded-full p-0 cursor-pointer"
                     onClick={() => toast.info('Chức năng thay đổi ảnh đại diện đang phát triển')}
                   >
                     <Camera className="h-4 w-4" />
@@ -193,7 +208,7 @@ const UserProfile = () => {
                   <Badge variant={roleConfig.variant}>{roleConfig.label}</Badge>
                 </CardDescription>
               </CardHeader>
-              
+
               <CardContent className="space-y-4">
                 {/* Email Verification Status */}
                 <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
@@ -237,19 +252,24 @@ const UserProfile = () => {
                 )}
 
                 {/* Actions */}
-                <div className="pt-2">
-                  {user.provider == 'email' && (  
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => setShowChangePasswordModal(true)}
-                    disabled={user.provider !== 'email'}
-                  >
-                    <Lock className="h-4 w-4 mr-2" />
-                    Đổi mật khẩu
-                  </Button>
-                  )}
-                </div>
+                {user.provider == 'email' && (
+                  <div className="pt-2 space-y-3">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        if (user.provider !== 'email' && user.provider !== 'firebase') {
+                          toast.info('Chỉ tài khoản đăng ký bằng email mới có thể đổi mật khẩu');
+                          return;
+                        }
+                        setShowChangePasswordModal(true);
+                      }}
+                    >
+                      <Lock className="h-4 w-4 mr-2" />
+                      Đổi mật khẩu
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -308,7 +328,7 @@ const UserProfile = () => {
 
                     {/* Username */}
                     <div className="space-y-2">
-                    <Label variant="default" htmlFor="email">Email</Label>
+                      <Label variant="default" htmlFor="email">Email</Label>
                       <Input
                         id="email"
                         value={user.email || 'Unknown'}

@@ -1,13 +1,22 @@
 import React from 'react'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import {
   Info,
-  ExternalLink
+  Calendar,
+  Building2
 } from 'lucide-react'
 
 const NewsTab = ({ admissionNews, loading }) => {
   if (loading) {
-    return <Loading type="skeleton" className="h-32" />
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          <p className="mt-4 text-gray-600">Đang tải tin tức tuyển sinh...</p>
+        </CardContent>
+      </Card>
+    )
   }
 
   const newsArray = Array.isArray(admissionNews) ? admissionNews : []
@@ -24,34 +33,48 @@ const NewsTab = ({ admissionNews, loading }) => {
     )
   }
 
+  const formatContent = (content) => {
+    if (!content) return ''
+    
+    return content.split('\n').map((paragraph, index) => {
+      if (paragraph.trim() === '') return null
+      
+      if (paragraph.trim().match(/^[-•]\s/)) {
+        return (
+          <li key={index} className="ml-4 text-gray-700 leading-relaxed">
+            {paragraph.trim().replace(/^[-•]\s/, '')}
+          </li>
+        )
+      }
+      
+      return (
+        <p key={index} className="text-gray-700 leading-relaxed mb-2">
+          {paragraph.trim()}
+        </p>
+      )
+    }).filter(Boolean)
+  }
+
   return (
     <div className="space-y-6">
       {newsArray.map((newsItem, index) => (
         <Card key={newsItem.id || index} className="hover:shadow-md transition-shadow">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-4">
-              <div className="text-sm text-blue-600 min-w-fit bg-blue-50 px-3 py-1 rounded-full">
-                {new Date(newsItem.publishedDate || newsItem.createdAt).toLocaleDateString('vi-VN')}
+          <CardHeader>
+            <CardTitle className="flex justify-between items-start gap-4">
+              <h3 className="text-lg font-bold text-gray-800 leading-tight">
+                {newsItem.title}
+              </h3>
+              <div className="flex flex-col gap-2 items-end min-w-fit">
+                <Badge variant="outline" className="whitespace-nowrap">
+                  <Calendar className="h-3 w-3 mr-1" />
+                  {new Date(newsItem.publishDate).toLocaleDateString('vi-VN')}
+                </Badge>
               </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-800 mb-2 hover:text-blue-600 cursor-pointer">
-                  {newsItem.title}
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  {newsItem.content || newsItem.description}
-                </p>
-                {newsItem.url && (
-                  <a
-                    href={newsItem.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm mt-2"
-                  >
-                    Xem chi tiết
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                )}
-              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="prose prose-sm max-w-none">
+              {formatContent(newsItem.content)}
             </div>
           </CardContent>
         </Card>

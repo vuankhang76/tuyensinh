@@ -18,20 +18,16 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in on app start
     if (isAuthenticated()) {
       const currentUser = getCurrentUser();
       setUser(currentUser);
     }
     
-    // Listen to Firebase auth state changes (for Google login)
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       const authMethod = getAuthMethod();
       
       if (authMethod === 'google') {
         if (!firebaseUser && user) {
-          // Firebase user logged out but local user still exists
-          console.warn('Firebase user logged out but local user exists');
           handleLogout();
         }
       }
@@ -40,7 +36,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
 
     return unsubscribe;
-  }, []); // Remove 'user' dependency to prevent infinite loop
+  }, []);
 
   const login = (userData) => {
     setUser(userData);

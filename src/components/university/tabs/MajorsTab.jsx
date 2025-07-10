@@ -25,6 +25,16 @@ const MajorsTab = ({ majors, admissionScores, loading }) => {
     return score?.score || 'Chưa có'
   }
 
+  const getMajorSubjectCombination = (majorId) => {
+    const score = admissionScores.find(s => s.majorId === majorId)
+    return score?.subjectCombination || ''
+  }
+
+  const getMajorYear = (majorId) => {
+    const score = admissionScores.find(s => s.majorId === majorId)
+    return score?.year || 'Chưa có'
+  }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -35,11 +45,12 @@ const MajorsTab = ({ majors, admissionScores, loading }) => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-center">Tên ngành</TableHead>
+                <TableHead>Tên ngành</TableHead>
                 <TableHead className="text-center">Mã ngành</TableHead>
                 <TableHead className="text-center">Điểm chuẩn</TableHead>
                 <TableHead className="text-center">Năm</TableHead>
                 <TableHead>Mô tả</TableHead>
+                <TableHead className="text-right">Tổ hợp môn</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -53,10 +64,19 @@ const MajorsTab = ({ majors, admissionScores, loading }) => {
                     {getMajorScore(major.id)}
                   </TableCell>
                   <TableCell className="text-center">
-                    {major.year}
+                    {getMajorYear(major.id)}
                   </TableCell>
                   <TableCell className="text-gray-600 text-sm max-w-xs truncate">
                     {major.description || 'Chưa có mô tả'}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex gap-2 justify-end">
+                      {getMajorSubjectCombination(major.id).split(',').map((combo, i) => (
+                        <Badge key={i} variant="secondary" className="text-xs">
+                          {combo.trim()}
+                        </Badge>
+                      ))}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

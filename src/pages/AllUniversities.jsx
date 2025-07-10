@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -15,56 +15,44 @@ import {
   Home,
   MapPin,
   X,
-  ChevronDown
+  ChevronDown,
+  School,
+  Search
 } from 'lucide-react'
 import UniversityCard from '../components/Homepage/UniversityCard'
-import { Link } from 'react-router-dom'
 import { useDebounce } from '@/hooks/useDebounce'
 import universityService from '../services/universityService'
 
-const SearchResults = React.memo(() => {
+const AllUniversities = React.memo(() => {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
-
   const [loading, setLoading] = useState(false)
-  const [searchInput, setSearchInput] = useState(searchParams.get('q') || '')
+  const [searchInput, setSearchInput] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
   const [universities, setUniversities] = useState([])
   const [filteredUniversities, setFilteredUniversities] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [totalResults, setTotalResults] = useState(0)
   const [sortBy, setSortBy] = useState('relevance')
-  const [isSearching, setIsSearching] = useState(false)
-  const query = searchParams.get('q')
   const region = searchParams.get('region')
   const type = searchParams.get('type')
-  const major = searchParams.get('major')
 
   const debouncedSearchInput = useDebounce(searchInput, 500)
 
   useEffect(() => {
-    setSearchInput(query || '')
-  }, [query])
-
-  useEffect(() => {
-    const currentQ = query;
-    if (debouncedSearchInput !== currentQ && searchInput === debouncedSearchInput) {
-      const newParams = new URLSearchParams(searchParams);
-      if (debouncedSearchInput.trim()) {
-        newParams.set('q', debouncedSearchInput);
-      } else {
-        newParams.delete('q');
-      }
-      setSearchParams(newParams);
+    if (debouncedSearchInput.trim()) {
+      setIsSearching(false)
+      navigate(`/search?q=${encodeURIComponent(debouncedSearchInput.trim())}`)
     }
-  }, [debouncedSearchInput, searchInput, query, searchParams, setSearchParams]);
+  }, [debouncedSearchInput, navigate])
 
   useEffect(() => {
-    const fetchAndFilterUniversities = async () => {
+    const fetchAllUniversities = async () => {
       try {
         setLoading(true)
 
-        const data = await universityService.searchUniversities(query, {
+        const data = await universityService.searchUniversities('', {
           type: type,
           region: region
         })
@@ -88,12 +76,6 @@ const SearchResults = React.memo(() => {
         }))
 
         let filtered = [...transformedData]
-
-        if (major) {
-          filtered = filtered.filter(uni =>
-            uni.majors.some(m => m.toLowerCase().includes(major.toLowerCase()))
-          )
-        }
 
         switch (sortBy) {
           case 'name':
@@ -128,52 +110,57 @@ const SearchResults = React.memo(() => {
       }
     }
 
-    fetchAndFilterUniversities()
-  }, [query, region, type, major, sortBy])
-
-  const updateSearchParams = useCallback((newParams) => {
-    const params = new URLSearchParams(searchParams)
-    Object.entries(newParams).forEach(([key, value]) => {
-      if (value && value.trim()) {
-        params.set(key, value)
-      } else {
-        params.delete(key)
-      }
-    })
-    setSearchParams(params)
-  }, [searchParams, setSearchParams])
+    fetchAllUniversities()
+  }, [region, type, sortBy])
 
   const handleRegionChange = useCallback((value) => {
-    updateSearchParams({ region: value === 'clear' ? '' : value })
-    setCurrentPage(1)
-  }, [updateSearchParams])
+    const regionValue = value === 'clear' ? '' : value
+    if (regionValue) {
+      navigate(`/search?region=${encodeURIComponent(regionValue)}`)
+    } else if (type) {
+      navigate(`/search?type=${encodeURIComponent(type)}`)
+    } else {
+      setCurrentPage(1)
+    }
+  }, [navigate, type])
 
   const handleTypeChange = useCallback((value) => {
-    updateSearchParams({ type: value === 'clear' ? '' : value })
-    setCurrentPage(1)
-  }, [updateSearchParams])
+    const typeValue = value === 'clear' ? '' : value
+    if (typeValue) {
+      navigate(`/search?type=${encodeURIComponent(typeValue)}`)
+    } else if (region) {
+      navigate(`/search?region=${encodeURIComponent(region)}`)
+    } else {
+      setCurrentPage(1)
+    }
+  }, [navigate, region])
 
   const clearAllFilters = useCallback(() => {
-    navigate('/danh-sach-truong-dai-hoc')
-  }, [navigate])
-
-  const handleSuggestionClick = useCallback((suggestion) => {
-    const params = new URLSearchParams(searchParams)
-    params.set('q', suggestion || '')
+    const params = new URLSearchParams()
     setSearchParams(params)
-    setSearchInput(suggestion || '')
     setCurrentPage(1)
-    setIsSearching(false)
-  }, [searchParams, setSearchParams])
+  }, [setSearchParams])
 
-  const handleInputChange = useCallback((e) => {
+  const handleSearch = useCallback(() => {
+    if (searchInput.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchInput.trim())}`)
+    }
+  }, [searchInput, navigate])
+
+  const handleSearchInputChange = useCallback((e) => {
     setSearchInput(e.target.value)
-    if (e.target.value.trim() && e.target.value !== query) {
+    if (e.target.value.trim()) {
       setIsSearching(true)
     } else {
       setIsSearching(false)
     }
-  }, [query])
+  }, [])
+
+  const handleKeyPress = useCallback((e) => {
+    if (e.key === 'Enter') {
+      handleSearch()
+    }
+  }, [handleSearch])
 
   const paginatedResults = filteredUniversities.slice(
     (currentPage - 1) * pageSize,
@@ -268,16 +255,8 @@ const SearchResults = React.memo(() => {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>Tìm kiếm</BreadcrumbPage>
+                <BreadcrumbPage>Danh sách trường</BreadcrumbPage>
               </BreadcrumbItem>
-              {query && (
-                <>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>{query}</BreadcrumbPage>
-                  </BreadcrumbItem>
-                </>
-              )}
               {region && (
                 <>
                   <BreadcrumbSeparator />
@@ -294,85 +273,93 @@ const SearchResults = React.memo(() => {
                   </BreadcrumbItem>
                 </>
               )}
-              {major && (
-                <>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>{major}</BreadcrumbPage>
-                  </BreadcrumbItem>
-                </>
-              )}
-
             </BreadcrumbList>
           </Breadcrumb>
         </div>
       </div>
 
-      {/* Search Bar */}
+      {/* Search & Filters Bar */}
       <div className="bg-white">
         <div className="container mx-auto p-4">
-          <div className="flex flex-col lg:flex-row gap-3">
-            <div className="flex-1 relative">
-              <Input
-                className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Tìm kiếm trường đại học, ngành học..."
-                value={searchInput || ''}
-                onChange={handleInputChange}
-                type="text"
-              />
-            </div>
-
-            <div className="flex gap-3">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-[150px] justify-between">
-                    {region || "Tất cả khu vực"}
-                    <ChevronDown className="h-4 w-4 opacity-50" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-[150px]">
-                  <ScrollArea className="h-[200px]">
-                    {RegionOptions.map((option, index) => (
-                      <DropdownMenuItem key={`region-${option.value}-${index}`} onClick={() => handleRegionChange(option.value)}>
-                        {option.label}
-                      </DropdownMenuItem>
-                    ))}
-                  </ScrollArea>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-[150px] justify-between">
-                    {type || "Tất cả loại hình"}
-                    <ChevronDown className="h-4 w-4 opacity-50" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-[120px]">
-                  <DropdownMenuItem onClick={() => handleTypeChange('clear')}>
-                    Tất cả loại
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleTypeChange('Công lập')}>
-                    Công lập
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleTypeChange('Tư thục')}>
-                    Tư thục
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleTypeChange('Dân lập')}>
-                    Dân lập
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              {(query || region || type) && (
+          <div className="flex flex-col gap-4">
+            {/* Search Bar */}
+            <div className="flex flex-col lg:flex-row gap-3">
+              <div className="flex-1 relative">
+                <Input
+                  className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-12"
+                  placeholder="Tìm kiếm trường đại học, ngành học..."
+                  value={searchInput}
+                  onChange={handleSearchInputChange}
+                  onKeyPress={handleKeyPress}
+                  type="text"
+                />
+                {isSearching && searchInput.trim() && (
+                  <div className="absolute right-12 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
+                    Đang tìm...
+                  </div>
+                )}
                 <Button
+                  onClick={handleSearch}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
                   variant="ghost"
-                  onClick={clearAllFilters}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
                 >
-                  <X className="h-4 w-4 mr-1" />
-                  Xóa bộ lọc
+                  <Search className="h-4 w-4" />
                 </Button>
-              )}
+              </div>
+
+              <div className="flex gap-3">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-[150px] justify-between">
+                      {region || "Tất cả khu vực"}
+                      <ChevronDown className="h-4 w-4 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[150px]">
+                    <ScrollArea className="h-[200px]">
+                      {RegionOptions.map((option, index) => (
+                        <DropdownMenuItem key={`region-${option.value}-${index}`} onClick={() => handleRegionChange(option.value)}>
+                          {option.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </ScrollArea>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-[150px] justify-between">
+                      {type || "Tất cả loại hình"}
+                      <ChevronDown className="h-4 w-4 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[120px]">
+                    <DropdownMenuItem onClick={() => handleTypeChange('clear')}>
+                      Tất cả loại
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleTypeChange('Công lập')}>
+                      Công lập
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleTypeChange('Tư thục')}>
+                      Tư thục
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleTypeChange('Dân lập')}>
+                      Dân lập
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {(region || type) && (
+                  <Button
+                    variant="ghost"
+                    onClick={clearAllFilters}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Xóa bộ lọc
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -381,17 +368,10 @@ const SearchResults = React.memo(() => {
       {/* Results Section */}
       <div className="container mx-auto p-4">
         <div className="flex gap-8">
-          {/* Results */}
           <div className="flex-1">
             {/* Results Header */}
             <div className="flex justify-between items-center mb-6 md:flex-row flex-col gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-gray-800 mb-2">
-                  Kết quả tìm kiếm
-                  {query && (
-                    <span className="ml-2 text-blue-600">"{query}"</span>
-                  )}
-                </h1>
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   {loading ? (
                     <div className="animate-pulse">
@@ -409,8 +389,8 @@ const SearchResults = React.memo(() => {
                           {region}
                           <Button
                             variant="ghost"
-                            size="md"
-                            className="h-auto ml-1"
+                            size="sm"
+                            className="h-auto p-0 ml-1 hover:bg-transparent"
                             onClick={() => handleRegionChange('clear')}
                           >
                             <X className="h-3 w-3" />
@@ -421,9 +401,9 @@ const SearchResults = React.memo(() => {
                         <Badge variant="secondary" className="gap-1">
                           {type}
                           <Button
-                            variant="secondary"
-                            size="md"
-                            className="h-auto ml-1 hover:bg-zinc-200 cursor-pointer"
+                            variant="ghost"
+                            size="sm"
+                            className="h-auto p-0 ml-1 hover:bg-transparent"
                             onClick={() => handleTypeChange('clear')}
                           >
                             <X className="h-3 w-3" />
@@ -443,7 +423,7 @@ const SearchResults = React.memo(() => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="relevance">Liên quan nhất</SelectItem>
+                    <SelectItem value="relevance">Nổi bật nhất</SelectItem>
                     <SelectItem value="name">Tên trường</SelectItem>
                     <SelectItem value="ranking">Xếp hạng</SelectItem>
                     <SelectItem value="score">Điểm chuẩn</SelectItem>
@@ -453,45 +433,25 @@ const SearchResults = React.memo(() => {
               </div>
             </div>
 
-            {/* Loading State */}
             {loading && (
               <div className="space-y-4">
-                <Loading type="university" />
-                <Loading type="university" />
-                <Loading type="university" />
-                <Loading type="university" />
-                <Loading type="university" />
+                {[...Array(5)].map((_, i) => (
+                  <Loading key={i} type="university" />
+                ))}
               </div>
             )}
 
             {!loading && totalResults === 0 && (
-              <Card className="text-center py-12">
-                <CardContent>
+              <div className="text-center py-12">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                      Không tìm thấy kết quả
+                      Không tìm thấy trường đại học nào
                     </h3>
                     <p className="text-gray-500 mb-4">
-                      Hãy thử điều chỉnh từ khóa tìm kiếm hoặc bộ lọc
+                      Hãy thử điều chỉnh bộ lọc để xem kết quả khác
                     </p>
-                    <div className="space-y-2">
-                      <div className="text-sm text-gray-600">Gợi ý:</div>
-                      <div className="flex flex-wrap justify-center gap-2">
-                          {['Đại học Bách khoa', 'Công nghệ thông tin', 'Y khoa', 'Kinh tế'].map(suggestion => (
-                          <Button
-                            key={suggestion}
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleSuggestionClick(suggestion)}
-                          >
-                            {suggestion}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
                   </div>
-                </CardContent>
-              </Card>
+              </div>
             )}
 
             {!loading && totalResults > 0 && (
@@ -505,12 +465,10 @@ const SearchResults = React.memo(() => {
                   ))}
                 </div>
 
-                {/* Pagination */}
                 <div className="flex flex-col items-center gap-4">
                   <div className="text-sm text-gray-600">
-                    Hiển thị {startResult}-{endResult} của {totalResults} kết quả
+                    Hiển thị {startResult}-{endResult} của {totalResults} trường
                   </div>
-
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
@@ -544,7 +502,6 @@ const SearchResults = React.memo(() => {
                           </PaginationItem>
                         );
                       })}
-
                       <PaginationItem>
                         <PaginationNext
                           onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
@@ -563,4 +520,4 @@ const SearchResults = React.memo(() => {
   )
 })
 
-export default SearchResults
+export default AllUniversities 

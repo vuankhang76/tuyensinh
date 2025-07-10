@@ -91,10 +91,9 @@ export const userService = {
     throw new Error('No current user found')
   },
 
-  changePassword: async (passwordData) => {
-    // This endpoint might need to be implemented in the backend
+  changePassword: async (id, passwordData) => {
     try {
-      const response = await axios.put('/Auth/change-password', passwordData)
+      const response = await axios.put(`/Users/${id}/change-password`, passwordData)
       return response.data
     } catch (error) {
       console.error('Error changing password:', error)

@@ -1,36 +1,27 @@
 import React from 'react';
 
-const UniversityCardSkeleton = ({ className = "" }) => {
+const UniversityCardSkeleton = () => {
   return (
-    <div className={`animate-pulse border border-gray-200 rounded-lg p-4 bg-white mb-4 ${className}`}>
+    <div className="animate-pulse border border-gray-200 rounded-lg p-4 bg-white mb-4">
       <div className="flex items-center p-2">
-        {/* Logo Section */}
         <div className="mr-6">
           <div className="w-24 h-24 bg-slate-300 dark:bg-slate-600 rounded-full"></div>
         </div>
-
-        {/* Main Content */}
         <div className="flex-1 min-w-0">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-            {/* University Info */}
             <div className="flex-1">
-              {/* Header */}
               <div className="mb-3">
                 <div className="flex items-center gap-2 mb-1">
                   <div className="h-6 bg-slate-300 dark:bg-slate-600 rounded w-64"></div>
                   <div className="h-6 bg-slate-300 dark:bg-slate-600 rounded w-64"></div>
                 </div>
               </div>
-
-              {/* Quick Stats */}
               <div className="flex flex-wrap gap-4 mb-4">
                 <div className="h-4 bg-slate-300 dark:bg-slate-600 rounded w-28"></div>
                 <div className="h-4 bg-slate-300 dark:bg-slate-600 rounded w-28"></div>
                 <div className="h-4 bg-slate-300 dark:bg-slate-600 rounded w-28"></div>
                 <div className="h-4 bg-slate-300 dark:bg-slate-600 rounded w-28"></div>
               </div>
-
-              {/* Major Tags */}
               <div className="flex items-center gap-4">
                 <div className="flex gap-1">
                   <div className="h-6 bg-slate-300 dark:bg-slate-600 rounded w-24 "></div>
@@ -47,7 +38,23 @@ const UniversityCardSkeleton = ({ className = "" }) => {
   );
 };
 
-// Table Row Skeleton
+const NewsSkeleton = () => {
+  return (
+    <div className="animate-pulse border-b border-gray-200 last:border-b-0 px-6 py-5">
+      <div className="flex flex-col items-start gap-3 w-full">
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="h-4 bg-slate-300 rounded w-32"></div>
+          <div className="h-4 bg-slate-300 rounded w-24"></div>
+        </div>
+        <div className="space-y-2 w-full">
+          <div className="h-5 bg-slate-300 rounded w-3/4"></div>
+          <div className="h-5 bg-slate-300 rounded w-1/2"></div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const TableRowSkeleton = ({ columns = 4, className = "" }) => {
   return (
     <div className={`animate-pulse flex items-center gap-4 p-4 ${className}`}>
@@ -63,7 +70,6 @@ const TableRowSkeleton = ({ columns = 4, className = "" }) => {
   );
 };
 
-// List Item Skeleton
 const ListItemSkeleton = ({ showAvatar = true, className = "" }) => {
   return (
     <div className={`animate-pulse flex items-center gap-3 p-3 ${className}`}>
@@ -78,7 +84,6 @@ const ListItemSkeleton = ({ showAvatar = true, className = "" }) => {
   );
 };
 
-// Text Block Skeleton
 const TextSkeleton = ({ lines = 3, className = "" }) => {
   return (
     <div className={`animate-pulse space-y-2 ${className}`}>
@@ -94,14 +99,10 @@ const TextSkeleton = ({ lines = 3, className = "" }) => {
   );
 };
 
-// Page Loading Skeleton
 const PageSkeleton = ({ className = "" }) => {
   return (
     <div className={`animate-pulse p-6 ${className}`}>
-      {/* Header */}
       <div className="w-1/3 h-8 bg-slate-300 dark:bg-slate-600 rounded mb-6"></div>
-      
-      {/* Content */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {Array.from({ length: 6 }).map((_, index) => (
           <div key={index} className="space-y-3">
@@ -115,7 +116,6 @@ const PageSkeleton = ({ className = "" }) => {
   );
 };
 
-// Spinner Loading
 const SpinnerLoading = ({ size = "default", className = "" }) => {
   const sizeClasses = {
     small: "w-4 h-4",
@@ -193,5 +193,6 @@ export {
   ListItemSkeleton, 
   TextSkeleton, 
   PageSkeleton, 
-  SpinnerLoading 
+  SpinnerLoading,
+  NewsSkeleton
 }; 

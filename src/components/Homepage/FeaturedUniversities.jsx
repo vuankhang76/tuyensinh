@@ -18,7 +18,7 @@ const FeaturedUniversities = ({ universities, loading = false }) => {
     .slice(0, 5);
 
   return (
-    <section className="py-16 bg-muted/50">
+    <section className="py-8 bg-muted/50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-foreground mb-4">
@@ -48,11 +48,11 @@ const FeaturedUniversities = ({ universities, loading = false }) => {
           )}
         </div>
 
-        <div className="text-center mt-12">
+        <div className="text-center mt-8">
           <Link to="/search">
             <Button 
               size="lg"
-              variant="default"
+              variant="outline"
               className="h-12 px-8 cursor-pointer"
             >
               Khám phá tất cả trường đại học →
