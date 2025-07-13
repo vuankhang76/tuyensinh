@@ -271,7 +271,7 @@ const Login = () => {
                   Chưa có tài khoản?
                 </div>
                 <Link
-                  to="/register"
+                  to="/dang-ky"
                   className="text-primary hover:text-primary/80 text-sm"
                 >
                   Đăng ký
