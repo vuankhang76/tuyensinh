@@ -80,7 +80,7 @@ const Register = () => {
                     description: "Vui lòng kiểm tra email để xác minh tài khoản.",
                 });
 
-                navigate('/email-verification', { 
+                navigate('/xac-minh-email', { 
                     state: { 
                         email: result.email,
                         shouldResendEmail: true 
@@ -288,7 +288,7 @@ const Register = () => {
                             <div className="text-muted-foreground text-sm">
                                 Đã có tài khoản?{' '}
                                 <Link
-                                    to="/login"
+                                    to="/dang-nhap"
                                     className="text-primary hover:text-primary/80 font-medium"
                                 >
                                     Đăng nhập ngay
