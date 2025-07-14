@@ -133,7 +133,6 @@ const EmailVerification = () => {
                 }
             }
         } catch (error) {
-            console.error('Error in handleResendEmailAutomatic:', error);
             const errorMessage = error?.response?.data?.message || error?.message || '';
             if (errorMessage.includes('too-many-requests') || 
                 error?.code === 'auth/too-many-requests' || 

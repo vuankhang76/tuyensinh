@@ -159,14 +159,12 @@ const UserProfile = () => {
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4 max-w-4xl">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Thông tin cá nhân</h1>
           <p className="text-muted-foreground mt-2">Quản lý thông tin tài khoản của bạn</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Profile Card */}
           <div className="lg:col-span-1">
             <Card>
               <CardHeader className="text-center">
@@ -185,7 +183,7 @@ const UserProfile = () => {
                     <div className="mx-auto">
                       <Avatar className="h-24 w-24 mx-auto">
                         <AvatarFallback className="bg-gray-200 text-gray-800">
-                          <User className="h-4 w-4" />
+                          <User className="h-10 w-10" />
                         </AvatarFallback>
                       </Avatar>
                     </div>
@@ -210,7 +208,6 @@ const UserProfile = () => {
               </CardHeader>
 
               <CardContent className="space-y-4">
-                {/* Email Verification Status */}
                 <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4 text-muted-foreground" />
@@ -229,7 +226,6 @@ const UserProfile = () => {
                   )}
                 </div>
 
-                {/* Provider */}
                 <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-2">
                     <Globe className="h-4 w-4 text-muted-foreground" />
@@ -240,7 +236,6 @@ const UserProfile = () => {
                   </Badge>
                 </div>
 
-                {/* University (if applicable) */}
                 {user.universityId && (
                   <div className="p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-center gap-2 mb-1">
@@ -251,7 +246,6 @@ const UserProfile = () => {
                   </div>
                 )}
 
-                {/* Actions */}
                 {user.provider == 'email' && (
                   <div className="pt-2 space-y-3">
                     <Button
@@ -274,11 +268,10 @@ const UserProfile = () => {
             </Card>
           </div>
 
-          {/* Details Card */}
           <div className="lg:col-span-2">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <div>
+                <div className='flex flex-col gap-2'>
                   <CardTitle>Thông tin chi tiết</CardTitle>
                   <CardDescription>Thông tin tài khoản và cài đặt</CardDescription>
                 </div>
@@ -302,7 +295,6 @@ const UserProfile = () => {
               </CardHeader>
 
               <CardContent className="space-y-6">
-                {/* Basic Information */}
                 <div>
                   <h3 className="text-lg font-semibold mb-4">Thông tin cơ bản</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -326,7 +318,6 @@ const UserProfile = () => {
                       )}
                     </div>
 
-                    {/* Username */}
                     <div className="space-y-2">
                       <Label variant="default" htmlFor="email">Email</Label>
                       <Input
@@ -340,11 +331,9 @@ const UserProfile = () => {
 
                 <Separator />
 
-                {/* Account Information */}
                 <div>
                   <h3 className="text-lg font-semibold mb-4">Thông tin tài khoản</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Created At */}
                     <div className="space-y-2">
                       <Label>Ngày tạo tài khoản</Label>
                       <div className="flex items-center gap-2 text-sm bg-muted p-3 rounded-md">
@@ -353,7 +342,6 @@ const UserProfile = () => {
                       </div>
                     </div>
 
-                    {/* Last Login */}
                     <div className="space-y-2">
                       <Label>Đăng nhập gần nhất</Label>
                       <div className="flex items-center gap-2 text-sm bg-muted p-3 rounded-md">
@@ -362,7 +350,6 @@ const UserProfile = () => {
                       </div>
                     </div>
 
-                    {/* Firebase UID */}
                     {user.firebaseUid && (
                       <div className="space-y-2 md:col-span-2">
                         <Label>Firebase UID</Label>

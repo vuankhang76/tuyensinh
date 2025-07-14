@@ -25,8 +25,6 @@
       return { user: data.user, error: null };
   
     } catch (error) {
-      console.error('Login error:', error);
-      
       if (error.response && error.response.data) {
         const errorData = error.response.data;
   

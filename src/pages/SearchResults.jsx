@@ -446,8 +446,6 @@ const SearchResults = React.memo(() => {
                     <SelectItem value="relevance">Liên quan nhất</SelectItem>
                     <SelectItem value="name">Tên trường</SelectItem>
                     <SelectItem value="ranking">Xếp hạng</SelectItem>
-                    <SelectItem value="score">Điểm chuẩn</SelectItem>
-                    <SelectItem value="tuition">Học phí</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

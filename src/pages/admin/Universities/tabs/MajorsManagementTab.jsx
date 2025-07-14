@@ -58,12 +58,8 @@ const MajorsManagementTab = ({ universityId }) => {
   }
 
   const fetchPrograms = async () => {
-    try {
       const data = await academicProgramService.getProgramsByUniversity(universityId)
       setPrograms(data)
-    } catch (error) {
-      console.error('Error fetching programs:', error)
-    }
   }
 
   const handleInputChange = (field, value) => {

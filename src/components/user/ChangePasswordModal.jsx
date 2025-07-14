@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, Lock } from 'lucide-react';
 import { toast } from 'sonner';
-import { userService } from '@/services';
+import { userService } from '@/services/userService';
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
@@ -75,13 +75,13 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 
       await userService.changePassword(currentUser.id, {
         currentPassword: formData.currentPassword,
-        newPassword: formData.newPassword
+        newPassword: formData.newPassword,
+        confirmPassword: formData.confirmPassword
       });
 
       toast.success('Đổi mật khẩu thành công!');
       handleClose();
     } catch (error) {
-      console.error('Change password error:', error);
       toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đổi mật khẩu');
     } finally {
       setLoading(false);
@@ -94,7 +94,6 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
       [field]: value
     }));
     
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({
         ...prev,
@@ -124,7 +123,6 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Current Password */}
           <div className="space-y-2">
             <Label htmlFor="currentPassword">Mật khẩu hiện tại</Label>
             <div className="relative">
@@ -174,7 +172,6 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             )}
           </div>
 
-          {/* Confirm Password */}
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Xác nhận mật khẩu mới</Label>
             <div className="relative">
