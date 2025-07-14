@@ -32,12 +32,19 @@ const EmailVerification = () => {
         setEmail(userEmail);
 
         const lastSentTime = localStorage.getItem(`resend_timestamp_${userEmail}`);
+        const currentTime = Date.now();
 
         if (lastSentTime) {
-            const timePassed = (Date.now() - parseInt(lastSentTime)) / 1000;
+            const timePassed = (currentTime - parseInt(lastSentTime)) / 1000;
             if (timePassed < RESEND_COOLDOWN_SECONDS) {
                 setCooldown(Math.round(RESEND_COOLDOWN_SECONDS - timePassed));
+            } else {
+                setCooldown(RESEND_COOLDOWN_SECONDS);
+                localStorage.setItem(`resend_timestamp_${userEmail}`, currentTime.toString());
             }
+        } else {
+            setCooldown(RESEND_COOLDOWN_SECONDS);
+            localStorage.setItem(`resend_timestamp_${userEmail}`, currentTime.toString());
         }
 
         const processedKey = `processed_${navigationKey}`;
@@ -45,7 +52,6 @@ const EmailVerification = () => {
 
         if (shouldResendEmail && userEmail && navigationKey && !hasProcessed) {
             localStorage.setItem(processedKey, 'true');
-
             setTimeout(() => {
                 handleResendEmailAutomatic(userEmail);
             }, 500);
@@ -62,24 +68,17 @@ const EmailVerification = () => {
 
     const handleCheckVerification = async () => {
         setIsChecking(true);
-        try {
             const isVerified = await checkEmailVerificationStatus();
-
             if (isVerified) {
                 await handleCompleteRegistration();
             } else {
                 toast.warning('Email chưa được xác minh. Vui lòng kiểm tra hộp thư và nhấp vào link xác minh.');
             }
-        } catch (error) {
-            toast.error('Có lỗi xảy ra khi kiểm tra xác minh email');
-        } finally {
             setIsChecking(false);
-        }
     };
 
     const handleCompleteRegistration = async () => {
         setIsCompleting(true);
-        try {
             const result = await completeRegistration();
             if (result.error) {
                 toast.error(result.error);
@@ -90,26 +89,12 @@ const EmailVerification = () => {
                 description: 'Vui lòng đăng nhập để tiếp tục!'
             });
             navigate('/dang-nhap', { replace: true });
-        } catch (error) {
-            const errorMessage = error?.response?.data?.message ||
-                error?.response?.data?.errors ||
-                'Có lỗi xảy ra khi hoàn tất đăng ký';
-            if (typeof errorMessage === 'object') {
-                const validationErrors = Object.values(errorMessage).flat();
-                toast.error('Lỗi xác thực', {
-                    description: validationErrors.join(', ')
-                });
-            } else {
-                toast.error(errorMessage);
-            }
-        } finally {
             setIsCompleting(false);
-        }
+        
     };
 
     const handleResendEmail = async () => {
         if (cooldown > 0 || !email) return;
-
         toast.info('Đang gửi email...');
         try {
             const result = await resendVerificationEmail();
@@ -121,7 +106,12 @@ const EmailVerification = () => {
                 toast.error(result.error || 'Gửi lại email thất bại.');
             }
         } catch (error) {
-            toast.error('Có lỗi xảy ra.');
+            const errorMessage = error?.response?.data?.message || error?.message || '';
+            if (errorMessage.includes('too-many-requests') || error?.code === 'auth/too-many-requests') {
+                toast.error('Quá nhiều yêu cầu. Vui lòng đợi và thử lại sau.');
+            } else {
+                toast.error('Có lỗi xảy ra.');
+            }
         }
     };
 
@@ -136,10 +126,22 @@ const EmailVerification = () => {
                 localStorage.setItem(`resend_timestamp_${userEmail}`, Date.now().toString());
                 setCooldown(RESEND_COOLDOWN_SECONDS);
             } else {
-                toast.error(result.error || 'Gửi lại email thất bại.');
+                if (result.error && result.error.includes('Quá nhiều yêu cầu')) {
+                    toast.error('Quá nhiều yêu cầu. Vui lòng đợi và thử lại sau.');
+                } else {
+                    toast.error(result.error || 'Gửi lại email thất bại.');
+                }
             }
         } catch (error) {
-            toast.error('Có lỗi xảy ra khi gửi email.');
+            console.error('Error in handleResendEmailAutomatic:', error);
+            const errorMessage = error?.response?.data?.message || error?.message || '';
+            if (errorMessage.includes('too-many-requests') || 
+                error?.code === 'auth/too-many-requests' || 
+                errorMessage.includes('Quá nhiều yêu cầu')) {
+                toast.error('Quá nhiều yêu cầu. Vui lòng đợi và thử lại sau.');
+            } else {
+                toast.error('Có lỗi xảy ra khi gửi email.');
+            }
         }
     };
 
@@ -181,7 +183,7 @@ const EmailVerification = () => {
                         <div className="space-y-3">
                             <Button
                                 onClick={handleCheckVerification}
-                                disabled={isChecking || isCompleting || cooldown > 0}
+                                disabled={isChecking || isCompleting}
                                 className="w-full"
                             >
                                 {isChecking ? (
@@ -204,7 +206,6 @@ const EmailVerification = () => {
                             </Button>
                         </div>
 
-                        {/* CẬP NHẬT: Thay thế khối văn bản tĩnh bằng nút có tương tác */}
                         <div className="text-center text-sm text-muted-foreground pt-4 border-t">
                             <p className="mb-1">Không nhận được email?</p>
                             <Button

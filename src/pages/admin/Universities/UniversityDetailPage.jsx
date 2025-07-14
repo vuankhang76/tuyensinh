@@ -17,8 +17,17 @@ import {
   MapPin,
   Users,
   BookOpen,
-  Award
+  Award,
+  GraduationCap,
+  Newspaper
 } from 'lucide-react';
+
+// Import tab components
+import MajorsManagementTab from './tabs/MajorsManagementTab';
+import ProgramsManagementTab from './tabs/ProgramsManagementTab';
+import AdmissionNewsTab from './tabs/AdmissionNewsTab';
+import ScholarshipsTab from './tabs/ScholarshipsTab';
+import universityService from '@/services/universityService';
 
 const UniversityDetailPage = () => {
   const { id } = useParams();
@@ -51,9 +60,27 @@ const UniversityDetailPage = () => {
   const [formData, setFormData] = useState({});
 
   useEffect(() => {
-    // In real app, fetch university data by ID from API
+    if (id) {
+      fetchUniversityData();
+    }
+  }, [id]);
+
+  useEffect(() => {
     setFormData(university);
   }, [university]);
+
+  const fetchUniversityData = async () => {
+    try {
+      setLoading(true);
+      const data = await universityService.getUniversityById(id);
+      setUniversity(data);
+    } catch (error) {
+      toast.error('Có lỗi xảy ra khi tải thông tin trường đại học');
+      navigate('/admin/universities');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -65,8 +92,8 @@ const UniversityDetailPage = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      // In real app, call API to update university
-      setUniversity(formData);
+      const updatedData = await universityService.updateUniversity(id, formData);
+      setUniversity(updatedData);
       setEditing(false);
       toast.success("Đã cập nhật thông tin trường đại học thành công!");
     } catch (error) {
@@ -128,11 +155,15 @@ const UniversityDetailPage = () => {
 
       {/* Content Tabs */}
       <Tabs defaultValue="basic" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="basic">Thông tin cơ bản</TabsTrigger>
           <TabsTrigger value="contact">Liên hệ</TabsTrigger>
           <TabsTrigger value="academic">Học thuật</TabsTrigger>
           <TabsTrigger value="statistics">Thống kê</TabsTrigger>
+          <TabsTrigger value="majors">Ngành học</TabsTrigger>
+          <TabsTrigger value="programs">Chương trình</TabsTrigger>
+          <TabsTrigger value="news">Tin tức</TabsTrigger>
+          <TabsTrigger value="scholarships">Học bổng</TabsTrigger>
         </TabsList>
 
         {/* Basic Information Tab */}
@@ -415,6 +446,26 @@ const UniversityDetailPage = () => {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        {/* Majors Management Tab */}
+        <TabsContent value="majors">
+          <MajorsManagementTab universityId={id} />
+        </TabsContent>
+
+        {/* Programs Management Tab */}
+        <TabsContent value="programs">
+          <ProgramsManagementTab universityId={id} />
+        </TabsContent>
+
+        {/* Admission News Tab */}
+        <TabsContent value="news">
+          <AdmissionNewsTab universityId={id} />
+        </TabsContent>
+
+        {/* Scholarships Tab */}
+        <TabsContent value="scholarships">
+          <ScholarshipsTab universityId={id} />
         </TabsContent>
       </Tabs>
     </div>

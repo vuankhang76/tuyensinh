@@ -60,7 +60,7 @@ const Login = () => {
               size="sm"
               onClick={() => {
                 const navigationKey = `login_${Date.now()}_${Math.random()}`;
-                navigate('/email-verification', { 
+                navigate('/xac-minh-email', { 
                   state: { 
                     email: result.email,
                     shouldResendEmail: true,
@@ -271,7 +271,7 @@ const Login = () => {
                   Chưa có tài khoản?
                 </div>
                 <Link
-                  to="/register"
+                  to="/dang-ky"
                   className="text-primary hover:text-primary/80 text-sm"
                 >
                   Đăng ký
