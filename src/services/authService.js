@@ -92,102 +92,54 @@
     }
   };
 
-  export const  registerWithEmailVerification = async (userData) => {
+  export const registerWithEmailVerification = async (userData) => {
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        userData.email,
-        userData.password
-      );  
-      const firebaseUser = userCredential.user;
-  
-      try {
-        const response = await apiClient.post('/Auth/register', {
-          username: userData.username,
-          email: userData.email,
-          displayName: userData.displayName,
-          role: userData.role,
-          firebaseUid: firebaseUser.uid,
-          emailVerified: false, 
-          password: userData.password
-        });
-      } catch (dbError) {
+        const userCredential = await createUserWithEmailAndPassword(
+            auth,
+            userData.email,
+            userData.password
+        );
+        const firebaseUser = userCredential.user;
+
         try {
-          await firebaseUser.delete();
-        } catch (deleteError) {
-          console.error('Failed to delete Firebase user:', deleteError);
+            await apiClient.post('/Auth/register', {
+                username: userData.username,
+                email: userData.email,
+                displayName: userData.displayName,
+                role: userData.role,
+                firebaseUid: firebaseUser.uid,
+                password: userData.password
+            });
+        } catch (dbError) {
+            await firebaseUser.delete();
+            const errorMessage = dbError.response?.data?.message || 'Lỗi lưu dữ liệu';
+            return { error: errorMessage };
+        }
+
+        try {
+            await sendEmailVerification(firebaseUser);
+        } catch (emailError) {
+            console.warn('Failed to send verification email on registration:', emailError);
         }
         
-        const errorMessage = dbError.response?.data?.message || 'Lỗi lưu dữ liệu';
-        return { user: null, error: errorMessage };
-      }
-  
-      try {
-        await sendEmailVerification(firebaseUser);  
-      } catch (emailError) {
-        if (emailError.code === 'auth/too-many-requests') {
-          return { user: null, error: 'Quá nhiều yêu cầu. Vui lòng đợi và thử lại sau.' };
-        }
-        console.warn('Failed to send verification email:', emailError);
-      }
-      
-      return {
-        user: null,
-        error: null,
-        requiresEmailVerification: true,
-        email: firebaseUser.email,
-        isNewAccount: true
-      };
-  
+        return {
+            error: null,
+            requiresEmailVerification: true,
+            isNewAccount: true,
+            email: firebaseUser.email,
+        };
+
     } catch (firebaseError) {
-      if (firebaseError.code === 'auth/too-many-requests') {
-        return { user: null, error: 'Quá nhiều yêu cầu. Vui lòng đợi và thử lại sau.' };
-      } else if (firebaseError.code === 'auth/email-already-in-use') {
-        try {
-          const signInResult = await signInWithEmailAndPassword(auth, userData.email, userData.password);
-          if (!signInResult.user.emailVerified) {
-            try {
-              await sendEmailVerification(signInResult.user);
-            } catch (emailError) {
-              if (emailError.code === 'auth/too-many-requests') {
-                return { user: null, error: 'Quá nhiều yêu cầu. Vui lòng đợi và thử lại sau.' };
-              }
-              console.warn('Failed to send verification email:', emailError);
-            }
-            return {
-              user: null,
-              error: null,
-              requiresEmailVerification: true,
-              email: signInResult.user.email,
-              isNewAccount: false
-            };
-          } else {
-            return { user: null, error: 'Tài khoản đã tồn tại. Vui lòng đăng nhập' };
-          }
-        } catch (signInError) {
-          if (signInError.code === 'auth/too-many-requests') {
-            return {
-              user: null,
-              error: null,
-              requiresEmailVerification: true,
-              email: userData.email,
-              isNewAccount: false
-            };
-          } else if (signInError.code === 'auth/wrong-password') {
-            return { user: null, error: 'Email này đã được đăng ký. Vui lòng kiểm tra lại mật khẩu.' };
-          } else if (signInError.code === 'auth/user-not-found') {
-            return { user: null, error: 'Lỗi lạ: Email tồn tại nhưng không tìm thấy khi đăng nhập.' };
-          }
-          return { user: null, error: 'Email đã được sử dụng'};
+        if (firebaseError.code === 'auth/email-already-in-use') {
+            return { error: 'email_already_exists' }; 
+        } else if (firebaseError.code === 'auth/weak-password') {
+            return { error: 'Mật khẩu quá yếu, cần ít nhất 6 ký tự' };
+        } else if (firebaseError.code === 'auth/invalid-email') {
+            return { error: 'Email không hợp lệ' };
         }
-      } else if (firebaseError.code === 'auth/weak-password') {
-        return { user: null, error: 'Mật khẩu quá yếu, cần ít nhất 6 ký tự' };
-      } else if (firebaseError.code === 'auth/invalid-email') {
-        return { user: null, error: 'Email không hợp lệ' };
-      }
-      return { user: null, error: firebaseError.message || 'Có lỗi xảy ra khi tạo tài khoản' };
+        return { error: firebaseError.message || 'Có lỗi xảy ra khi tạo tài khoản' };
     }
-  };
+};
 
   export const completeRegistration = async () => {
     try {
@@ -227,14 +179,8 @@
             await user.reload();
             resolve(user.emailVerified);
           } catch (error) {
-            if (error.code === 'auth/too-many-requests') {
-              reject(new Error('Quá nhiều yêu cầu. Vui lòng đợi và thử lại sau.'));
-            } else {
-              reject(error);
-            }
+            resolve(false);
           }
-        } else {
-          resolve(false);
         }
       });
     });

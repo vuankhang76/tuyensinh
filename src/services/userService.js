@@ -22,9 +22,9 @@ export const userService = {
     }
   },
 
-  updateUserByAdmin: async (id) => {
+  updateUserByAdmin: async (id, body) => {
     try {
-      await axios.put(`/Users/${id}/admin`)
+      await axios.put(`/Users/${id}/admin`, body)
       return true
     } catch (error) {
       console.error('Error updating user:', error)
@@ -53,7 +53,6 @@ export const userService = {
     }
   },
 
-  // Helper methods
   getCurrentUser: () => {
     try {
       const user = localStorage.getItem('user')
@@ -74,7 +73,6 @@ export const userService = {
     }
   },
 
-  // Legacy methods for backward compatibility
   getUserProfile: async () => {
     const currentUser = userService.getCurrentUser()
     if (currentUser && currentUser.id) {

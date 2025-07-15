@@ -99,6 +99,7 @@ const Register = () => {
 
             if (normalizedValues.password !== normalizedValues.confirmPassword) {
                 toast.error("Mật khẩu xác nhận không khớp");
+                setLoading(false);
                 return;
             }
 
@@ -123,19 +124,15 @@ const Register = () => {
                 }
                 return;
             }
+            
             if (result.requiresEmailVerification) {
                 if (result.isNewAccount) {
                     toast.success("Tài khoản đã được tạo thành công!", {
                         description: "Vui lòng kiểm tra email để xác minh tài khoản.",
                         duration: 10000,
                     });
-                } else {
-                    toast.warning("Tài khoản đã được tạo từ trước!", {
-                        description: "Vui lòng kiểm tra email để xác minh tài khoản.",
-                        duration: 10000,
-                    });
                 }
-                
+
                 navigate('/xac-minh-email', { 
                     state: { 
                         email: result.email,

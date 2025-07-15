@@ -47,7 +47,8 @@ const UserManagement = () => {
     displayName: '',
     email: '',
     role: '',
-    status: ''
+    photoURL: '',
+    emailVerified: false
   });
 
   const fetchUsers = useCallback(async () => {
@@ -124,12 +125,35 @@ const UserManagement = () => {
     return { variant: variants[role] || 'outline', label: labels[role] || 'Không xác định' };
   };
 
+  const handleRoleChange = async (userId, newRole) => {
+    const currentUser = users.find(u => u.id === userId);
+    if (!currentUser || currentUser.role === newRole) return;
+
+    const body = {
+      displayName: currentUser.displayName,
+      role: newRole,
+      photoURL: currentUser.photoURL || "",
+      emailVerified: currentUser.emailVerified ?? false
+    };
+
+    try {
+      await userService.updateUserByAdmin(userId, body);
+      setUsers(users.map(u =>
+        u.id === userId ? { ...u, role: newRole } : u
+      ));
+      toast.success(`Đã thay đổi vai trò thành ${newRole === 'admin' ? 'Quản trị' : newRole === 'university' ? 'Trường ĐH' : 'Sinh viên'}`);
+    } catch (error) {
+        toast.error(`Có lỗi xảy ra khi cập nhật vai trò: ${error.response?.data?.message || error.message}`);
+    }
+  };
+
   const handleEditClick = (user) => {
     setUserToEdit(user);
     setEditForm({
       displayName: user.displayName || '',
-      email: user.email || '',
-      role: user.role || '',
+      photoURL: user.photoURL || "",
+      emailVerified: user.emailVerified ?? false,
+      role: user.role,
     });
     setEditDialogOpen(true);
   };
@@ -268,7 +292,7 @@ const UserManagement = () => {
               <TableHead className="w-20">ID</TableHead>
               <TableHead className="w-48">Tên hiển thị</TableHead>
               <TableHead className="w-64">Email</TableHead>
-              <TableHead className="w-32">Vai trò</TableHead>
+              <TableHead className="w-36">Vai trò</TableHead>
               <TableHead className="w-24 text-center">Xác minh</TableHead>
               <TableHead className="w-40">Ngày tạo</TableHead>
               <TableHead className="w-40">Đăng nhập cuối</TableHead>
@@ -282,7 +306,7 @@ const UserManagement = () => {
                   <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
                   <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
                   <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                  <TableCell><div className="h-6 bg-gray-200 rounded animate-pulse w-20"></div></TableCell>
+                  <TableCell><div className="h-8 bg-gray-200 rounded animate-pulse w-full"></div></TableCell>
                   <TableCell className="text-center"><div className="h-4 w-4 bg-gray-200 rounded-full animate-pulse mx-auto"></div></TableCell>
                   <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
                   <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
@@ -303,7 +327,6 @@ const UserManagement = () => {
               </TableRow>
             ) : (
               paginatedUsers.map((user) => {
-                const roleBadge = getRoleBadge(user.role);
                 return (
                   <TableRow key={user.id}>
                     <TableCell className="font-medium max-w-10">
@@ -322,9 +345,38 @@ const UserManagement = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={roleBadge.variant}>
-                        {roleBadge.label}
-                      </Badge>
+                      <div title={user.role === 'admin' ? 'Không thể thay đổi vai trò quản trị' : 'Nhấn để thay đổi vai trò'}>
+                        <Select 
+                          value={user.role} 
+                          onValueChange={(value) => handleRoleChange(user.id, value)}
+                          disabled={user.role === 'admin'}
+                        >
+                        <SelectTrigger className={`w-full h-8 text-xs ${user.role === 'admin' ? 'cursor-not-allowed opacity-60' : ''}`}>
+                          <SelectValue>
+                            <span className={`${
+                              user.role === 'admin' ? 'text-red-600 font-medium' : 
+                              user.role === 'university' ? 'text-blue-600 font-medium' : 
+                              'text-gray-600 font-medium'
+                            }`}>
+                              {user.role === 'admin' ? 'Quản trị' : 
+                               user.role === 'university' ? 'Trường ĐH' : 
+                               'Sinh viên'}
+                            </span>
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="student">
+                            <span className="text-gray-600">Sinh viên</span>
+                          </SelectItem>
+                          <SelectItem value="university">
+                            <span className="text-blue-600">Trường ĐH</span>
+                          </SelectItem>
+                          <SelectItem value="admin">
+                            <span className="text-red-600">Quản trị</span>
+                          </SelectItem>
+                        </SelectContent>
+                                              </Select>
+                      </div>
                     </TableCell>
                     <TableCell className="text-center">
                       {user.emailVerified ? (
@@ -451,7 +503,7 @@ const UserManagement = () => {
           <DialogHeader>
             <DialogTitle>Sửa thông tin người dùng</DialogTitle>
             <DialogDescription>
-              Cập nhật thông tin người dùng "{userToEdit?.displayName}"
+              Cập nhật thông tin người dùng "{userToEdit?.displayName || 'Unkown'}"
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -462,28 +514,6 @@ const UserManagement = () => {
                 value={editForm.displayName}
                 onChange={(e) => setEditForm({ ...editForm, displayName: e.target.value })}
               />
-            </div>
-            <div>
-              <Label htmlFor="email" className='mb-2'>Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={editForm.email}
-                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="role" className='mb-2'>Vai trò</Label>
-              <Select value={editForm.role} onValueChange={(value) => setEditForm({ ...editForm, role: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn vai trò" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="student">Sinh viên</SelectItem>
-                  <SelectItem value="university">Trường ĐH</SelectItem>
-                  <SelectItem value="admin">Quản trị</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
           <DialogFooter>
