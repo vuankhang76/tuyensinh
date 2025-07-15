@@ -426,13 +426,10 @@ const AllUniversities = React.memo(() => {
                     <SelectItem value="relevance">Nổi bật nhất</SelectItem>
                     <SelectItem value="name">Tên trường</SelectItem>
                     <SelectItem value="ranking">Xếp hạng</SelectItem>
-                    <SelectItem value="score">Điểm chuẩn</SelectItem>
-                    <SelectItem value="tuition">Học phí</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
-
             {loading && (
               <div className="space-y-4">
                 {[...Array(5)].map((_, i) => (
@@ -440,7 +437,6 @@ const AllUniversities = React.memo(() => {
                 ))}
               </div>
             )}
-
             {!loading && totalResults === 0 && (
               <div className="text-center py-12">
                   <div>
@@ -453,7 +449,6 @@ const AllUniversities = React.memo(() => {
                   </div>
               </div>
             )}
-
             {!loading && totalResults > 0 && (
               <>
                 <div className="space-y-4 mb-8">

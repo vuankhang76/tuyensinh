@@ -156,6 +156,8 @@ const Loading = ({
         return <TextSkeleton className={className} {...props} />;
       case "page":
         return <PageSkeleton className={className} {...props} />;
+      case "news":
+        return <NewsSkeleton className={className} {...props} />;
       case "spinner":
       default:
         return (

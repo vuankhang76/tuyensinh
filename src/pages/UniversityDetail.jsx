@@ -114,7 +114,6 @@ const UniversityDetail = () => {
         setLoadingStates(prev => ({ ...prev, scholarships: false }))
 
       } catch (error) {
-        console.error('Error fetching university data:', error)
         setError('Có lỗi xảy ra khi tải dữ liệu')
         toast.error('Không thể tải thông tin trường đại học')
       } finally {

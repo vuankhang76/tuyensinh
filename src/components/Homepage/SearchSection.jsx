@@ -9,24 +9,6 @@ const SearchSection = ({ searchTerm, setSearchTerm, selectedRegion, setSelectedR
   const navigate = useNavigate()
   const [selectedMajor, setSelectedMajor] = useState('')
 
-  const regions = [
-    { value: 'all', label: 'Tất cả khu vực' },
-    { value: 'hanoi', label: 'Hà Nội' },
-    { value: 'hcm', label: 'TP. Hồ Chí Minh' },
-    { value: 'danang', label: 'Đà Nẵng' },
-    { value: 'cantho', label: 'Cần Thơ' },
-    { value: 'haiphong', label: 'Hải Phòng' }
-  ]
-
-  const popularMajors = [
-    { value: 'all', label: 'Tất cả ngành' },
-    { value: 'Công nghệ thông tin', label: 'Công nghệ thông tin' },
-    { value: 'Kinh tế', label: 'Kinh tế' },
-    { value: 'Y khoa', label: 'Y khoa' },
-    { value: 'Kỹ thuật', label: 'Kỹ thuật' },
-    { value: 'Ngoại ngữ', label: 'Ngoại ngữ' }
-  ]
-
   const quickSearches = [
     'Đại học Bách khoa Hà Nội',
     'Đại học FPT',
@@ -41,7 +23,6 @@ const SearchSection = ({ searchTerm, setSearchTerm, selectedRegion, setSelectedR
       const params = new URLSearchParams()
       if (searchValue?.trim()) params.set('q', searchValue.trim())
       
-      // Map region values to actual province names
       if (region && region !== 'all') {
         const regionMap = {
           'Hà Nội': 'Hà Nội',

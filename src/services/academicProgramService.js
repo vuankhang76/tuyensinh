@@ -13,16 +13,10 @@ export const academicProgramService = {
   },
 
   getProgramById: async (id) => {
-    try {
       const response = await axios.get(`/AcademicPrograms/${id}`)
       return response.data
-    } catch (error) {
-      console.error('Error fetching academic program by id:', error)
-      throw error
-    }
   },
 
-  // GET /api/AcademicPrograms/University/{universityId} - Get academic programs by university
   getProgramsByUniversity: async (universityId) => {
     try {
       const response = await axios.get(`/AcademicPrograms/University/${universityId}`)
@@ -33,7 +27,6 @@ export const academicProgramService = {
     }
   },
 
-  // POST /api/AcademicPrograms - Create new academic program
   createProgram: async (programData) => {
     try {
       const response = await axios.post('/AcademicPrograms', programData)

@@ -15,12 +15,10 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
   }
 
   if (!isAuthenticated || !user) {
-    // Redirect to login page with return url
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   if (requiredRole && user.role !== requiredRole) {
-    // Redirect to unauthorized page or home
     return <Navigate to="/unauthorized" replace />;
   }
 

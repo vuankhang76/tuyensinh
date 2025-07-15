@@ -42,7 +42,6 @@ const UniversityManagement = () => {
       setTotalResults(data.length);
       setCurrentPage(1);
     } catch (err) {
-      setError('Không thể tải danh sách trường đại học');
       toast.error('Có lỗi xảy ra khi tải dữ liệu');
     } finally {
       setLoading(false);
@@ -217,7 +216,8 @@ const UniversityManagement = () => {
               universities.map((university) => (
                 <TableRow
                   key={university.id}
-                  className="hover:bg-muted/50 transition-colors"
+                  className="hover:bg-muted/50 transition-colors cursor-pointer"
+                  onClick={() => navigate(`/admin/universities/${university.id}`)}
                 >
                   <TableCell>{university.id}</TableCell>
                   <TableCell className="font-medium">

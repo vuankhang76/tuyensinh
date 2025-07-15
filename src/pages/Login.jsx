@@ -60,7 +60,7 @@ const Login = () => {
               size="sm"
               onClick={() => {
                 const navigationKey = `login_${Date.now()}_${Math.random()}`;
-                navigate('/email-verification', { 
+                navigate('/xac-minh-email', { 
                   state: { 
                     email: result.email,
                     shouldResendEmail: true,

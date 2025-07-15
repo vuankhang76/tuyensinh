@@ -2,19 +2,15 @@ import React, { useState, useEffect } from 'react'
 import SearchSection from '../components/Homepage/SearchSection'
 import FeaturedUniversities from '../components/Homepage/FeaturedUniversities'
 import NewsSection from '../components/Homepage/NewsSection'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import universityService from '../services/universityService'
 
 const Homepage = () => {
     const [searchTerm, setSearchTerm] = useState('')
-    const [selectedRegion, setSelectedRegion] = useState('')
-    const [selectedType, setSelectedType] = useState('')
     const [sortBy, setSortBy] = useState('')
     const [universities, setUniversities] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
 
-    // Fetch universities from API
     useEffect(() => {
         const fetchUniversities = async () => {
             try {
@@ -31,12 +27,9 @@ const Homepage = () => {
                     type: uni.type || 'Chưa phân loại',
                     minScore: 0,
                     majors: [],
-                    tuition: 'Liên hệ nhà trường',
                     ranking: uni.ranking || 0,
                     featured: uni.ranking <= 10,
                     description: uni.introduction || 'Chưa có mô tả',
-                    quota: 0,
-                    students: 0,
                     website: uni.officialWebsite,
                     admissionWebsite: uni.admissionWebsite
                 }))

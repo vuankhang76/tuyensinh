@@ -130,10 +130,8 @@ const UniversityAdmin = () => {
         </div>
       </div>
 
-      {/* University Info Tab */}
       {activeTab === 'info' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Basic Info */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">

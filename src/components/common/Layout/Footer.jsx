@@ -23,27 +23,26 @@ const Footer = () => {
               </div>
               <div>
                 <div className="font-bold text-xl">TuyenSinh.edu</div>
-                <div className="text-sm text-gray-400">Thông tin tuyển sinh đại học</div>
+                <div className="text-sm text-muted-foreground">Thông tin tuyển sinh đại học</div>
               </div>
             </div>
-            <p className="text-gray-400 text-sm mb-4">
+            <p className="text-muted-foreground text-sm mb-4">
               Nền tảng cung cấp thông tin tuyển sinh đại học chính xác và cập nhật nhất tại Việt Nam.
             </p>
           </div>
 
-          {/* Contact Info */}
           <div>
             <h3 className="font-semibold text-lg mb-4">Liên hệ</h3>
             <div className="space-y-3">
-              <div className="flex items-center text-sm text-gray-400">
+              <div className="flex items-center text-sm text-muted-foreground">
                 <MapPin className="mr-2 h-4 w-4" />
                 Hà Nội, Việt Nam
               </div>
-              <div className="flex items-center text-sm text-gray-400">
+              <div className="flex items-center text-sm text-muted-foreground">
                 <Phone className="mr-2 h-4 w-4" />
                 1900 xxxx
               </div>
-              <div className="flex items-center text-sm text-gray-400">
+              <div className="flex items-center text-sm text-muted-foreground">
                 <Mail className="mr-2 h-4 w-4" />
                 contact@tuyensinh.edu.vn
               </div>
@@ -71,7 +70,7 @@ const Footer = () => {
       <div className="border-t border-gray-800">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row justify-center items-center">
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-muted-foreground">
               © 2025 TuyenSinh.edu. Tất cả quyền được bảo lưu.
             </div>
           </div>

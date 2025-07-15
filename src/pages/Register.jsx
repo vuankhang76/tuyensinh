@@ -24,8 +24,21 @@ const Register = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const { user } = useAuth();
 
-    const { register, handleSubmit, formState: { errors }, watch, control } = useForm();
+    const { register, handleSubmit, formState: { errors }, watch, control, setValue, reset } = useForm({
+        defaultValues: {
+            displayName: '',
+            username: '',
+            email: '',
+            password: '',
+            confirmPassword: '',
+            terms: false
+        }
+    });
     const password = watch('password');
+    
+    const formData = watch();
+
+    const FORM_STORAGE_KEY = 'register_form_data';
 
     useEffect(() => {
         if (user) {
@@ -38,6 +51,41 @@ const Register = () => {
             }
         }
     }, [user, navigate]);
+
+    useEffect(() => {
+        const savedData = localStorage.getItem(FORM_STORAGE_KEY);
+        if (savedData) {
+            try {
+                const parsedData = JSON.parse(savedData);
+                if (parsedData && typeof parsedData === 'object') {
+                    Object.keys(parsedData).forEach(key => {
+                        if (parsedData[key] !== undefined && parsedData[key] !== '') {
+                            setValue(key, parsedData[key]);
+                        }
+                    });
+                }
+            } catch (error) {
+                localStorage.removeItem(FORM_STORAGE_KEY);
+            }
+        }
+    }, [setValue]);
+
+    useEffect(() => {
+        if (formData && Object.keys(formData).length > 0) {
+            const hasData = Object.values(formData).some(value => 
+                value !== undefined && value !== '' && value !== false
+            );
+            
+            if (hasData) {
+                const { password, confirmPassword, terms, ...dataToSave } = formData;
+                localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(dataToSave));
+            }
+        }
+    }, [formData]);
+
+    const clearSavedData = () => {
+        localStorage.removeItem(FORM_STORAGE_KEY);
+    };
 
     const handleRegister = async (values) => {
         setLoading(true);
@@ -60,6 +108,7 @@ const Register = () => {
             };
 
             const result = await registerWithEmailVerification(registrationData);
+            
             if (result.error) {
                 if (result.error.includes('username')) {
                     toast.error("Tên đăng nhập đã được sử dụng", {
@@ -74,12 +123,18 @@ const Register = () => {
                 }
                 return;
             }
-
             if (result.requiresEmailVerification) {
-                toast.warning("Tài khoản đã được tạo từ trước!", {
-                    description: "Vui lòng kiểm tra email để xác minh tài khoản.",
-                });
-
+                if (result.isNewAccount) {
+                    toast.success("Tài khoản đã được tạo thành công!", {
+                        description: "Vui lòng kiểm tra email để xác minh tài khoản.",
+                        duration: 10000,
+                    });
+                } else {
+                    toast.warning("Tài khoản đã được tạo từ trước!", {
+                        description: "Vui lòng kiểm tra email để xác minh tài khoản.",
+                        duration: 10000,
+                    });
+                }
                 navigate('/xac-minh-email', { 
                     state: { 
                         email: result.email,
@@ -88,7 +143,7 @@ const Register = () => {
                 });
             } else {
                 toast.success("Đăng ký thành công!");
-                navigate('/login');
+                navigate('/dang-nhap');
             }
         } catch (error) {
             toast.error("Có lỗi xảy ra khi đăng ký", {
@@ -97,6 +152,13 @@ const Register = () => {
         } finally {
             setLoading(false);
         }
+        clearSavedData();
+        reset();     
+    };
+
+    const handleGoToLogin = () => {
+        clearSavedData();
+        navigate('/dang-nhap');
     };
 
     return (
@@ -115,7 +177,7 @@ const Register = () => {
                         <form onSubmit={handleSubmit(handleRegister)} className="space-y-4">
                             <div>
                                 <Label htmlFor="displayName">Họ và tên</Label>
-                                <div className="relative">
+                                <div className="relative mt-2">
                                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                                     <Input
                                         id="displayName"
@@ -136,7 +198,7 @@ const Register = () => {
                             </div>
                             <div>
                                 <Label htmlFor="username">Tên đăng nhập</Label>
-                                <div className="relative">
+                                <div className="relative mt-2">
                                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                                     <Input
                                         id="username"
@@ -161,7 +223,7 @@ const Register = () => {
                             </div>
                             <div>
                                 <Label htmlFor="email">Email</Label>
-                                <div className="relative">
+                                <div className="relative mt-2">
                                     <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                                     <Input
                                         id="email"
@@ -184,7 +246,7 @@ const Register = () => {
 
                             <div>
                                 <Label htmlFor="password">Mật khẩu</Label>
-                                <div className="relative">
+                                <div className="relative mt-2">
                                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                                     <Input
                                         id="password"
@@ -194,8 +256,8 @@ const Register = () => {
                                         {...register('password', {
                                             required: 'Vui lòng nhập mật khẩu!',
                                             minLength: {
-                                                value: 5,
-                                                message: 'Mật khẩu phải có ít nhất 5 ký tự'
+                                                value: 6,
+                                                message: 'Mật khẩu phải có ít nhất 6 ký tự'
                                             },
                                             pattern: {
                                                 value: /^\S+$/,
@@ -218,7 +280,7 @@ const Register = () => {
 
                             <div>
                                 <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
-                                <div className="relative">
+                                <div className="relative mt-2">
                                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                                     <Input
                                         id="confirmPassword"
@@ -249,7 +311,8 @@ const Register = () => {
                                     <Controller
                                       name="terms"
                                       control={control}
-                                      rules={{ required: 'Bạn phải đồng ý với điều khoản sử dụng' }}
+                                      rules={{ required: 'Vui lòng đồng ý với điều khoản sử dụng và chính sách bảo mật' }}
+                                      className="text-sm"
                                       render={({ field }) => (
                                         <Checkbox
                                           id="terms"
@@ -283,16 +346,15 @@ const Register = () => {
                             </Button>
                         </form>
 
-                        {/* Login Link */}
                         <div className="text-center mt-6 pt-4 border-t">
                             <div className="text-muted-foreground text-sm">
                                 Đã có tài khoản?{' '}
-                                <Link
-                                    to="/dang-nhap"
-                                    className="text-primary hover:text-primary/80 font-medium"
+                                <button
+                                    onClick={handleGoToLogin}
+                                    className="text-primary hover:text-primary/80 font-medium cursor-pointer"
                                 >
                                     Đăng nhập ngay
-                                </Link>
+                                </button>
                             </div>
                         </div>
                     </CardContent>
