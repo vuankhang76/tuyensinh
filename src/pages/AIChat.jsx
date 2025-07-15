@@ -24,61 +24,22 @@ import {
   Edit3,
   Check,
 } from 'lucide-react';
+import { chatService } from '@/services/chatService';
+import { toast } from 'sonner';
 
 const AIChat = () => {
   const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeConversationId, setActiveConversationId] = useState(1);
+  const [activeConversationId, setActiveConversationId] = useState(null);
   const [editingConversationId, setEditingConversationId] = useState(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [conversationToDelete, setConversationToDelete] = useState(null);
-  const messagesEndRef = useRef(null);
-
-  // Sample conversations data
-  const [conversations, setConversations] = useState([
-    {
-      id: 1,
-      title: 'Tư vấn ngành CNTT',
-      lastMessage: 'Trường nào có ngành CNTT tốt nhất?',
-      timestamp: new Date(),
-      messageCount: 5
-    },
-    {
-      id: 2,
-      title: 'Điểm chuẩn các trường Y',
-      lastMessage: 'Điểm chuẩn năm nay thế nào?',
-      timestamp: new Date(Date.now() - 86400000),
-      messageCount: 3
-    },
-    {
-      id: 3,
-      title: 'Học phí trường tư thục',
-      lastMessage: 'Học phí khoảng bao nhiều?',
-      timestamp: new Date(Date.now() - 172800000),
-      messageCount: 8
-    }
-  ]);
-
-  // Sample messages for active conversation
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      type: 'bot',
-      content: `Xin chào ${user?.displayName || 'bạn'}! Tôi là trợ lý AI hỗ trợ tư vấn tuyển sinh đại học. Bạn có thể hỏi tôi về:
-      
-• Thông tin các trường đại học
-• Ngành học và điểm chuẩn
-• Học phí và học bổng
-• Chương trình đào tạo
-• Quy trình tuyển sinh
-
-Bạn muốn tìm hiểu điều gì?`,
-      timestamp: new Date()
-    }
-  ]);
-
+  const [conversations, setConversations] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -88,48 +49,115 @@ Bạn muốn tìm hiểu điều gì?`,
     scrollToBottom();
   }, [messages]);
 
-  const mockAIResponses = [
-    "Đó là một câu hỏi hay! Dựa trên thông tin hiện tại, tôi có thể chia sẻ rằng...",
-    "Theo dữ liệu mới nhất từ các trường đại học, điểm chuẩn năm nay có xu hướng...",
-    "Về vấn đề này, tôi khuyên bạn nên xem xét các yếu tố sau...",
-    "Thông tin về học phí và học bổng hiện tại cho thấy...",
-    "Dựa trên sở thích và năng lực của bạn, tôi gợi ý một số trường phù hợp..."
-  ];
+  // Load chat history khi component mount
+  useEffect(() => {
+    loadChatHistory();
+  }, []);
+
+  // Load messages khi chuyển conversation
+  useEffect(() => {
+    if (activeConversationId) {
+      loadChatSession(activeConversationId);
+    }
+  }, [activeConversationId]);
+
+  const loadChatHistory = async () => {
+    try {
+      setLoading(true);
+      const history = await chatService.getChatHistory();
+      setConversations(history);
+      
+      // Nếu có conversation, chọn conversation đầu tiên
+      if (history.length > 0) {
+        setActiveConversationId(history[0].id);
+      } else {
+        // Nếu không có conversation nào, tạo welcome message
+        setMessages([{
+          id: 'welcome',
+          sender: 'Assistant',
+          message: `Xin chào ${user?.displayName || 'bạn'}! Tôi là trợ lý AI hỗ trợ tư vấn tuyển sinh đại học. Bạn có thể hỏi tôi về:
+
+• Thông tin các trường đại học
+• Ngành học và điểm chuẩn
+• Học phí và học bổng
+• Chương trình đào tạo
+• Quy trình tuyển sinh
+
+Bạn muốn tìm hiểu điều gì?`,
+          sentAt: new Date().toISOString()
+        }]);
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+      toast.error('Không thể tải lịch sử chat');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadChatSession = async (sessionId) => {
+    try {
+      const session = await chatService.getChatSession(sessionId);
+      setMessages(session.messages || []);
+    } catch (error) {
+      console.error('Error loading chat session:', error);
+      toast.error('Không thể tải cuộc trò chuyện');
+    }
+  };
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || isTyping) return;
 
     const userMessage = {
       id: Date.now(),
-      type: 'user',
-      content: inputValue,
-      timestamp: new Date()
+      sender: 'User',
+      message: inputValue,
+      sentAt: new Date().toISOString()
     };
 
+    // Thêm tin nhắn user vào UI ngay lập tức
     setMessages(prev => [...prev, userMessage]);
+    const currentMessage = inputValue;
     setInputValue('');
     setIsTyping(true);
 
-    // Update conversation last message
-    setConversations(prev => prev.map(conv => 
-      conv.id === activeConversationId 
-        ? { ...conv, lastMessage: inputValue, timestamp: new Date(), messageCount: conv.messageCount + 1 }
-        : conv
-    ));
-
-    // Simulate AI thinking time
-    setTimeout(() => {
-      const randomResponse = mockAIResponses[Math.floor(Math.random() * mockAIResponses.length)];
+    try {
+      // Gửi tin nhắn đến backend
+      const response = await chatService.sendMessage(currentMessage, activeConversationId);
+      
+      // Thêm phản hồi AI vào UI
       const aiMessage = {
         id: Date.now() + 1,
-        type: 'bot',
-        content: randomResponse + " Bạn có muốn tôi giải thích chi tiết hơn không?",
-        timestamp: new Date()
+        sender: 'Assistant',
+        message: response.botResponse,
+        sentAt: response.timestamp
       };
       
       setMessages(prev => [...prev, aiMessage]);
+      
+      // Cập nhật sessionId nếu là tin nhắn đầu tiên
+      if (!activeConversationId) {
+        setActiveConversationId(response.sessionId);
+        // Load lại conversations để cập nhật sidebar
+        const history = await chatService.getChatHistory();
+        setConversations(history);
+      } else {
+        // Chỉ cập nhật conversation hiện tại trong sidebar
+        setConversations(prev => prev.map(conv => 
+          conv.id === activeConversationId 
+            ? { ...conv, messages: [...conv.messages, userMessage, aiMessage] }
+            : conv
+        ));
+      }
+      
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Không thể gửi tin nhắn');
+      // Remove user message if failed
+      setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleKeyPress = (e) => {
@@ -139,29 +167,43 @@ Bạn muốn tìm hiểu điều gì?`,
     }
   };
 
-  const createNewConversation = () => {
-    const newConv = {
-      id: Date.now(),
-      title: 'Cuộc trò chuyện mới',
-      lastMessage: '',
-      timestamp: new Date(),
-      messageCount: 0
-    };
-    setConversations(prev => [newConv, ...prev]);
-    setActiveConversationId(newConv.id);
-    setMessages([{
-      id: 1,
-      type: 'bot',
-      content: `Xin chào ${user?.displayName || 'bạn'}! Tôi là trợ lý AI hỗ trợ tư vấn tuyển sinh đại học. Bạn muốn tìm hiểu điều gì?`,
-      timestamp: new Date()
-    }]);
+  const createNewConversation = async () => {
+    try {
+      // Reset để tạo session mới
+      setActiveConversationId(null);
+      setMessages([{
+        id: 'welcome',
+        sender: 'Assistant',
+        message: `Xin chào ${user?.displayName || 'bạn'}! Tôi là trợ lý AI hỗ trợ tư vấn tuyển sinh đại học. Bạn muốn tìm hiểu điều gì?`,
+        sentAt: new Date().toISOString()
+      }]);
+    } catch (error) {
+      console.error('Error creating new conversation:', error);
+      toast.error('Không thể tạo cuộc trò chuyện mới');
+    }
   };
 
-  const deleteConversation = (convId) => {
-    setConversations(prev => prev.filter(conv => conv.id !== convId));
-    if (convId === activeConversationId && conversations.length > 1) {
-      const remainingConvs = conversations.filter(conv => conv.id !== convId);
-      setActiveConversationId(remainingConvs[0].id);
+  const deleteConversation = async (convId) => {
+    try {
+      await chatService.deleteChatSession(convId);
+      
+      // Cập nhật conversations
+      const updatedConversations = conversations.filter(conv => conv.id !== convId);
+      setConversations(updatedConversations);
+      
+      // Nếu xóa conversation đang active, chọn conversation khác
+      if (convId === activeConversationId) {
+        if (updatedConversations.length > 0) {
+          setActiveConversationId(updatedConversations[0].id);
+        } else {
+          await createNewConversation();
+        }
+      }
+      
+      toast.success('Đã xóa cuộc trò chuyện');
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      toast.error('Không thể xóa cuộc trò chuyện');
     }
     setConversationToDelete(null);
   };
@@ -175,12 +217,21 @@ Bạn muốn tìm hiểu điều gì?`,
     setEditingTitle(conv.title);
   };
 
-  const saveTitle = () => {
-    setConversations(prev => prev.map(conv => 
-      conv.id === editingConversationId 
-        ? { ...conv, title: editingTitle }
-        : conv
-    ));
+  const saveTitle = async () => {
+    try {
+      // Cập nhật title trong state local trước
+      setConversations(prev => prev.map(conv => 
+        conv.id === editingConversationId 
+          ? { ...conv, title: editingTitle }
+          : conv
+      ));
+      
+      // TODO: Implement API để update title nếu backend có
+      toast.success('Đã cập nhật tiêu đề');
+    } catch (error) {
+      console.error('Error updating title:', error);
+      toast.error('Không thể cập nhật tiêu đề');
+    }
     setEditingConversationId(null);
     setEditingTitle('');
   };
@@ -193,15 +244,27 @@ Bạn muốn tìm hiểu điều gì?`,
   ];
 
   const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
     const now = new Date();
-    const diff = now - timestamp;
+    const diff = now - date;
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     
     if (days === 0) return 'Hôm nay';
     if (days === 1) return 'Hôm qua';
     if (days < 7) return `${days} ngày trước`;
-    return timestamp.toLocaleDateString('vi-VN');
+    return date.toLocaleDateString('vi-VN');
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p>Đang tải...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -253,42 +316,32 @@ Bạn muốn tìm hiểu điều gì?`,
                         {conversation.title}
                       </h3>
                     )}
-                    <div className="flex items-center space-x-2 mt-2">
-                      <span className="text-xs text-gray-400">
-                        {formatTimestamp(conversation.timestamp)}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {conversation.messageCount} tin nhắn
-                      </span>
-                    </div>
+                    <p className="text-xs text-gray-500 truncate mt-1">
+                      {formatTimestamp(conversation.startedAt)}
+                    </p>
                   </div>
                   
-                  {/* Action Buttons */}
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity ml-2">
-                    <div className="flex space-x-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          startEditingTitle(conversation);
-                        }}
-                        className="h-6 w-6 p-0"
-                      >
-                        <Edit3 className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          confirmDeleteConversation(conversation);
-                        }}
-                        className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
+                  <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        startEditingTitle(conversation);
+                      }}
+                    >
+                      <Edit3 className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        confirmDeleteConversation(conversation);
+                      }}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -321,7 +374,7 @@ Bạn muốn tìm hiểu điều gì?`,
         </div>
 
         {/* Quick Questions */}
-        {messages.length === 1 && (
+        {messages.length <= 1 && (
           <div className="p-4 bg-white border-b">
             <div className="flex flex-wrap gap-2">
               <span className="text-sm text-gray-500 mr-2">Câu hỏi gợi ý:</span>
@@ -345,12 +398,12 @@ Bạn muốn tìm hiểu điều gì?`,
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${message.sender === 'User' ? 'justify-end' : 'justify-start'}`}
             >
-              <div className={`flex items-start space-x-3 max-w-[80%] ${message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                <Avatar className={`h-8 w-8 ${message.type === 'user' ? 'bg-blue-100' : 'bg-gray-100'}`}>
+              <div className={`flex items-start space-x-3 max-w-[80%] ${message.sender === 'User' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                <Avatar className={`h-8 w-8 ${message.sender === 'User' ? 'bg-blue-100' : 'bg-gray-100'}`}>
                   <AvatarFallback>
-                    {message.type === 'user' ? (
+                    {message.sender === 'User' ? (
                       <User className="h-4 w-4 text-blue-600" />
                     ) : (
                       <Bot className="h-4 w-4 text-gray-600" />
@@ -360,12 +413,12 @@ Bạn muốn tìm hiểu điều gì?`,
                 
                 <div
                   className={`p-3 rounded-lg ${
-                    message.type === 'user'
+                    message.sender === 'User'
                       ? 'bg-blue-600 text-white'
                       : 'bg-white border border-gray-200'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-line">{message.content}</p>
+                  <p className="text-sm whitespace-pre-line">{message.message}</p>
                 </div>
               </div>
             </div>
