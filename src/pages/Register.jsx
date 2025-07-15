@@ -135,7 +135,6 @@ const Register = () => {
                         duration: 10000,
                     });
                 }
-                
                 navigate('/xac-minh-email', { 
                     state: { 
                         email: result.email,
