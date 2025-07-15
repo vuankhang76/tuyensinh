@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { ChatSkeleton, MessageSkeleton } from '@/components/common/Loading/LoadingSkeleton'
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -23,11 +24,13 @@ import {
   X,
   Edit3,
   Check,
+  ChevronLeft,
 } from 'lucide-react';
 import { chatService } from '@/services/chatService';
 import { toast } from 'sonner';
-
+import { useNavigate } from 'react-router-dom';
 const AIChat = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeConversationId, setActiveConversationId] = useState(null);
@@ -39,6 +42,7 @@ const AIChat = () => {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isSessionLoading, setIsSessionLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -49,12 +53,10 @@ const AIChat = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Load chat history khi component mount
   useEffect(() => {
     loadChatHistory();
   }, []);
 
-  // Load messages khi chuyển conversation
   useEffect(() => {
     if (activeConversationId) {
       loadChatSession(activeConversationId);
@@ -67,11 +69,9 @@ const AIChat = () => {
       const history = await chatService.getChatHistory();
       setConversations(history);
       
-      // Nếu có conversation, chọn conversation đầu tiên
       if (history.length > 0) {
         setActiveConversationId(history[0].id);
       } else {
-        // Nếu không có conversation nào, tạo welcome message
         setMessages([{
           id: 'welcome',
           sender: 'Assistant',
@@ -91,17 +91,21 @@ Bạn muốn tìm hiểu điều gì?`,
       console.error('Error loading chat history:', error);
       toast.error('Không thể tải lịch sử chat');
     } finally {
-      setLoading(false);
+      setLoading(false); // MODIFIED: This will now remove the full-page skeleton
     }
   };
 
   const loadChatSession = async (sessionId) => {
+    setIsSessionLoading(true); // NEW: Start loading skeleton for messages
     try {
       const session = await chatService.getChatSession(sessionId);
       setMessages(session.messages || []);
     } catch (error) {
       console.error('Error loading chat session:', error);
       toast.error('Không thể tải cuộc trò chuyện');
+      setMessages([]);
+    } finally {
+      setIsSessionLoading(false);
     }
   };
 
@@ -114,18 +118,19 @@ Bạn muốn tìm hiểu điều gì?`,
       message: inputValue,
       sentAt: new Date().toISOString()
     };
+    
+    const newMessages = messages.some(m => m.id === 'welcome') 
+        ? [userMessage] 
+        : [...messages, userMessage];
 
-    // Thêm tin nhắn user vào UI ngay lập tức
-    setMessages(prev => [...prev, userMessage]);
+    setMessages(newMessages);
     const currentMessage = inputValue;
     setInputValue('');
     setIsTyping(true);
 
     try {
-      // Gửi tin nhắn đến backend
       const response = await chatService.sendMessage(currentMessage, activeConversationId);
       
-      // Thêm phản hồi AI vào UI
       const aiMessage = {
         id: Date.now() + 1,
         sender: 'Assistant',
@@ -135,17 +140,13 @@ Bạn muốn tìm hiểu điều gì?`,
       
       setMessages(prev => [...prev, aiMessage]);
       
-      // Cập nhật sessionId nếu là tin nhắn đầu tiên
       if (!activeConversationId) {
         setActiveConversationId(response.sessionId);
-        // Load lại conversations để cập nhật sidebar
-        const history = await chatService.getChatHistory();
-        setConversations(history);
+        loadChatHistory();
       } else {
-        // Chỉ cập nhật conversation hiện tại trong sidebar
         setConversations(prev => prev.map(conv => 
           conv.id === activeConversationId 
-            ? { ...conv, messages: [...conv.messages, userMessage, aiMessage] }
+            ? { ...conv, title: response.title || conv.title }
             : conv
         ));
       }
@@ -153,7 +154,6 @@ Bạn muốn tìm hiểu điều gì?`,
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Không thể gửi tin nhắn');
-      // Remove user message if failed
       setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
     } finally {
       setIsTyping(false);
@@ -168,30 +168,23 @@ Bạn muốn tìm hiểu điều gì?`,
   };
 
   const createNewConversation = async () => {
-    try {
-      // Reset để tạo session mới
-      setActiveConversationId(null);
-      setMessages([{
-        id: 'welcome',
-        sender: 'Assistant',
-        message: `Xin chào ${user?.displayName || 'bạn'}! Tôi là trợ lý AI hỗ trợ tư vấn tuyển sinh đại học. Bạn muốn tìm hiểu điều gì?`,
-        sentAt: new Date().toISOString()
-      }]);
-    } catch (error) {
-      console.error('Error creating new conversation:', error);
-      toast.error('Không thể tạo cuộc trò chuyện mới');
-    }
+    setActiveConversationId(null);
+    setIsSessionLoading(false);
+    setMessages([{
+      id: 'welcome',
+      sender: 'Assistant',
+      message: `Xin chào ${user?.displayName || 'bạn'}! Tôi là trợ lý AI hỗ trợ tư vấn tuyển sinh đại học. Bạn muốn tìm hiểu điều gì?`,
+      sentAt: new Date().toISOString()
+    }]);
   };
 
   const deleteConversation = async (convId) => {
     try {
       await chatService.deleteChatSession(convId);
       
-      // Cập nhật conversations
       const updatedConversations = conversations.filter(conv => conv.id !== convId);
       setConversations(updatedConversations);
       
-      // Nếu xóa conversation đang active, chọn conversation khác
       if (convId === activeConversationId) {
         if (updatedConversations.length > 0) {
           setActiveConversationId(updatedConversations[0].id);
@@ -219,17 +212,14 @@ Bạn muốn tìm hiểu điều gì?`,
 
   const saveTitle = async () => {
     try {
-      // Cập nhật title trong state local trước
       setConversations(prev => prev.map(conv => 
         conv.id === editingConversationId 
           ? { ...conv, title: editingTitle }
           : conv
       ));
       
-      // TODO: Implement API để update title nếu backend có
       toast.success('Đã cập nhật tiêu đề');
     } catch (error) {
-      console.error('Error updating title:', error);
       toast.error('Không thể cập nhật tiêu đề');
     }
     setEditingConversationId(null);
@@ -246,7 +236,7 @@ Bạn muốn tìm hiểu điều gì?`,
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp);
     const now = new Date();
-    const diff = now - date;
+    const diff = now.getTime() - date.getTime();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     
     if (days === 0) return 'Hôm nay';
@@ -256,24 +246,22 @@ Bạn muốn tìm hiểu điều gì?`,
   };
 
   if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p>Đang tải...</p>
-        </div>
-      </div>
-    );
+    return <ChatSkeleton />;
   }
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
       <div className={`${sidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 bg-white border-r border-gray-200 flex flex-col overflow-hidden`}>
-        {/* Sidebar Header */}
-        <div className="flex justify-between p-4 border-gray-200">
+        <div className="flex justify-between h-[64.8px] p-4 border-b border-gray-200">
           <div className="flex items-center justify-center space-x-2">
-            <span className="text-lg font-semibold">Trợ lý AI</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/')}
+            >
+              <ChevronLeft className="h-5 w-5 cursor-pointer" />
+            </Button>
+            <span className="text-lg font-semibold">Trang chủ</span>
           </div>
           <Button
             onClick={createNewConversation}
@@ -353,7 +341,7 @@ Bạn muốn tìm hiểu điều gì?`,
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         {/* Top Header */}
-        <div className="bg-white border-gray-200 p-4">
+        <div className="bg-white border-b border-gray-200 p-4">
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
@@ -364,17 +352,13 @@ Bạn muốn tìm hiểu điều gì?`,
             </Button>
             <div className="flex items-center space-x-2">
               <Bot className="h-5 w-5 text-blue-600" />
-              <h1 className="text-lg font-semibold">Trợ lý AI Tuyển sinh</h1>
-            </div>
-            <div className="flex items-center ml-auto">
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-              <span className="text-sm text-gray-500">Online</span>
+              <h1 className="text-lg font-semibold">Trợ lý AI</h1>
             </div>
           </div>
         </div>
 
-        {/* Quick Questions */}
-        {messages.length <= 1 && (
+        {/* Quick Questions - Show only on welcome message */}
+        {messages.length === 1 && messages[0].id === 'welcome' && (
           <div className="p-4 bg-white border-b">
             <div className="flex flex-wrap gap-2">
               <span className="text-sm text-gray-500 mr-2">Câu hỏi gợi ý:</span>
@@ -395,55 +379,61 @@ Bạn muốn tìm hiểu điều gì?`,
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.sender === 'User' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className={`flex items-start space-x-3 max-w-[80%] ${message.sender === 'User' ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                <Avatar className={`h-8 w-8 ${message.sender === 'User' ? 'bg-blue-100' : 'bg-gray-100'}`}>
-                  <AvatarFallback>
-                    {message.sender === 'User' ? (
-                      <User className="h-4 w-4 text-blue-600" />
-                    ) : (
-                      <Bot className="h-4 w-4 text-gray-600" />
-                    )}
-                  </AvatarFallback>
-                </Avatar>
-                
+          {/* MODIFIED: Conditional rendering for message loading skeleton */}
+          {isSessionLoading ? (
+            <MessageSkeleton />
+          ) : (
+            <>
+              {messages.map((message) => (
                 <div
-                  className={`p-3 rounded-lg ${
-                    message.sender === 'User'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white border border-gray-200'
-                  }`}
+                  key={message.id}
+                  className={`flex ${message.sender === 'User' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <p className="text-sm whitespace-pre-line">{message.message}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-          
-          {/* Typing Indicator */}
-          {isTyping && (
-            <div className="flex justify-start">
-              <div className="flex items-start space-x-3">
-                <Avatar className="h-8 w-8 bg-gray-100">
-                  <AvatarFallback>
-                    <Bot className="h-4 w-4 text-gray-600" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="bg-white border border-gray-200 p-3 rounded-lg">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                  <div className={`flex items-start space-x-3 max-w-[80%] ${message.sender === 'User' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                    <Avatar className={`h-8 w-8 ${message.sender === 'User' ? 'bg-blue-100' : 'bg-gray-100'}`}>
+                      <AvatarFallback>
+                        {message.sender === 'User' ? (
+                          <User className="h-4 w-4 text-blue-600" />
+                        ) : (
+                          <Bot className="h-4 w-4 text-gray-600" />
+                        )}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div
+                      className={`p-3 rounded-lg ${
+                        message.sender === 'User'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white border border-gray-200'
+                      }`}
+                    >
+                      <p className="text-sm whitespace-pre-line">{message.message}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              ))}
+              
+              {/* Typing Indicator */}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="flex items-start space-x-3">
+                    <Avatar className="h-8 w-8 bg-gray-100">
+                      <AvatarFallback>
+                        <Bot className="h-4 w-4 text-gray-600" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="bg-white border border-gray-200 p-3 rounded-lg">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
-          
           <div ref={messagesEndRef} />
         </div>
 
@@ -457,11 +447,11 @@ Bạn muốn tìm hiểu điều gì?`,
                 placeholder="Nhập câu hỏi của bạn..."
                 onKeyPress={handleKeyPress}
                 className="flex-1"
-                disabled={isTyping}
+                disabled={isTyping || isSessionLoading}
               />
               <Button 
                 onClick={handleSendMessage} 
-                disabled={!inputValue.trim() || isTyping}
+                disabled={!inputValue.trim() || isTyping || isSessionLoading}
                 className="px-4"
               >
                 <Send className="h-4 w-4" />
@@ -496,4 +486,4 @@ Bạn muốn tìm hiểu điều gì?`,
   );
 };
 
-export default AIChat; 
+export default AIChat;
