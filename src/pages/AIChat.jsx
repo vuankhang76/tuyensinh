@@ -219,14 +219,16 @@ Bạn muốn tìm hiểu điều gì?`,
 
   const saveTitle = async () => {
     try {
-      // Cập nhật title trong state local trước
+      // Gọi API để cập nhật title
+      await chatService.updateSessionTitle(editingConversationId, editingTitle);
+      
+      // Cập nhật title trong state local
       setConversations(prev => prev.map(conv => 
         conv.id === editingConversationId 
           ? { ...conv, title: editingTitle }
           : conv
       ));
       
-      // TODO: Implement API để update title nếu backend có
       toast.success('Đã cập nhật tiêu đề');
     } catch (error) {
       console.error('Error updating title:', error);

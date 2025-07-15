@@ -62,6 +62,20 @@ export const chatService = {
       console.error('Error creating new session:', error)
       throw error
     }
+  },
+
+  // Cập nhật tiêu đề phiên chat
+  // PUT /api/Chat/session/{sessionId}/title
+  updateSessionTitle: async (sessionId, title) => {
+    try {
+      const response = await axios.put(`/Chat/session/${sessionId}/title`, {
+        title: title
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error updating session title:', error)
+      throw error
+    }
   }
 }
 
