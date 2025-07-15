@@ -227,19 +227,6 @@ const ProgramsManagementTab = ({ universityId }) => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="level">Bậc đào tạo</Label>
-                  <Select value={formData.level} onValueChange={(value) => handleInputChange('level', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn bậc đào tạo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Cử nhân">Cử nhân</SelectItem>
-                      <SelectItem value="Thạc sĩ">Thạc sĩ</SelectItem>
-                      <SelectItem value="Tiến sĩ">Tiến sĩ</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
                   <Label htmlFor="type">Hình thức đào tạo</Label>
                   <Select value={formData.type} onValueChange={(value) => handleInputChange('type', value)}>
                     <SelectTrigger>
@@ -367,7 +354,6 @@ const ProgramsManagementTab = ({ universityId }) => {
                 <TableRow>
                   <TableHead>Mã chương trình</TableHead>
                   <TableHead>Tên chương trình</TableHead>
-                  <TableHead>Bậc đào tạo</TableHead>
                   <TableHead>Hình thức</TableHead>
                   <TableHead>Thời gian</TableHead>
                   <TableHead>Ngôn ngữ</TableHead>
@@ -387,13 +373,6 @@ const ProgramsManagementTab = ({ universityId }) => {
                           </div>
                         )}
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      {program.level && (
-                        <Badge variant="secondary" className={getLevelColor(program.level)}>
-                          {program.level}
-                        </Badge>
-                      )}
                     </TableCell>
                     <TableCell>
                       {program.type && (

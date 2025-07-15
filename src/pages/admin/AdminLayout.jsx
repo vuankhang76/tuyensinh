@@ -60,63 +60,22 @@ const AdminLayout = () => {
       type: 'divider',
     },
     {
-      key: 'university-management',
+      key: 'universities',
       icon: Building2,
       label: 'Quản lý trường',
-      type: 'group',
-      children: [
-        {
-          key: 'universities',
-          icon: Building2,
-          label: 'Quản lý Trường ĐH',
-        },
-        {
-          key: 'majors',
-          icon: BookOpen,
-          label: 'Quản lý Ngành học',
-        },
-        {
-          key: 'programs',
-          icon: GraduationCap,
-          label: 'Chương trình Đào tạo',
-        },
-        {
-          key: 'scholarships',
-          icon: Trophy,
-          label: 'Học bổng',
-        },
-      ],
+      type: 'item',
     },
     {
-      key: 'user-management',
+      key: 'users',
       icon: User,
       label: 'Quản lý người dùng',
-      type: 'group',
-      children: [
-        {
-          key: 'users',
-          icon: User,
-          label: 'Quản lý Người dùng',
-        },
-        {
-          key: 'verification',
-          icon: Shield,
-          label: 'Xác minh Thông tin',
-        },
-      ],
+      type: 'item',
     },
     {
-      key: 'content-management',
+      key: 'news',
       icon: Bell,
       label: 'Quản lý tin',
-      type: 'group',
-      children: [
-        {
-          key: 'news',
-          icon: Bell,
-          label: 'Tin tức Tuyển sinh',
-        },
-      ],
+      type: 'item',
     },
     {
       type: 'divider',

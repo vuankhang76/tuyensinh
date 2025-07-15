@@ -12,7 +12,6 @@ export const userService = {
     }
   },
 
-  // GET /api/Users/{id} - Get user by id
   getUserById: async (id) => {
     try {
       const response = await axios.get(`/Users/${id}`)
@@ -23,11 +22,20 @@ export const userService = {
     }
   },
 
-  // PUT /api/Users/{id} - Update user (returns NoContent)
+  updateUserByAdmin: async (id) => {
+    try {
+      await axios.put(`/Users/${id}/admin`)
+      return true
+    } catch (error) {
+      console.error('Error updating user:', error)
+      throw error
+    }
+  },
+
   updateUser: async (id, userData) => {
     try {
       await axios.put(`/Users/${id}`, { ...userData, id })
-      return true // Success indicator since API returns NoContent
+      return true
     } catch (error) {
       console.error('Error updating user:', error)
       throw error

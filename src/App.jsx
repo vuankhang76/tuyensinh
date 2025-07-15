@@ -1,10 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import './index.css'
 
-// Context
 import { AuthProvider } from './context/AuthContext'
 
-// Pages
 import Homepage from './pages/Homepage'
 import UniversityDetail from './pages/UniversityDetail'
 import NotFoundPage from './pages/NotFoundPage'
@@ -19,9 +17,7 @@ import Overview from './pages/admin/Dashboard/Overview'
 import UniversityManagement from './pages/admin/Universities/UniversityManagement'
 import UniversityDetailPage from './pages/admin/Universities/UniversityDetailPage'
 import UserManagement from './pages/admin/Users/UserManagement'
-import MajorManagement from './pages/admin/Majors/MajorManagement'
 import AdmissionNewsManagement from './pages/admin/AdmissionNews/AdmissionNewsManagement'
-import ProgramManagement from './pages/admin/Programs/ProgramManagement'
 import UniversityAdmin from './pages/university/UniversityAdmin'
 import UserProfile from './pages/user/UserProfile'
 import AIChat from './pages/AIChat'
@@ -38,7 +34,6 @@ function App() {
       <Router>
         <div className="min-h-screen bg-background">
           <Routes>
-            {/* Admin routes without regular navbar */}
             <Route path="/admin" element={
               <ProtectedRoute requiredRole="admin">
                 <AdminLayout />
@@ -48,13 +43,7 @@ function App() {
               <Route path="universities" element={<UniversityManagement />} />
               <Route path="universities/:id" element={<UniversityDetailPage />} />
               <Route path="users" element={<UserManagement />} />
-              <Route path="majors" element={<MajorManagement />} />
-              <Route path="programs" element={<ProgramManagement />} />
-              <Route path="scholarships" element={<div className="p-8">Quản lý Học bổng - Đang phát triển</div>} />
               <Route path="news" element={<AdmissionNewsManagement />} />
-              <Route path="verification" element={<div className="p-8">Xác minh Thông tin - Đang phát triển</div>} />
-              <Route path="settings" element={<div className="p-8">Cài đặt Hệ thống - Đang phát triển</div>} />
-              <Route path="profile" element={<div className="p-8">Admin Profile - Đang phát triển</div>} />
             </Route>
 
             <Route path="/university-admin" element={
@@ -63,7 +52,6 @@ function App() {
               </ProtectedRoute>
             } />
 
-            {/* AI Chat route without footer */}
             <Route path="/ai-chat" element={
               <>
                 <Navbar />
@@ -75,7 +63,6 @@ function App() {
               </>
             } />
 
-            {/* Regular routes with navbar and footer */}
             <Route path="/*" element={
               <>
                 <Navbar />
@@ -90,7 +77,6 @@ function App() {
                     <Route path="/dang-ky" element={<Register />} />
                     <Route path="/xac-minh-email" element={<EmailVerification />} />
                     
-                    {/* Protected routes */}
                     <Route path="/profile" element={
                       <ProtectedRoute requiredRole="student">
                         <UserProfile />

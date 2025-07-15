@@ -70,7 +70,7 @@ const AdminNavbar = () => {
             <DropdownMenuContent align="end" className="w-56">
               <div className="flex flex-col px-2 py-1.5">
                 <p className="text-sm font-medium">{user?.displayName}</p>
-                <p className="text-xs text-gray-500">{user?.email}</p>
+                <p className="text-xs text-muted-foreground">{user?.email}</p>
               </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleViewProfile}>

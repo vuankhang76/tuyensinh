@@ -119,7 +119,7 @@ const Navbar = () => {
               </div>
               <div className="hidden md:block">
                 <div className="font-bold text-xl text-gray-800">TuyenSinh.edu</div>
-                <div className="text-sm text-gray-600">Thông tin tuyển sinh</div>
+                <div className="text-sm text-muted-foreground">Thông tin tuyển sinh</div>
               </div>
             </Link>
 
@@ -294,14 +294,14 @@ const Navbar = () => {
                         </div>
                         <div>
                           <div className="font-medium text-gray-900">{user?.name || user?.email}</div>
-                          <div className="text-sm text-gray-500">{user?.email}</div>
+                          <div className="text-sm text-muted-foreground">{user?.email}</div>
                         </div>
                       </div>
                     </div>
                     {user?.role === 'admin' && (
                       <Link
                         to="/admin"
-                        className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
+                        className="flex items-center space-x-3 px-4 py-3 text-muted-foreground hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         <LayoutDashboard className="h-4 w-4" />
@@ -311,7 +311,7 @@ const Navbar = () => {
                     {user?.role === 'university' && (
                       <Link
                         to="/university-admin"
-                        className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-green-600 transition-colors duration-200"
+                        className="flex items-center space-x-3 px-4 py-3 text-muted-foreground hover:bg-gray-50 hover:text-green-600 transition-colors duration-200"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         <Building2 className="h-4 w-4" />
@@ -320,7 +320,7 @@ const Navbar = () => {
                     )}
                     <Link
                       to="/profile"
-                      className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
+                      className="flex items-center space-x-3 px-4 py-3 text-muted-foreground hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <User className="h-4 w-4" />
@@ -328,7 +328,7 @@ const Navbar = () => {
                     </Link>
                     <button
                       onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
-                      className="w-full flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
+                      className="w-full flex items-center space-x-3 px-4 py-2 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
                     >
                       <LogOut className="h-4 w-4" />
                       <span>Đăng xuất</span>
@@ -339,7 +339,7 @@ const Navbar = () => {
                   <div className="space-y-1 border-b border-gray-200 pb-2 mb-2">
                     <button
                       onClick={() => { handleLogin(); setIsMobileMenuOpen(false); }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
+                      className="w-full flex items-center space-x-3 px-4 py-3 text-muted-foreground hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
                     >
                       <LogIn className="h-4 w-4" />
                       <span>Đăng nhập</span>
@@ -350,7 +350,7 @@ const Navbar = () => {
                 {/* Home */}
                 <Link
                   to="/"
-                  className="flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
+                  className="flex items-center space-x-3 px-4 py-2 text-muted-foreground hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <Home className="h-4 w-4" />
@@ -361,7 +361,7 @@ const Navbar = () => {
                 {user?.role !== 'admin' && (
                   <div>
                     <button
-                      className="w-full flex items-center justify-between px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
+                      className="w-full flex items-center justify-between px-4 py-2 text-muted-foreground hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
                       onClick={() => handleDropdownToggle('universities-mobile')}
                     >
                       <div className="flex items-center space-x-3">
@@ -373,21 +373,21 @@ const Navbar = () => {
                       <div className="bg-gray-50">
                         <Link
                           to="/search?type=all"
-                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                          className="block px-8 py-2 text-muted-foreground hover:text-blue-600 transition-colors duration-200"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
                           Tất cả trường
                         </Link>
                         <Link
                           to="/search?type=Công lập"
-                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                          className="block px-8 py-2 text-muted-foreground hover:text-blue-600 transition-colors duration-200"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
                           Trường công lập
                         </Link>
                         <Link
                           to="/search?type=Tư thục"
-                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                          className="block px-8 py-2 text-muted-foreground hover:text-blue-600 transition-colors duration-200"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
                           Trường tư thục
@@ -401,7 +401,7 @@ const Navbar = () => {
                 {user?.role !== 'admin' && (
                   <div>
                     <button
-                      className="w-full flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
+                      className="w-full flex items-center justify-between px-4 py-3 text-muted-foreground hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
                       onClick={() => handleDropdownToggle('news-mobile')}
                     >
                       <div className="flex items-center space-x-3">
@@ -414,7 +414,7 @@ const Navbar = () => {
                       <div className="bg-gray-50">
                         <Link
                           to="/tin-tuc"
-                          className="block px-8 py-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                          className="block px-8 py-2 text-muted-foreground hover:text-blue-600 transition-colors duration-200"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
                           Tất cả tin tức
@@ -428,7 +428,7 @@ const Navbar = () => {
                 {isAuthenticated && (
                   <button
                     onClick={handleAIChat}
-                    className="w-full flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
+                    className="w-full flex items-center space-x-3 px-4 py-2 text-muted-foreground hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
                   >
                     <MessageCircle className="h-4 w-4" />
                     <span>Trợ lý AI</span>

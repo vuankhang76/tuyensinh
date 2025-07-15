@@ -81,7 +81,6 @@ const OverviewTab = ({ university }) => {
                             </div>
                         </div>
 
-                        {/* --- CỘT 2: TỔNG QUAN XẾP HẠNG (CHIẾM 3/5 KHÔNG GIAN) --- */}
                         <div className="space-y-4 lg:col-span-6">
                              <h4 className="font-semibold text-lg flex items-center gap-2">
                                 <Award className="h-5 w-5 text-gray-700" />

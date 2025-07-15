@@ -34,29 +34,7 @@ const UniversityDetailPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
-  
-  const [university, setUniversity] = useState({
-    id: 1,
-    name: 'Đại học Bách Khoa Hà Nội',
-    code: 'HUST',
-    address: 'Số 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội',
-    phone: '024-3868-3008',
-    email: 'info@hust.edu.vn',
-    website: 'https://hust.edu.vn',
-    status: 'active',
-    logo: 'https://example.com/logo1.png',
-    description: 'Trường đại học hàng đầu về kỹ thuật và công nghệ tại Việt Nam',
-    established: '1956',
-    type: 'Công lập',
-    studentCount: 35000,
-    facultyCount: 15,
-    programCount: 120,
-    tuitionFee: '15000000-25000000',
-    admissionScore: '22-28',
-    facilities: 'Thư viện hiện đại, phòng thí nghiệm tối tân, ký túc xá, sân thể thao',
-    achievements: 'Top 3 trường kỹ thuật hàng đầu Việt Nam, Chứng nhận chất lượng quốc tế'
-  });
-
+  const [university, setUniversity] = useState(null);
   const [formData, setFormData] = useState({});
 
   useEffect(() => {
@@ -66,7 +44,9 @@ const UniversityDetailPage = () => {
   }, [id]);
 
   useEffect(() => {
-    setFormData(university);
+    if (university) {
+      setFormData(university);
+    }
   }, [university]);
 
   const fetchUniversityData = async () => {
@@ -116,6 +96,32 @@ const UniversityDetailPage = () => {
     return type === 'Công lập' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800';
   };
 
+  // Component for displaying read-only value with label
+  const ReadOnlyField = ({ label, value, className = "" }) => (
+    <div className={`space-y-1 ${className}`}>
+      <Label className="text-sm font-medium text-muted-foreground">{label}</Label>
+      <div className="text-sm p-3 rounded-md border bg-muted/50">
+        {value || "Chưa có thông tin"}
+      </div>
+    </div>
+  );
+
+  if (loading && !university) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!university) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">Không tìm thấy thông tin trường đại học</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       {/* Header */}
@@ -129,7 +135,15 @@ const UniversityDetailPage = () => {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">{formData.name}</h1>
+            <h1 className="text-3xl font-bold">{formData.name || university.name}</h1>
+            <div className="flex items-center space-x-2 mt-2">
+              <Badge variant="secondary" className={getTypeColor(formData.type || university.type)}>
+                {formData.type || university.type}
+              </Badge>
+              <Badge variant="outline">
+                {formData.shortName || university.shortName}
+              </Badge>
+            </div>
           </div>
         </div>
         
@@ -155,15 +169,31 @@ const UniversityDetailPage = () => {
 
       {/* Content Tabs */}
       <Tabs defaultValue="basic" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-8">
-          <TabsTrigger value="basic">Thông tin cơ bản</TabsTrigger>
-          <TabsTrigger value="contact">Liên hệ</TabsTrigger>
-          <TabsTrigger value="academic">Học thuật</TabsTrigger>
-          <TabsTrigger value="statistics">Thống kê</TabsTrigger>
-          <TabsTrigger value="majors">Ngành học</TabsTrigger>
-          <TabsTrigger value="programs">Chương trình</TabsTrigger>
-          <TabsTrigger value="news">Tin tức</TabsTrigger>
-          <TabsTrigger value="scholarships">Học bổng</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="basic" className="flex items-center space-x-2">
+            <Building2 className="h-4 w-4" />
+            <span>Thông tin cơ bản</span>
+          </TabsTrigger>
+          <TabsTrigger value="contact" className="flex items-center space-x-2">
+            <MapPin className="h-4 w-4" />
+            <span>Liên hệ</span>
+          </TabsTrigger>
+          <TabsTrigger value="majors" className="flex items-center space-x-2">
+            <GraduationCap className="h-4 w-4" />
+            <span>Ngành học</span>
+          </TabsTrigger>
+          <TabsTrigger value="programs" className="flex items-center space-x-2">
+            <BookOpen className="h-4 w-4" />
+            <span>Chương trình</span>
+          </TabsTrigger>
+          <TabsTrigger value="news" className="flex items-center space-x-2">
+            <Newspaper className="h-4 w-4" />
+            <span>Tin tức</span>
+          </TabsTrigger>
+          <TabsTrigger value="scholarships" className="flex items-center space-x-2">
+            <Award className="h-4 w-4" />
+            <span>Học bổng</span>
+          </TabsTrigger>
         </TabsList>
 
         {/* Basic Information Tab */}
@@ -177,77 +207,80 @@ const UniversityDetailPage = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Tên trường</Label>
-                  <Input
-                    id="name"
-                    value={formData.name || ''}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    disabled={!editing}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="code">Mã trường</Label>
-                  <Input
-                    id="code"
-                    value={formData.code || ''}
-                    onChange={(e) => handleInputChange('code', e.target.value)}
-                    disabled={!editing}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="type">Loại hình</Label>
-                  <Select 
-                    value={formData.type || ''} 
-                    onValueChange={(value) => handleInputChange('type', value)}
-                    disabled={!editing}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn loại hình" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Công lập">Công lập</SelectItem>
-                      <SelectItem value="Tư thục">Tư thục</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="established">Năm thành lập</Label>
-                  <Input
-                    id="established"
-                    value={formData.established || ''}
-                    onChange={(e) => handleInputChange('established', e.target.value)}
-                    disabled={!editing}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="status">Trạng thái</Label>
-                  <Select 
-                    value={formData.status || ''} 
-                    onValueChange={(value) => handleInputChange('status', value)}
-                    disabled={!editing}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn trạng thái" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Hoạt động</SelectItem>
-                      <SelectItem value="inactive">Tạm dừng</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {editing ? (
+                  <>
+                    <div>
+                      <Label htmlFor="name">Tên trường</Label>
+                      <Input
+                        id="name"
+                        value={formData.name || ''}
+                        onChange={(e) => handleInputChange('name', e.target.value)}
+                        placeholder="Nhập tên trường đại học"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="shortName">Tên viết tắt</Label>
+                      <Input
+                        id="shortName"
+                        value={formData.shortName || ''}
+                        onChange={(e) => handleInputChange('shortName', e.target.value)}
+                        placeholder="Nhập tên viết tắt"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="type">Loại hình</Label>
+                      <Select 
+                        value={formData.type || ''} 
+                        onValueChange={(value) => handleInputChange('type', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Chọn loại hình" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Công lập">Công lập</SelectItem>
+                          <SelectItem value="Tư thục">Tư thục</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="ranking">Thứ hạng</Label>
+                      <Input
+                        id="ranking"
+                        type="number"
+                        value={formData.ranking || ''}
+                        onChange={(e) => handleInputChange('ranking', e.target.value)}
+                        placeholder="Nhập thứ hạng"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <ReadOnlyField label="Tên trường" value={formData.name} />
+                    <ReadOnlyField label="Tên viết tắt" value={formData.shortName} />
+                    <ReadOnlyField label="Loại hình" value={formData.type} />
+                    <ReadOnlyField label="Thứ hạng" value={formData.ranking} />
+                  </>
+                )}
               </div>
               
-              <div>
-                <Label htmlFor="description">Mô tả</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description || ''}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  disabled={!editing}
-                  rows={4}
+              {editing ? (
+                <div>
+                  <Label htmlFor="introduction">Giới thiệu</Label>
+                  <Textarea
+                    id="introduction"
+                    value={formData.introduction || ''}
+                    onChange={(e) => handleInputChange('introduction', e.target.value)}
+                    rows={4}
+                    placeholder="Nhập giới thiệu về trường đại học"
+                  />
+                </div>
+              ) : (
+                <ReadOnlyField 
+                  label="Giới thiệu" 
+                  value={formData.introduction} 
+                  className="col-span-full"
                 />
-              </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -262,190 +295,65 @@ const UniversityDetailPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="address">Địa chỉ</Label>
-                <Textarea
-                  id="address"
-                  value={formData.address || ''}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                  disabled={!editing}
-                  rows={3}
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="phone">Số điện thoại</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone || ''}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    disabled={!editing}
-                  />
+              {editing ? (
+                <>
+                  <div>
+                    <Label htmlFor="locations">Địa điểm</Label>
+                    <Textarea
+                      id="locations"
+                      value={formData.locations || ''}
+                      onChange={(e) => handleInputChange('locations', e.target.value)}
+                      rows={3}
+                      placeholder="Nhập địa điểm các cơ sở"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="officialWebsite">Website chính thức</Label>
+                      <Input
+                        id="officialWebsite"
+                        value={formData.officialWebsite || ''}
+                        onChange={(e) => handleInputChange('officialWebsite', e.target.value)}
+                        placeholder="https://university.edu.vn"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="admissionWebsite">Website tuyển sinh</Label>
+                      <Input
+                        id="admissionWebsite"
+                        value={formData.admissionWebsite || ''}
+                        onChange={(e) => handleInputChange('admissionWebsite', e.target.value)}
+                        placeholder="https://admission.university.edu.vn"
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-4">
+                  <ReadOnlyField label="Địa điểm" value={formData.locations} />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ReadOnlyField 
+                      label="Website chính thức" 
+                      value={formData.officialWebsite ? (
+                        <a href={formData.officialWebsite} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          {formData.officialWebsite}
+                        </a>
+                      ) : "Chưa có thông tin"} 
+                    />
+                    <ReadOnlyField 
+                      label="Website tuyển sinh" 
+                      value={formData.admissionWebsite ? (
+                        <a href={formData.admissionWebsite} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          {formData.admissionWebsite}
+                        </a>
+                      ) : "Chưa có thông tin"} 
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email || ''}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    disabled={!editing}
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <Label htmlFor="website">Website</Label>
-                  <Input
-                    id="website"
-                    value={formData.website || ''}
-                    onChange={(e) => handleInputChange('website', e.target.value)}
-                    disabled={!editing}
-                  />
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
-        </TabsContent>
-
-        {/* Academic Information Tab */}
-        <TabsContent value="academic" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <BookOpen className="h-5 w-5 mr-2" />
-                Thông tin học thuật
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="tuitionFee" >Học phí (VNĐ)</Label>
-                  <Input
-                    id="tuitionFee"
-                    value={formData.tuitionFee || ''}
-                    onChange={(e) => handleInputChange('tuitionFee', e.target.value)}
-                    disabled={!editing}
-                    placeholder="15000000-25000000"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="admissionScore">Điểm chuẩn</Label>
-                  <Input
-                    id="admissionScore"
-                    value={formData.admissionScore || ''}
-                    onChange={(e) => handleInputChange('admissionScore', e.target.value)}
-                    disabled={!editing}
-                    placeholder="22-28"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <Label htmlFor="facilities">Cơ sở vật chất</Label>
-                <Textarea
-                  id="facilities"
-                  value={formData.facilities || ''}
-                  onChange={(e) => handleInputChange('facilities', e.target.value)}
-                  disabled={!editing}
-                  rows={3}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="achievements">Thành tích & Chứng nhận</Label>
-                <Textarea
-                  id="achievements"
-                  value={formData.achievements || ''}
-                  onChange={(e) => handleInputChange('achievements', e.target.value)}
-                  disabled={!editing}
-                  rows={3}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Statistics Tab */}
-        <TabsContent value="statistics" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-blue-600">
-                  <Users className="h-5 w-5 mr-2" />
-                  Sinh viên
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{formData.studentCount?.toLocaleString() || 0}</div>
-                <p className="text-sm text-muted-foreground mt-1">Tổng số sinh viên</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-green-600">
-                  <Building2 className="h-5 w-5 mr-2" />
-                  Khoa
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{formData.facultyCount || 0}</div>
-                <p className="text-sm text-muted-foreground mt-1">Số khoa/viện</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-purple-600">
-                  <Award className="h-5 w-5 mr-2" />
-                  Chương trình
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{formData.programCount || 0}</div>
-                <p className="text-sm text-muted-foreground mt-1">Chương trình đào tạo</p>
-              </CardContent>
-            </Card>
-          </div>
-          
-          {editing && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Cập nhật thống kê</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="studentCount">Số sinh viên</Label>
-                    <Input
-                      id="studentCount"
-                      type="number"
-                      value={formData.studentCount || ''}
-                      onChange={(e) => handleInputChange('studentCount', parseInt(e.target.value))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="facultyCount">Số khoa/viện</Label>
-                    <Input
-                      id="facultyCount"
-                      type="number"
-                      value={formData.facultyCount || ''}
-                      onChange={(e) => handleInputChange('facultyCount', parseInt(e.target.value))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="programCount">Số chương trình</Label>
-                    <Input
-                      id="programCount"
-                      type="number"
-                      value={formData.programCount || ''}
-                      onChange={(e) => handleInputChange('programCount', parseInt(e.target.value))}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </TabsContent>
 
         {/* Majors Management Tab */}

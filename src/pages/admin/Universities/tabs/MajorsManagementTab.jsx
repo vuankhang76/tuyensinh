@@ -25,7 +25,6 @@ const MajorsManagementTab = ({ universityId }) => {
   const [majors, setMajors] = useState([])
   const [programs, setPrograms] = useState([])
   const [loading, setLoading] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingMajor, setEditingMajor] = useState(null)
   const [formData, setFormData] = useState({
@@ -58,8 +57,13 @@ const MajorsManagementTab = ({ universityId }) => {
   }
 
   const fetchPrograms = async () => {
+    try {
       const data = await academicProgramService.getProgramsByUniversity(universityId)
       setPrograms(data)
+    } catch (error) {
+      console.error('Error fetching programs:', error)
+      setPrograms([])
+    }
   }
 
   const handleInputChange = (field, value) => {
@@ -145,11 +149,6 @@ const MajorsManagementTab = ({ universityId }) => {
     }
   }
 
-  const filteredMajors = majors.filter(major =>
-    major.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    major.code?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-
   const getProgramName = (programId) => {
     const program = programs.find(p => p.id === programId)
     return program ? program.name : 'Chưa phân loại'
@@ -214,7 +213,7 @@ const MajorsManagementTab = ({ universityId }) => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="degree">Bậc đào tạo</Label>
+                  <Label htmlFor="degree"></Label>
                   <Select value={formData.degree} onValueChange={(value) => handleInputChange('degree', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Chọn bậc đào tạo" />
@@ -304,26 +303,11 @@ const MajorsManagementTab = ({ universityId }) => {
           </DialogContent>
         </Dialog>
       </div>
-
-      {/* Search */}
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Tìm kiếm ngành học..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-      </div>
-
-      {/* Majors List */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
             <BookOpen className="h-5 w-5 mr-2" />
-            Danh sách ngành học ({filteredMajors.length})
+            Danh sách ngành học ({majors.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -331,7 +315,7 @@ const MajorsManagementTab = ({ universityId }) => {
             <div className="flex justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
-          ) : filteredMajors.length === 0 ? (
+          ) : majors.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               Chưa có ngành học nào
             </div>
@@ -341,15 +325,15 @@ const MajorsManagementTab = ({ universityId }) => {
                 <TableRow>
                   <TableHead>Mã ngành</TableHead>
                   <TableHead>Tên ngành</TableHead>
-                  <TableHead>Bậc đào tạo</TableHead>
+                  <TableHead>Điểm chuẩn</TableHead>
                   <TableHead>Chương trình</TableHead>
                   <TableHead>Chỉ tiêu</TableHead>
-                  <TableHead>Học phí</TableHead>
+                  <TableHead>Tổ hợp môn</TableHead>
                   <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredMajors.map((major) => (
+                {majors.map((major) => (
                   <TableRow key={major.id}>
                     <TableCell className="font-medium">{major.code}</TableCell>
                     <TableCell>{major.name}</TableCell>
