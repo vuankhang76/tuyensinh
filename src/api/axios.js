@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const apiClient = axios.create({
   baseURL: 'https://tuyensinh-infor.up.railway.app/api',
+  // baseURL: 'http://localhost:8080/api',
   timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
@@ -17,37 +18,6 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error) => {
-    return Promise.reject(error);
-  }
-);
-
-apiClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    if (error.response) {
-      const { status, data } = error.response;
-      
-      switch (status) {
-        case 401:
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('user');
-          break;
-        case 403:
-          console.error('Access forbidden:', data.message);
-          break;
-        case 500:
-          console.error('Server error:', data.message);
-          break;
-        default:
-          console.error('API Error:', data.message || error.message);
-      }
-    } else if (error.request) {
-      console.error('Network error:', error.message);
-    } else {
-      console.error('Error:', error.message);
-    }
     return Promise.reject(error);
   }
 );

@@ -24,7 +24,6 @@ const UniversityHero = ({ university, onShare }) => {
     <div className="bg-white border-b">
       <div className="container mx-auto p-4">
         <div className="flex flex-col lg:flex-row items-start gap-8">
-          {/* University Logo */}
           <div className="h-20 w-20 flex-shrink-0 rounded-md flex items-center justify-center border-none">
             {university.logo ? (
               <img
@@ -38,7 +37,6 @@ const UniversityHero = ({ university, onShare }) => {
             )}
           </div>
 
-          {/* University Info */}
           <div className="flex-1">
             <div className="flex flex-wrap gap-2 mb-4">
               <Badge variant="default" className="text-xs">
@@ -96,7 +94,6 @@ const UniversityHero = ({ university, onShare }) => {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3">
             <Button variant="outline" onClick={onShare}>
               <Share className="h-4 w-4 mr-2" />

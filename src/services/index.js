@@ -1,4 +1,3 @@
-// Import services
 import universityService from './universityService'
 import userService from './userService'
 import majorService from './majorService'

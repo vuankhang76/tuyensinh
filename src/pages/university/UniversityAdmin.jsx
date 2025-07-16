@@ -18,7 +18,6 @@ const UniversityAdmin = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('info');
 
-  // Mock data for university
   const universityInfo = {
     name: "Đại học FPT",
     code: "FPU",
@@ -32,7 +31,6 @@ const UniversityAdmin = () => {
     phone: "024 7300 1955"
   };
 
-  // Mock pending approvals
   const [pendingApprovals, setPendingApprovals] = useState([
     {
       id: 1,
@@ -94,7 +92,6 @@ const UniversityAdmin = () => {
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
-      {/* Header */}
       <div className="mb-8">
         <div className="flex items-center space-x-4 mb-4">
           <div className="p-3 bg-green-100 rounded-full">
@@ -106,7 +103,6 @@ const UniversityAdmin = () => {
           </div>
         </div>
 
-        {/* Navigation Tabs */}
         <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
           <Button
             variant={activeTab === 'info' ? 'default' : 'ghost'}
@@ -173,7 +169,6 @@ const UniversityAdmin = () => {
             </CardContent>
           </Card>
 
-          {/* Contact Info */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
@@ -197,7 +192,6 @@ const UniversityAdmin = () => {
             </CardContent>
           </Card>
 
-          {/* Statistics */}
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Thống kê nhanh</CardTitle>
@@ -226,7 +220,6 @@ const UniversityAdmin = () => {
         </div>
       )}
 
-      {/* Approvals Tab */}
       {activeTab === 'approvals' && (
         <div className="space-y-6">
           <Card>

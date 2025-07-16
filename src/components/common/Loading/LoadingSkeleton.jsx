@@ -84,6 +84,58 @@ const ListItemSkeleton = ({ showAvatar = true, className = "" }) => {
   );
 };
 
+const MessageSkeleton = () => (
+  <div className="space-y-4">
+    <div className="flex items-start space-x-3 max-w-[80%]">
+      <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
+      <div className="p-3 rounded-lg bg-gray-200 animate-pulse w-48 h-10"></div>
+    </div>
+    <div className="flex justify-end">
+      <div className="flex items-start space-x-3 max-w-[80%] flex-row-reverse space-x-reverse">
+        <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
+        <div className="p-3 rounded-lg bg-gray-200 animate-pulse w-32 h-8"></div>
+      </div>
+    </div>
+    <div className="flex items-start space-x-3 max-w-[80%]">
+      <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
+      <div className="p-3 rounded-lg bg-gray-200 animate-pulse w-64 h-12"></div>
+    </div>
+  </div>
+);
+
+const ChatSkeleton = () => (
+  <div className="flex h-screen bg-gray-50">
+    <div className="w-80 bg-white border-r border-gray-200 flex flex-col p-4 space-y-4">
+      <div className="flex justify-between items-center">
+        <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
+        <div className="h-8 w-8 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+      <div className="space-y-3">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="p-3 rounded-lg bg-gray-100 animate-pulse">
+            <div className="h-4 w-3/4 bg-gray-200 rounded mb-2"></div>
+            <div className="h-3 w-1/2 bg-gray-200 rounded"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+    <div className="flex-1 flex flex-col">
+      <div className="bg-white border-b border-gray-200 p-4">
+        <div className="h-6 w-48 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+      <div className="flex-1 p-4">
+        <MessageSkeleton />
+      </div>
+      <div className="bg-white border-t border-gray-200 p-4">
+        <div className="flex space-x-3 max-w-4xl mx-auto">
+          <div className="flex-1 h-10 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-10 w-12 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 const TextSkeleton = ({ lines = 3, className = "" }) => {
   return (
     <div className={`animate-pulse space-y-2 ${className}`}>
@@ -196,5 +248,7 @@ export {
   TextSkeleton, 
   PageSkeleton, 
   SpinnerLoading,
-  NewsSkeleton
+  NewsSkeleton,
+  ChatSkeleton,
+  MessageSkeleton
 }; 

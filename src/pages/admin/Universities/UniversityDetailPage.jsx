@@ -22,7 +22,6 @@ import {
   Newspaper
 } from 'lucide-react';
 
-// Import tab components
 import MajorsManagementTab from './tabs/MajorsManagementTab';
 import ProgramsManagementTab from './tabs/ProgramsManagementTab';
 import AdmissionNewsTab from './tabs/AdmissionNewsTab';
@@ -96,7 +95,6 @@ const UniversityDetailPage = () => {
     return type === 'Công lập' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800';
   };
 
-  // Component for displaying read-only value with label
   const ReadOnlyField = ({ label, value, className = "" }) => (
     <div className={`space-y-1 ${className}`}>
       <Label className="text-sm font-medium text-muted-foreground">{label}</Label>
@@ -124,7 +122,6 @@ const UniversityDetailPage = () => {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-4">
           <Button 
@@ -167,7 +164,6 @@ const UniversityDetailPage = () => {
         </div>
       </div>
 
-      {/* Content Tabs */}
       <Tabs defaultValue="basic" className="space-y-6">
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="basic" className="flex items-center space-x-2">
@@ -196,7 +192,6 @@ const UniversityDetailPage = () => {
           </TabsTrigger>
         </TabsList>
 
-        {/* Basic Information Tab */}
         <TabsContent value="basic" className="space-y-6">
           <Card>
             <CardHeader>
@@ -285,7 +280,6 @@ const UniversityDetailPage = () => {
           </Card>
         </TabsContent>
 
-        {/* Contact Information Tab */}
         <TabsContent value="contact" className="space-y-6">
           <Card>
             <CardHeader>
@@ -356,22 +350,18 @@ const UniversityDetailPage = () => {
           </Card>
         </TabsContent>
 
-        {/* Majors Management Tab */}
         <TabsContent value="majors">
           <MajorsManagementTab universityId={id} />
         </TabsContent>
 
-        {/* Programs Management Tab */}
         <TabsContent value="programs">
           <ProgramsManagementTab universityId={id} />
         </TabsContent>
 
-        {/* Admission News Tab */}
         <TabsContent value="news">
           <AdmissionNewsTab universityId={id} />
         </TabsContent>
 
-        {/* Scholarships Tab */}
         <TabsContent value="scholarships">
           <ScholarshipsTab universityId={id} />
         </TabsContent>

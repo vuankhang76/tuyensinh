@@ -151,7 +151,6 @@ const EmailVerification = () => {
     return (
         <div className="min-h-screen bg-background flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8">
-                {/* Header */}
                 <div className="text-center">
                     <div className="mx-auto h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                         <Mail className="h-8 w-8 text-primary" />
@@ -164,7 +163,6 @@ const EmailVerification = () => {
                     </p>
                 </div>
 
-                {/* Verification Card */}
                 <Card className="shadow-lg">
                     <CardHeader>
                         <div className="flex flex-col text-center text-lg">

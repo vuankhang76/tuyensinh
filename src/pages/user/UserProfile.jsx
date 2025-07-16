@@ -92,7 +92,6 @@ const UserProfile = () => {
       toast.success('Cập nhật thông tin thành công!');
       setIsEditing(false);
     } catch (error) {
-      console.error('Update profile error:', error);
       toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật thông tin');
     } finally {
       setLoading(false);
@@ -298,7 +297,6 @@ const UserProfile = () => {
                 <div>
                   <h3 className="text-lg font-semibold mb-4">Thông tin cơ bản</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Display Name */}
                     <div className="space-y-2">
                       <Label htmlFor="displayName">Tên hiển thị</Label>
                       {isEditing ? (
@@ -365,7 +363,6 @@ const UserProfile = () => {
           </div>
         </div>
 
-        {/* Change Password Modal */}
         <ChangePasswordModal
           isOpen={showChangePasswordModal}
           onClose={() => setShowChangePasswordModal(false)}

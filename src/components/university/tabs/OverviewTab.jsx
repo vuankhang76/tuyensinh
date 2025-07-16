@@ -1,6 +1,6 @@
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator' // Import Separator
+import { Separator } from '@/components/ui/separator'
 import {
   Building2,
   Info,
@@ -8,9 +8,8 @@ import {
   Link as LinkIcon,
   Globe,
   Phone
-} from 'lucide-react' // Import thêm icons
+} from 'lucide-react'
 
-// Component nhỏ để hiển thị một dòng thông tin
 const InfoRow = ({ icon, label, value, isLink = false }) => {
   if (!value) return null;
 
@@ -38,7 +37,6 @@ const InfoRow = ({ icon, label, value, isLink = false }) => {
 
 
 const OverviewTab = ({ university }) => {
-    // Để tránh lỗi nếu university là null hoặc undefined
     if (!university) {
         return (
              <Card>

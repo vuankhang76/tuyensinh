@@ -43,7 +43,6 @@ const ProgramsTab = ({ programs, loading }) => {
                       <span>Học phí: {program.tuition} {program.tuitionUnit}</span>
                     </div>
                   )}
-                   {/* Giữ lại các trường cũ phòng trường hợp dữ liệu có chúng */}
                   {program.duration && (
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-gray-500" />

@@ -237,10 +237,9 @@ const AllUniversities = React.memo(() => {
     { value: 'Vĩnh Phúc', label: 'Vĩnh Phúc' },
     { value: 'Yên Bái', label: 'Yên Bái' },
   ]
-  
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <Breadcrumb>
@@ -278,11 +277,9 @@ const AllUniversities = React.memo(() => {
         </div>
       </div>
 
-      {/* Search & Filters Bar */}
       <div className="bg-white">
         <div className="container mx-auto p-4">
           <div className="flex flex-col gap-4">
-            {/* Search Bar */}
             <div className="flex flex-col lg:flex-row gap-3">
               <div className="flex-1 relative">
                 <Input
@@ -365,151 +362,142 @@ const AllUniversities = React.memo(() => {
         </div>
       </div>
 
-      {/* Results Section */}
       <div className="container mx-auto p-4">
-        <div className="flex gap-8">
-          <div className="flex-1">
-            {/* Results Header */}
-            <div className="flex justify-between items-center mb-6 md:flex-row flex-col gap-4">
-              <div>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
-                  {loading ? (
-                    <div className="animate-pulse">
-                      <div className="h-4 bg-slate-300 rounded w-24"></div>
-                    </div>
-                  ) : (
-                    <span>Tìm thấy {totalResults} trường đại học</span>
+        <div className="flex justify-between items-center mb-6 md:flex-row flex-col gap-4">
+          <div>
+            <div className="flex items-center gap-4 text-sm text-gray-600">
+              {loading ? (
+                <div className="animate-pulse">
+                  <div className="h-4 bg-slate-300 rounded w-24"></div>
+                </div>
+              ) : (
+                <span>Tìm thấy {totalResults} trường đại học</span>
+              )}
+              {(region || type) && (
+                <div className="flex items-center gap-2">
+                  <span>Bộ lọc:</span>
+                  {region && (
+                    <Badge variant="secondary" className="gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {region}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-auto p-0 ml-1 hover:bg-transparent"
+                        onClick={() => handleRegionChange('clear')}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </Badge>
                   )}
-                  {(region || type) && (
-                    <div className="flex items-center gap-2">
-                      <span>Bộ lọc:</span>
-                      {region && (
-                        <Badge variant="secondary" className="gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {region}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-auto p-0 ml-1 hover:bg-transparent"
-                            onClick={() => handleRegionChange('clear')}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </Badge>
-                      )}
-                      {type && (
-                        <Badge variant="secondary" className="gap-1">
-                          {type}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-auto p-0 ml-1 hover:bg-transparent"
-                            onClick={() => handleTypeChange('clear')}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </Badge>
-                      )}
-                    </div>
+                  {type && (
+                    <Badge variant="secondary" className="gap-1">
+                      {type}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-auto p-0 ml-1 hover:bg-transparent"
+                        onClick={() => handleTypeChange('clear')}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </Badge>
                   )}
                 </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600">Sắp xếp:</span>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-[180px]">
-                    <ArrowUpDown className="h-4 w-4 mr-2" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="relevance">Nổi bật nhất</SelectItem>
-                    <SelectItem value="name">Tên trường</SelectItem>
-                    <SelectItem value="ranking">Xếp hạng</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              )}
             </div>
-            {loading && (
-              <div className="space-y-4">
-                {[...Array(5)].map((_, i) => (
-                  <Loading key={i} type="university" />
-                ))}
-              </div>
-            )}
-            {!loading && totalResults === 0 && (
-              <div className="text-center py-12">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                      Không tìm thấy trường đại học nào
-                    </h3>
-                    <p className="text-gray-500 mb-4">
-                      Hãy thử điều chỉnh bộ lọc để xem kết quả khác
-                    </p>
-                  </div>
-              </div>
-            )}
-            {!loading && totalResults > 0 && (
-              <>
-                <div className="space-y-4 mb-8">
-                  {paginatedResults.map((university) => (
-                    <UniversityCard
-                      key={university.id}
-                      university={university}
-                    />
-                  ))}
-                </div>
+          </div>
 
-                <div className="flex flex-col items-center gap-4">
-                  <div className="text-sm text-gray-600">
-                    Hiển thị {startResult}-{endResult} của {totalResults} trường
-                  </div>
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                          className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                        />
-                      </PaginationItem>
-
-                      {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                        let pageNum;
-                        if (totalPages <= 5) {
-                          pageNum = i + 1;
-                        } else if (currentPage <= 3) {
-                          pageNum = i + 1;
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNum = totalPages - 4 + i;
-                        } else {
-                          pageNum = currentPage - 2 + i;
-                        }
-
-                        return (
-                          <PaginationItem key={pageNum}>
-                            <PaginationLink
-                              isActive={currentPage === pageNum}
-                              onClick={() => setCurrentPage(pageNum)}
-                              className="cursor-pointer"
-                            >
-                              {pageNum}
-                            </PaginationLink>
-                          </PaginationItem>
-                        );
-                      })}
-                      <PaginationItem>
-                        <PaginationNext
-                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                          className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                </div>
-              </>
-            )}
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-600">Sắp xếp:</span>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[180px]">
+                <ArrowUpDown className="h-4 w-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="relevance">Nổi bật nhất</SelectItem>
+                <SelectItem value="name">Tên trường</SelectItem>
+                <SelectItem value="ranking">Xếp hạng</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
+        {loading && (
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <Loading key={i} type="university" />
+            ))}
+          </div>
+        )}
+        {!loading && totalResults === 0 && (
+          <div className="text-center py-12">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                Không tìm thấy trường đại học nào
+              </h3>
+              <p className="text-gray-500 mb-4">
+                Hãy thử điều chỉnh bộ lọc để xem kết quả khác
+              </p>
+            </div>
+          </div>
+        )}
+        {!loading && totalResults > 0 && (
+          <>
+            <div className="space-y-4 mb-8">
+              {paginatedResults.map((university) => (
+                <UniversityCard
+                  key={university.id}
+                  university={university}
+                />
+              ))}
+            </div>
+
+            <div className="flex grid items-center gap-4 mb-4">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+
+                    return (
+                      <PaginationItem key={pageNum}>
+                        <PaginationLink
+                          isActive={currentPage === pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          className="cursor-pointer"
+                        >
+                          {pageNum}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

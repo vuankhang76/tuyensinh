@@ -12,10 +12,8 @@ import logo from '../../../assets/images/logo/logo_full.png'
 const Footer = () => {
   return (
     <footer className="bg-gray-900 text-white">
-      {/* Main Footer */}
       <div className="container mx-auto p-12">
         <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8 ">
-          {/* Company Info */}
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <div className="w-10 h-10 rounded-full flex items-center justify-center">
@@ -49,7 +47,6 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Newsletter */}
           <div className="mt-6">
             <h4 className="font-medium mb-2">Đăng ký nhận tin</h4>
             <div className="flex">
@@ -66,7 +63,6 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Bottom Footer */}
       <div className="border-t border-gray-800">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row justify-center items-center">

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { getCurrentUser, isAuthenticated, getAuthMethod, logoutUser } from '../services/authService';
@@ -16,16 +16,15 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     if (isAuthenticated()) {
       const currentUser = getCurrentUser();
       setUser(currentUser);
     }
-    
+
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       const authMethod = getAuthMethod();
-      
+
       if (authMethod === 'google') {
         if (!firebaseUser && user) {
           handleLogout();
@@ -46,15 +45,15 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
   };
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     const result = await logoutUser();
     if (result.success) {
       setUser(null);
     }
     return result;
-  };
+  }, []);
 
-  const value = {
+  const memoizedValue = useMemo(() => ({
     user,
     loading,
     login,
@@ -62,10 +61,10 @@ export const AuthProvider = ({ children }) => {
     logout: handleLogout,
     isAuthenticated: isAuthenticated(),
     authMethod: getAuthMethod()
-  };
+  }), [user, loading, handleLogout]);
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={memoizedValue}>
       {!loading && children}
     </AuthContext.Provider>
   );

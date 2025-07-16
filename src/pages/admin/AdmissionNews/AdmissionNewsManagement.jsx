@@ -26,7 +26,6 @@ const AdmissionNewsManagement = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [newsToDelete, setNewsToDelete] = useState(null);
 
-  // Sample data based on schema - in real app, this would come from API
   const [admissionNews, setAdmissionNews] = useState([
     {
       Id: 1,
@@ -70,7 +69,6 @@ const AdmissionNewsManagement = () => {
     }
   ]);
 
-  // Mock universities for filter
   const universities = [
     { Id: 1, Name: 'Đại học Bách Khoa Hà Nội' },
     { Id: 2, Name: 'Đại học Quốc gia Hà Nội' },
@@ -133,7 +131,6 @@ const AdmissionNewsManagement = () => {
 
   const handleSubmit = (values) => {
     if (editingRecord) {
-      // Update existing news
       setAdmissionNews(admissionNews.map(n => 
         n.Id === editingRecord.Id ? { 
           ...n, 
@@ -144,7 +141,6 @@ const AdmissionNewsManagement = () => {
       ));
       toast.success("Đã cập nhật tin tức thành công");
     } else {
-      // Add new news
       const newNews = { 
         ...values, 
         Id: Date.now(),
@@ -159,7 +155,6 @@ const AdmissionNewsManagement = () => {
     setEditingRecord(null);
   };
 
-  // Filter news
   let filteredNews = admissionNews;
   if (universityFilter !== 'all') {
     filteredNews = filteredNews.filter(n => n.UniversityId === parseInt(universityFilter));
@@ -168,12 +163,10 @@ const AdmissionNewsManagement = () => {
     filteredNews = filteredNews.filter(n => n.Year === parseInt(yearFilter));
   }
 
-  // Sort by publish date (newest first)
   const sortedNews = [...filteredNews].sort((a, b) => 
     new Date(b.PublishDate) - new Date(a.PublishDate)
   );
 
-  // Statistics
   const stats = {
     total: admissionNews.length,
     published: admissionNews.filter(n => n.Status === 'published').length,
@@ -204,7 +197,6 @@ const AdmissionNewsManagement = () => {
         </Button>
       </div>
 
-      {/* Filters */}
       <div className="flex space-x-4 mb-6">
         <Select value={universityFilter} onValueChange={setUniversityFilter}>
           <SelectTrigger className="w-[200px]">
@@ -233,7 +225,6 @@ const AdmissionNewsManagement = () => {
         </Select>
       </div>
 
-      {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <Card>
           <CardContent className="p-4">
@@ -329,14 +320,12 @@ const AdmissionNewsManagement = () => {
         </Table>
       </div>
 
-      {/* Pagination placeholder */}
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="text-sm text-muted-foreground">
           Hiển thị 1-{filteredNews.length} của {filteredNews.length} tin tức
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>

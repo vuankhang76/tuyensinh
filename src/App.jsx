@@ -4,6 +4,7 @@ import './index.css'
 import { AuthProvider } from './context/AuthContext'
 
 import Homepage from './pages/Homepage'
+import AuthActionHandler from './pages/AuthActionHandler'
 import UniversityDetail from './pages/UniversityDetail'
 import NotFoundPage from './pages/NotFoundPage'
 import SearchResults from './pages/SearchResults'
@@ -25,6 +26,7 @@ import Unauthorized from './pages/Unauthorized'
 import Navbar from './components/common/Layout/Navbar'
 import Footer from './components/common/Layout/Footer'
 import ProtectedRoute from './routes/ProtectedRoute'
+import UniversityCreatePage from './pages/admin/Universities/UniversityCreatePage';
 
 import { Toaster } from './components/ui/sonner'
 
@@ -41,6 +43,7 @@ function App() {
             }>
               <Route index element={<Overview />} />
               <Route path="universities" element={<UniversityManagement />} />
+              <Route path="universities/create" element={<UniversityCreatePage />} />
               <Route path="universities/:id" element={<UniversityDetailPage />} />
               <Route path="users" element={<UserManagement />} />
               <Route path="news" element={<AdmissionNewsManagement />} />
@@ -53,14 +56,11 @@ function App() {
             } />
 
             <Route path="/ai-chat" element={
-              <>
-                <Navbar />
-                <main className="h-screen">
-                  <ProtectedRoute>
-                    <AIChat />
-                  </ProtectedRoute>
-                </main>
-              </>
+              <main className="h-screen">
+                <ProtectedRoute>
+                  <AIChat />
+                </ProtectedRoute>
+              </main>
             } />
 
             <Route path="/*" element={
@@ -76,7 +76,7 @@ function App() {
                     <Route path="/dang-nhap" element={<Login />} />
                     <Route path="/dang-ky" element={<Register />} />
                     <Route path="/xac-minh-email" element={<EmailVerification />} />
-                    
+                    <Route path="/auth-action" element={<AuthActionHandler />} />
                     <Route path="/profile" element={
                       <ProtectedRoute requiredRole="student">
                         <UserProfile />
@@ -98,4 +98,4 @@ function App() {
   )
 }
 
-export default App
+export default App;

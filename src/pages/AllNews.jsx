@@ -132,7 +132,7 @@ const AllNews = () => {
       </div>
 
       <div className="bg-white">
-        <div className="container mx-auto px-4 py-">
+        <div className="container mx-auto p-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
             <div>
               <h1 className="text-4xl font-bold text-gray-800 mb-2">
@@ -193,14 +193,14 @@ const AllNews = () => {
         </div>
       </div>
       {(loading || isSearching || isFiltering) && (
-        <div className="space-y-4 container mx-auto py-6">
+        <div className="space-y-4 container mx-auto py-4">
           {[...Array(5)].map((_, i) => (
             <Loading key={i} type="news" />
           ))}
         </div>
       )}
       {!loading && !isSearching && !isFiltering && (
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-4">
           {filteredNews.length === 0 ? (
             <Card className='mb-4'>
               <CardContent className="py-4">
@@ -218,7 +218,7 @@ const AllNews = () => {
             </Card>
           ) : (
             <>
-              <Card className='mb-4'>
+              <Card className='mb-8'>
                 <CardContent className="p-0">
                   <Accordion type="single" collapsible className="w-full">
                     {currentNews.map((article, index) => (
@@ -274,8 +274,7 @@ const AllNews = () => {
                 </CardContent>
               </Card>
 
-              {/* Pagination */}
-              <div className="flex flex-col items-center gap-4">
+              <div className="flex flex-col items-center mb-4">
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
@@ -284,7 +283,6 @@ const AllNews = () => {
                         className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                       />
                     </PaginationItem>
-
                     {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
                       let pageNum;
                       if (totalPages <= 5) {

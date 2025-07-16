@@ -1,10 +1,7 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-// Your web app's Firebase configuration (Vite style)
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -15,19 +12,24 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Analytics (optional)
-export const analytics = getAnalytics(app);
+let analytics = null;
+if (import.meta.env.PROD && 
+    import.meta.env.VITE_FIREBASE_PROJECT_ID && 
+    import.meta.env.VITE_FIREBASE_MEASUREMENT_ID &&
+    import.meta.env.VITE_FIREBASE_PROJECT_ID !== "demo-project") {
+    import("firebase/analytics").then(({ getAnalytics }) => {
+      analytics = getAnalytics(app);
+    });
+}
 
-// Initialize Firebase Authentication and get a reference to the service
+export { analytics };
+
 export const auth = getAuth(app);
 
-// Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
 
-// Google Auth Provider
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
   prompt: 'select_account'

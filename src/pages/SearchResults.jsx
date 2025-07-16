@@ -253,7 +253,6 @@ const SearchResults = React.memo(() => {
   
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <Breadcrumb>
@@ -308,7 +307,6 @@ const SearchResults = React.memo(() => {
         </div>
       </div>
 
-      {/* Search Bar */}
       <div className="bg-white">
         <div className="container mx-auto p-4">
           <div className="flex flex-col lg:flex-row gap-3">
@@ -378,12 +376,9 @@ const SearchResults = React.memo(() => {
         </div>
       </div>
 
-      {/* Results Section */}
       <div className="container mx-auto p-4">
         <div className="flex gap-8">
-          {/* Results */}
           <div className="flex-1">
-            {/* Results Header */}
             <div className="flex justify-between items-center mb-6 md:flex-row flex-col gap-4">
               <div>
                 <h1 className="text-2xl font-bold text-gray-800 mb-2">
@@ -451,7 +446,6 @@ const SearchResults = React.memo(() => {
               </div>
             </div>
 
-            {/* Loading State */}
             {loading && (
               <div className="space-y-4">
                 <Loading type="university" />
@@ -503,12 +497,7 @@ const SearchResults = React.memo(() => {
                   ))}
                 </div>
 
-                {/* Pagination */}
                 <div className="flex flex-col items-center gap-4">
-                  <div className="text-sm text-gray-600">
-                    Hiển thị {startResult}-{endResult} của {totalResults} kết quả
-                  </div>
-
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
