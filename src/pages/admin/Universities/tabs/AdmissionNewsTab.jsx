@@ -3,46 +3,32 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog'
 import { toast } from 'sonner'
-import {
-  Plus,
-  Edit,
-  Trash2,
-  Newspaper,
-  Search,
-  Calendar,
-  Eye,
-  EyeOff
-} from 'lucide-react'
+import { Plus, Edit, Trash2, Newspaper, Calendar } from 'lucide-react'
 import admissionNewsService from '@/services/admissionNewsService'
 
 const AdmissionNewsTab = ({ universityId }) => {
   const [news, setNews] = useState([])
   const [loading, setLoading] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingNews, setEditingNews] = useState(null)
+  const [formErrors, setFormErrors] = useState({})
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    summary: '',
-    category: '',
-    status: 'Draft',
     publishDate: '',
-    expiryDate: '',
-    tags: '',
-    featuredImage: '',
-    isImportant: false
+    year: ''
   })
 
   useEffect(() => {
-    fetchNews()
+    if (universityId) {
+      fetchNews()
+    }
   }, [universityId])
 
   const fetchNews = async () => {
@@ -52,33 +38,55 @@ const AdmissionNewsTab = ({ universityId }) => {
       setNews(data)
     } catch (error) {
       toast.error('Có lỗi xảy ra khi tải danh sách tin tức')
+      setNews([])
     } finally {
       setLoading(false)
     }
   }
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }))
+  const resetForm = () => {
+    setEditingNews(null)
+    setFormData({
+      title: '',
+      content: '',
+      publishDate: '',
+      year: ''
+    })
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!formData.title || !formData.content) {
-      toast.error('Vui lòng điền đầy đủ thông tin bắt buộc')
-      return
-    }
+  const handleInputChange = (field, value) => {
+        setFormData(prev => {
+          if (field === 'publishDate') {
+            const year = value ? value.split('-')[0] : '';
+            return {
+              ...prev,
+              publishDate: value,
+              year: year
+            };
+          }
+          return {
+            ...prev,
+            [field]: value
+          };
+        });
+      }
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) {
+      toast.error('Vui lòng sửa các lỗi trong form');
+      return;
+    }
+    setLoading(true)
     try {
-      setLoading(true)
       const newsData = {
-        ...formData,
-        universityId: parseInt(universityId),
-        publishDate: formData.publishDate ? new Date(formData.publishDate).toISOString() : null,
-        expiryDate: formData.expiryDate ? new Date(formData.expiryDate).toISOString() : null,
-        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : []
+        title: formData.title,
+        content: formData.content,
+        publishDate: formData.publishDate
+          ? `${formData.publishDate}T00:00:00.000Z`
+          : new Date().toISOString(),
+        year: formData.year ? parseInt(formData.year) : new Date().getFullYear(),
+        universityId: parseInt(universityId)
       }
 
       if (editingNews) {
@@ -90,40 +98,55 @@ const AdmissionNewsTab = ({ universityId }) => {
       }
 
       setIsDialogOpen(false)
-      setEditingNews(null)
-      setFormData({
-        title: '',
-        content: '',
-        summary: '',
-        category: '',
-        status: 'Draft',
-        publishDate: '',
-        expiryDate: '',
-        tags: '',
-        featuredImage: '',
-        isImportant: false
-      })
+      resetForm()
       fetchNews()
     } catch (error) {
-      toast.error('Có lỗi xảy ra khi lưu thông tin')
+      toast.error(editingNews ? 'Lỗi khi cập nhật tin tức' : 'Lỗi khi tạo tin tức')
     } finally {
       setLoading(false)
     }
   }
 
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.title.trim()) {
+      errors.title = 'Tiêu đề là bắt buộc';
+    }
+    if (!formData.year || isNaN(formData.year) || parseInt(formData.year) < 1900) {
+      errors.year = 'Năm áp dụng phải là số hợp lệ';
+    }
+    if (!formData.content.trim()) {
+      errors.content = 'Nội dung là bắt buộc';
+    }
+    if (formData.publishDate) {
+      const date = new Date(formData.publishDate);
+      const isValidFormat = /^\d{4}-\d{2}-\d{2}$/.test(formData.publishDate);
+      if (!isValidFormat || isNaN(date.getTime())) {
+        errors.publishDate = 'Ngày xuất bản không hợp lệ (định dạng yyyy-mm-dd)';
+      }
+    }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
+
   const handleEdit = (newsItem) => {
     setEditingNews(newsItem)
+    let formattedPublishDate = '';
+    if (newsItem.publishDate) {
+      const date = new Date(newsItem.publishDate);
+      if (!isNaN(date.getTime())) {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        formattedPublishDate = `${year}-${month}-${day}`;
+      }
+    }
+
     setFormData({
       title: newsItem.title || '',
       content: newsItem.content || '',
-      summary: newsItem.summary || '',
-      category: newsItem.category || '',
-      status: newsItem.status || 'Draft',
-      publishDate: newsItem.publishDate ? new Date(newsItem.publishDate).toISOString().split('T')[0] : '',
-      expiryDate: newsItem.expiryDate ? new Date(newsItem.expiryDate).toISOString().split('T')[0] : '',
-      tags: Array.isArray(newsItem.tags) ? newsItem.tags.join(', ') : newsItem.tags || '',
-      featuredImage: newsItem.featuredImage || '',
-      isImportant: newsItem.isImportant || false
+      publishDate: formattedPublishDate,
+      year: newsItem.year?.toString() || ''
     })
     setIsDialogOpen(true)
   }
@@ -141,56 +164,21 @@ const AdmissionNewsTab = ({ universityId }) => {
     }
   }
 
-  const toggleStatus = async (newsItem) => {
-    try {
-      const newStatus = newsItem.status === 'Published' ? 'Draft' : 'Published'
-      await admissionNewsService.updateAdmissionNews(newsItem.id, {
-        ...newsItem,
-        status: newStatus
-      })
-      toast.success(`${newStatus === 'Published' ? 'Xuất bản' : 'Ẩn'} tin tức thành công!`)
-      fetchNews()
-    } catch (error) {
-      toast.error('Có lỗi xảy ra khi cập nhật trạng thái')
-    }
-  }
-
   const filteredNews = news.filter(newsItem =>
-    newsItem.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    newsItem.category?.toLowerCase().includes(searchTerm.toLowerCase())
+    newsItem.title?.toLowerCase()
   )
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Published':
-        return 'bg-green-100 text-green-800'
-      case 'Draft':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'Archived':
-        return 'bg-gray-100 text-gray-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getCategoryColor = (category) => {
-    switch (category) {
-      case 'Thông báo chung':
-        return 'bg-blue-100 text-blue-800'
-      case 'Tuyển sinh':
-        return 'bg-emerald-100 text-emerald-800'
-      case 'Học bổng':
-        return 'bg-purple-100 text-purple-800'
-      case 'Sự kiện':
-        return 'bg-orange-100 text-orange-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
 
   const formatDate = (date) => {
     if (!date) return '-'
-    return new Date(date).toLocaleDateString('vi-VN')
+    try {
+      return new Date(date).toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch (error) {
+      return '-';
+    }
   }
 
   return (
@@ -199,151 +187,54 @@ const AdmissionNewsTab = ({ universityId }) => {
         <div>
           <h3 className="text-lg font-semibold">Quản lý tin tức tuyển sinh</h3>
           <p className="text-sm text-muted-foreground">
-            Quản lý các tin tức và thông báo tuyển sinh của trường đại học
+            Quản lý các tin tức và thông báo của trường đại học.
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => {
-              setEditingNews(null)
-              setFormData({
-                title: '',
-                content: '',
-                summary: '',
-                category: '',
-                status: 'Draft',
-                publishDate: '',
-                expiryDate: '',
-                tags: '',
-                featuredImage: '',
-                isImportant: false
-              })
-            }}>
-              <Plus className="h-4 w-4 mr-2" />
+            <Button onClick={resetForm} disabled={loading}>
+              <Plus className="h-4 w-4 mr-1" />
               Thêm tin tức
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingNews ? 'Chỉnh sửa tin tức' : 'Thêm tin tức mới'}
               </DialogTitle>
+              <DialogDescription>
+                {editingNews
+                  ? "Cập nhật thông tin tin tức tuyển sinh cho trường."
+                  : "Nhập thông tin để thêm tin tức tuyển sinh mới cho trường."}
+              </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <Label htmlFor="title">Tiêu đề *</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => handleInputChange('title', e.target.value)}
-                    placeholder="Tiêu đề tin tức..."
-                    required
-                  />
+            <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="title" className="mb-2">Tiêu đề *</Label>
+                  <Input id="title" value={formData.title} onChange={(e) => handleInputChange('title', e.target.value)} placeholder="Nhập tiêu đề tin tức..." required />
+                  {formErrors.title && <p className="text-red-500 text-sm mt-1">{formErrors.title}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="category">Danh mục</Label>
-                  <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn danh mục" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Thông báo chung">Thông báo chung</SelectItem>
-                      <SelectItem value="Tuyển sinh">Tuyển sinh</SelectItem>
-                      <SelectItem value="Học bổng">Học bổng</SelectItem>
-                      <SelectItem value="Sự kiện">Sự kiện</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="content" className="mb-2">Nội dung *</Label>
+                  <Textarea id="content" value={formData.content} onChange={(e) => handleInputChange('content', e.target.value)} placeholder="Nhập nội dung chi tiết..." rows={8} required />
+                  {formErrors.content && <p className="text-red-500 text-sm mt-1">{formErrors.content}</p>}
                 </div>
-                <div>
-                  <Label htmlFor="status">Trạng thái</Label>
-                  <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn trạng thái" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Draft">Bản nháp</SelectItem>
-                      <SelectItem value="Published">Đã xuất bản</SelectItem>
-                      <SelectItem value="Archived">Lưu trữ</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="publishDate">Ngày xuất bản</Label>
-                  <Input
-                    id="publishDate"
-                    type="date"
-                    value={formData.publishDate}
-                    onChange={(e) => handleInputChange('publishDate', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="expiryDate">Ngày hết hạn</Label>
-                  <Input
-                    id="expiryDate"
-                    type="date"
-                    value={formData.expiryDate}
-                    onChange={(e) => handleInputChange('expiryDate', e.target.value)}
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <Label htmlFor="featuredImage">Ảnh đại diện (URL)</Label>
-                  <Input
-                    id="featuredImage"
-                    value={formData.featuredImage}
-                    onChange={(e) => handleInputChange('featuredImage', e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <Label htmlFor="tags">Tags (phân cách bằng dấu phẩy)</Label>
-                  <Input
-                    id="tags"
-                    value={formData.tags}
-                    onChange={(e) => handleInputChange('tags', e.target.value)}
-                    placeholder="tuyển sinh, thông báo, học bổng"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col">
+                    <Label htmlFor="publishDate" className="mb-2">Ngày xuất bản</Label>
+                    <DatePicker
+                      id="publishDate"
+                      value={formData.publishDate}
+                      onChange={val => handleInputChange('publishDate', val)}
+                      placeholder="Chọn ngày xuất bản"
+                    />
+                    {formErrors.publishDate && <p className="text-red-500 text-sm mt-1">{formErrors.publishDate}</p>}
+                  </div>
                 </div>
               </div>
-
-              <div>
-                <Label htmlFor="summary">Tóm tắt</Label>
-                <Textarea
-                  id="summary"
-                  value={formData.summary}
-                  onChange={(e) => handleInputChange('summary', e.target.value)}
-                  placeholder="Tóm tắt nội dung tin tức..."
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="content">Nội dung *</Label>
-                <Textarea
-                  id="content"
-                  value={formData.content}
-                  onChange={(e) => handleInputChange('content', e.target.value)}
-                  placeholder="Nội dung chi tiết tin tức..."
-                  rows={8}
-                  required
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="isImportant"
-                  checked={formData.isImportant}
-                  onChange={(e) => handleInputChange('isImportant', e.target.checked)}
-                  className="rounded"
-                />
-                <Label htmlFor="isImportant">Tin tức quan trọng</Label>
-              </div>
-
-              <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Hủy
-                </Button>
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Hủy</Button>
                 <Button type="submit" disabled={loading}>
                   {loading ? 'Đang lưu...' : (editingNews ? 'Cập nhật' : 'Thêm mới')}
                 </Button>
@@ -351,18 +242,6 @@ const AdmissionNewsTab = ({ universityId }) => {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Tìm kiếm tin tức..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
-          />
-        </div>
       </div>
 
       <Card>
@@ -374,87 +253,41 @@ const AdmissionNewsTab = ({ universityId }) => {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
+            <div className="flex justify-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
           ) : filteredNews.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Chưa có tin tức nào
-            </div>
+            <div className="text-center py-8 text-muted-foreground">Chưa có tin tức nào.</div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Tiêu đề</TableHead>
-                  <TableHead>Danh mục</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead>Ngày xuất bản</TableHead>
-                  <TableHead>Quan trọng</TableHead>
-                  <TableHead className="text-right">Thao tác</TableHead>
+                  <TableHead className="w-[80%]">Tiêu đề</TableHead>
+                  <TableHead className="text-center">Năm</TableHead>
+                  <TableHead className="text-center">Ngày xuất bản</TableHead>
+                  <TableHead className="text-center">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredNews.map((newsItem) => (
                   <TableRow key={newsItem.id}>
                     <TableCell>
-                      <div>
-                        <div className="font-medium">{newsItem.title}</div>
-                        {newsItem.summary && (
-                          <div className="text-sm text-muted-foreground line-clamp-2">
-                            {newsItem.summary}
-                          </div>
-                        )}
-                      </div>
+                      <div className="font-medium">{newsItem.title}</div>
+                      <p className="text-sm text-muted-foreground line-clamp-2 truncate w-170">{newsItem.content}</p>
                     </TableCell>
-                    <TableCell>
-                      {newsItem.category && (
-                        <Badge variant="secondary" className={getCategoryColor(newsItem.category)}>
-                          {newsItem.category}
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className={getStatusColor(newsItem.status)}>
-                        {newsItem.status === 'Published' ? 'Đã xuất bản' : 
-                         newsItem.status === 'Draft' ? 'Bản nháp' : 'Lưu trữ'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
+                    <TableCell className="text-center">{newsItem.year}</TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center">
+                        <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
                         {formatDate(newsItem.publishDate)}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      {newsItem.isImportant && (
-                        <Badge variant="destructive" className="text-xs">
-                          Quan trọng
-                        </Badge>
-                      )}
-                    </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end space-x-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => toggleStatus(newsItem)}
-                          title={newsItem.status === 'Published' ? 'Ẩn tin tức' : 'Xuất bản tin tức'}
-                        >
-                          {newsItem.status === 'Published' ? 
-                            <EyeOff className="h-4 w-4" /> : 
-                            <Eye className="h-4 w-4" />
-                          }
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleEdit(newsItem)}
-                        >
+                      <div className="flex justify-end items-center space-x-1">
+                        <Button variant="ghost" size="icon" onClick={() => handleEdit(newsItem)}>
                           <Edit className="h-4 w-4" />
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                            <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </AlertDialogTrigger>
@@ -462,18 +295,12 @@ const AdmissionNewsTab = ({ universityId }) => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Bạn có chắc chắn muốn xóa tin tức "{newsItem.title}"? 
-                                Hành động này không thể hoàn tác.
+                                Bạn có chắc chắn muốn xóa tin tức "{newsItem.title}"? Hành động này không thể hoàn tác.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Hủy</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => handleDelete(newsItem.id)}
-                                className="bg-red-600 hover:bg-red-700"
-                              >
-                                Xóa
-                              </AlertDialogAction>
+                              <AlertDialogAction onClick={() => handleDelete(newsItem.id)} className="bg-red-600 hover:bg-red-700">Xóa</AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
@@ -490,4 +317,4 @@ const AdmissionNewsTab = ({ universityId }) => {
   )
 }
 
-export default AdmissionNewsTab 
+export default AdmissionNewsTab

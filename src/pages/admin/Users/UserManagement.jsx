@@ -96,6 +96,7 @@ const UserManagement = () => {
 
 
   useEffect(() => {
+    setSearchLoading(true);
     let filtered = users;
     if (debouncedSearchTerm) {
       filtered = filtered.filter(user =>
@@ -107,8 +108,8 @@ const UserManagement = () => {
     if (roleFilter !== 'all') {
       filtered = filtered.filter(user => user.role === roleFilter);
     }
-
     setFilteredUsers(filtered);
+    setCurrentPage(1);
     setSearchLoading(false);
   }, [users, debouncedSearchTerm, roleFilter]);
 
@@ -256,8 +257,7 @@ const UserManagement = () => {
     }
   };
 
-  const sortedUsers = [...filteredUsers].sort((a, b) => (a.displayName || '').localeCompare(b.displayName || ''));
-
+  const sortedUsers = [...filteredUsers].sort((a, b) => Number(a.id) - Number(b.id));
   const totalResults = sortedUsers.length;
   const totalPages = Math.ceil(totalResults / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
@@ -326,7 +326,7 @@ const UserManagement = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {searchLoading || loading ? (
+            {loading || searchLoading ? (
               Array.from({ length: 5 }).map((_, index) => (
                 <TableRow key={`skeleton-${index}`}>
                   <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
@@ -455,7 +455,7 @@ const UserManagement = () => {
       {totalResults > 0 && (
         <div className="flex items-center justify-between w-full py-4">
           <div className="flex items-center justify-between w-full">
-            <div className="text-sm text-muted-foreground w-100">
+            <div className="text-sm text-muted-foreground w-110">
               Hiển thị {startResult}-{endResult} trên tổng {totalResults} kết quả
             </div>
             {totalPages > 1 && (
