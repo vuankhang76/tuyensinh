@@ -1,13 +1,11 @@
 import axios from '../api/axios'
 
 export const userService = {
-  // GET /api/Users - Get all users (requires auth)
   getAllUsers: async () => {
     try {
       const response = await axios.get('/Users')
       return response.data
     } catch (error) {
-      console.error('Error fetching users:', error)
       throw error
     }
   },
@@ -17,7 +15,6 @@ export const userService = {
       const response = await axios.get(`/Users/${id}`)
       return response.data
     } catch (error) {
-      console.error('Error fetching user by id:', error)
       throw error
     }
   },
@@ -27,7 +24,6 @@ export const userService = {
       await axios.put(`/Users/${id}/admin`, body)
       return true
     } catch (error) {
-      console.error('Error updating user:', error)
       throw error
     }
   },
@@ -37,18 +33,15 @@ export const userService = {
       await axios.put(`/Users/${id}`, { ...userData, id })
       return true
     } catch (error) {
-      console.error('Error updating user:', error)
       throw error
     }
   },
 
-  // DELETE /api/Users/{id} - Delete user
   deleteUser: async (id) => {
     try {
       await axios.delete(`/Users/${id}`)
       return true
     } catch (error) {
-      console.error('Error deleting user:', error)
       throw error
     }
   },
@@ -58,7 +51,6 @@ export const userService = {
       const user = localStorage.getItem('user')
       return user ? JSON.parse(user) : null
     } catch (error) {
-      console.error('Error getting current user:', error)
       return null
     }
   },
@@ -68,7 +60,6 @@ export const userService = {
       localStorage.setItem('user', JSON.stringify(userData))
       return userData
     } catch (error) {
-      console.error('Error updating current user in localStorage:', error)
       throw error
     }
   },
@@ -102,7 +93,6 @@ export const userService = {
       const response = await axios.put(`/Users/${id}/change-password`, passwordData)
       return response.data
     } catch (error) {
-      console.error('Error changing password:', error)
       throw error
     }
   },

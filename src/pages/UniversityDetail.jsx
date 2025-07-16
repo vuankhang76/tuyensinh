@@ -171,7 +171,6 @@ const UniversityDetail = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Breadcrumb */}
       <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <Breadcrumb>
@@ -199,13 +198,11 @@ const UniversityDetail = () => {
         </div>
       </div>
 
-      {/* Hero Section */}
       <UniversityHero
         university={university}
         onShare={handleShare}
       />
 
-      {/* Quick Stats */}
       <UniversityStats
         programs={programs}
         majors={majors}
@@ -213,7 +210,6 @@ const UniversityDetail = () => {
         admissionNews={admissionNews}
       />
 
-      {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="grid w-full grid-cols-6">

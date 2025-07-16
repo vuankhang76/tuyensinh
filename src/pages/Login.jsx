@@ -105,7 +105,6 @@ const Login = () => {
     }
   };
 
-  // Google Login
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
 
@@ -122,7 +121,6 @@ const Login = () => {
           description: `Chào mừng ${result.user.displayName}!`,
         });
 
-        // Redirect admin to admin panel
         if (result.user.role === 'admin') {
           navigate('/admin', { replace: true });
         } else if (result.user.role === 'university') {
@@ -143,17 +141,14 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        {/* Header */}
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-bold text-foreground">
             Đăng nhập
           </h2>
         </div>
 
-        {/* Login Form */}
         <Card className="shadow-lg">
           <CardContent>
-            {/* Google Login First */}
             <Button
               onClick={handleGoogleLogin}
               disabled={googleLoading}
@@ -178,7 +173,6 @@ const Login = () => {
               </div>
             </div>
 
-            {/* Email/Password Form */}
             <form onSubmit={handleSubmit(handleCredentialsLogin)} className="space-y-4 mt-6">
               <div className="space-y-2">
                 <Label htmlFor="emailOrUsername">Email hoặc Tên đăng nhập</Label>
@@ -264,7 +258,6 @@ const Login = () => {
               </Button>
             </form>
 
-            {/* Register Links */}
             <div className="text-center mt-6 pt-4 border-t space-y-3">
               <div className="flex gap-1 justify-center">
                 <div className="text-muted-foreground text-sm">
@@ -281,7 +274,6 @@ const Login = () => {
           </CardContent>
         </Card>
 
-        {/* Footer */}
         <div className="text-center text-xs text-muted-foreground">
           <div className="flex gap-1">
             <span>Bằng việc đăng nhập, bạn đồng ý với</span>

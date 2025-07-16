@@ -22,11 +22,9 @@ const AdminLayout = () => {
   const location = useLocation();
   const [openMenus, setOpenMenus] = useState({});
   
-  // Get current path to determine selected menu
   const currentPath = location.pathname.split('/').pop();
   const selectedMenu = currentPath === 'admin' ? 'dashboard' : currentPath;
   
-  // Determine which parent menu should be open
   const getOpenKeys = () => {
     const universityPages = ['universities', 'majors', 'programs', 'scholarships'];
     const userPages = ['users', 'verification'];
@@ -48,7 +46,6 @@ const AdminLayout = () => {
     setOpenMenus(getOpenKeys());
   }, [selectedMenu]);
 
-  // Menu items with grouping
   const menuItems = [
     {
       key: 'dashboard',
@@ -153,7 +150,6 @@ const AdminLayout = () => {
       );
     }
 
-    // Regular menu item
     const Icon = item.icon;
     const isSelected = selectedMenu === item.key;
     
@@ -176,7 +172,6 @@ const AdminLayout = () => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
       <div className="w-64 bg-white shadow-lg">
         <div className="py-6 text-center border-b border-r border-gray-200">
           <div className="flex items-center justify-center">
@@ -185,13 +180,11 @@ const AdminLayout = () => {
           <div className="text-xs text-gray-600 font-semibold">University Information System</div>
         </div>
         
-        {/* Menu */}
         <div className="p-4 space-y-1">
           {menuItems.map(renderMenuItem)}
         </div>
       </div>
       
-      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <AdminNavbar />
         <main className="flex-1 overflow-auto p-6">

@@ -61,7 +61,6 @@ const MajorsManagementTab = ({ universityId }) => {
       const data = await academicProgramService.getProgramsByUniversity(universityId)
       setPrograms(data)
     } catch (error) {
-      console.error('Error fetching programs:', error)
       setPrograms([])
     }
   }
@@ -156,7 +155,6 @@ const MajorsManagementTab = ({ universityId }) => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-lg font-semibold">Quản lý ngành học</h3>

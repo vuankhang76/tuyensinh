@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom'; // Import useSearchParams
+import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -51,6 +50,10 @@ const UserManagement = () => {
     emailVerified: false
   });
 
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [confirmData, setConfirmData] = useState(null);
+
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
@@ -87,7 +90,6 @@ const UserManagement = () => {
     setSearchParams(params, { replace: true });
   }, [debouncedSearchTerm, roleFilter, currentPage, setSearchParams]);
 
-  // Reset to page 1 when search or filter changes
   useEffect(() => {
     setCurrentPage(1);
   }, [debouncedSearchTerm, roleFilter]);
@@ -95,7 +97,6 @@ const UserManagement = () => {
 
   useEffect(() => {
     let filtered = users;
-
     if (debouncedSearchTerm) {
       filtered = filtered.filter(user =>
         user.displayName?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
@@ -125,25 +126,29 @@ const UserManagement = () => {
     return { variant: variants[role] || 'outline', label: labels[role] || 'Không xác định' };
   };
 
-  const handleRoleChange = async (userId, newRole) => {
+  const handleRoleChange = (userId, newRole) => {
     const currentUser = users.find(u => u.id === userId);
     if (!currentUser || currentUser.role === newRole) return;
+    setConfirmAction('role');
+    setConfirmData({ user: currentUser, newRole });
+    setConfirmDialogOpen(true);
+  };
 
-    const body = {
-      displayName: currentUser.displayName,
-      role: newRole,
-      photoURL: currentUser.photoURL || "",
-      emailVerified: currentUser.emailVerified ?? false
-    };
-
+  const handleConfirmRoleChange = async () => {
+    const { user, newRole } = confirmData;
+    const body = { role: newRole };
     try {
-      await userService.updateUserByAdmin(userId, body);
+      await userService.updateUserByAdmin(user.id, body);
       setUsers(users.map(u =>
-        u.id === userId ? { ...u, role: newRole } : u
+        u.id === user.id ? { ...u, role: newRole } : u
       ));
       toast.success(`Đã thay đổi vai trò thành ${newRole === 'admin' ? 'Quản trị' : newRole === 'university' ? 'Trường ĐH' : 'Sinh viên'}`);
     } catch (error) {
-        toast.error(`Có lỗi xảy ra khi cập nhật vai trò: ${error.response?.data?.message || error.message}`);
+      toast.error(`Có lỗi xảy ra khi cập nhật vai trò: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setConfirmDialogOpen(false);
+      setConfirmAction(null);
+      setConfirmData(null);
     }
   };
 
@@ -158,31 +163,53 @@ const UserManagement = () => {
     setEditDialogOpen(true);
   };
 
-  const handleEditSubmit = async () => {
+  const handleEditSubmit = () => {
+    setConfirmAction('edit');
+    setConfirmData({ user: userToEdit, displayName: editForm.displayName });
+    setConfirmDialogOpen(true);
+  };
+
+  const handleConfirmEdit = async () => {
+    const { user, displayName } = confirmData;
     try {
-      await userService.updateUser(userToEdit.id, editForm);
+      const body = { displayName };
+      await userService.updateUserByAdmin(user.id, body);
       setUsers(users.map(u =>
-        u.id === userToEdit.id ? { ...u, ...editForm } : u
+        u.id === user.id ? { ...u, displayName } : u
       ));
-      toast.success('Cập nhật thông tin người dùng thành công');
+      toast.success('Cập nhật tên hiển thị thành công');
       setEditDialogOpen(false);
       setUserToEdit(null);
     } catch (error) {
-      console.error('Error updating user:', error);
       toast.error('Có lỗi xảy ra khi cập nhật');
+    } finally {
+      setConfirmDialogOpen(false);
+      setConfirmAction(null);
+      setConfirmData(null);
     }
   };
 
-  const handleVerify = async (user) => {
+  const handleVerify = (user) => {
+    setConfirmAction('verify');
+    setConfirmData({ user });
+    setConfirmDialogOpen(true);
+  };
+
+  const handleConfirmVerify = async () => {
+    const { user } = confirmData;
     try {
-      await userService.updateUserByAdmin(user.id);
+      const body = { emailVerified: true };
+      await userService.updateUserByAdmin(user.id, body);
       setUsers(users.map(u =>
         u.id === user.id ? { ...u, emailVerified: true } : u
       ));
       toast.success('Đã xác minh người dùng thành công');
     } catch (error) {
-      console.error('Error verifying user:', error);
       toast.error('Có lỗi xảy ra khi xác minh');
+    } finally {
+      setConfirmDialogOpen(false);
+      setConfirmAction(null);
+      setConfirmData(null);
     }
   };
 
@@ -197,7 +224,6 @@ const UserManagement = () => {
       setUsers(users.filter(u => u.id !== userToDelete.id));
       toast.success('Đã xóa người dùng thành công');
     } catch (error) {
-      console.error('Error deleting user:', error);
       toast.error('Có lỗi xảy ra khi xóa người dùng');
     } finally {
       setDeleteDialogOpen(false);
@@ -231,13 +257,13 @@ const UserManagement = () => {
   };
 
   const sortedUsers = [...filteredUsers].sort((a, b) => (a.displayName || '').localeCompare(b.displayName || ''));
-  
+
   const totalResults = sortedUsers.length;
   const totalPages = Math.ceil(totalResults / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
   const paginatedUsers = sortedUsers.slice(startIndex, endIndex);
-  
+
   const startResult = startIndex + 1;
   const endResult = Math.min(endIndex, totalResults);
 
@@ -248,11 +274,11 @@ const UserManagement = () => {
           <h2 className="text-2xl font-bold">Quản lý Người dùng</h2>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" onClick={handleRefresh}>
-            <RefreshCw className="h-4 w-4 mr-2" />
+          <Button variant="outline" onClick={handleRefresh} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Làm mới
           </Button>
-          <Button onClick={handleAdd}>
+          <Button onClick={handleAdd} disabled={loading}>
             <Plus className="h-4 w-4 mr-2" />
             Thêm người dùng
           </Button>
@@ -289,14 +315,14 @@ const UserManagement = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-20">ID</TableHead>
-              <TableHead className="w-48">Tên hiển thị</TableHead>
-              <TableHead className="w-64">Email</TableHead>
-              <TableHead className="w-36">Vai trò</TableHead>
-              <TableHead className="w-24 text-center">Xác minh</TableHead>
-              <TableHead className="w-40">Ngày tạo</TableHead>
-              <TableHead className="w-40">Đăng nhập cuối</TableHead>
-              <TableHead className="w-48">Thao tác</TableHead>
+              <TableHead className="w-[80px] font-bold pl-4">ID</TableHead>
+              <TableHead className="w-[240px] font-bold">Tên hiển thị</TableHead>
+              <TableHead className="w-[240px] font-bold">Email</TableHead>
+              <TableHead className="w-[120px] font-bold">Vai trò</TableHead>
+              <TableHead className="w-[100px] font-bold text-center">Xác minh</TableHead>
+              <TableHead className="w-[160px] font-bold">Ngày tạo</TableHead>
+              <TableHead className="w-[160px] font-bold">Đăng nhập cuối</TableHead>
+              <TableHead className="w-[120px] font-bold text-center">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -329,53 +355,52 @@ const UserManagement = () => {
               paginatedUsers.map((user) => {
                 return (
                   <TableRow key={user.id}>
-                    <TableCell className="font-medium max-w-10">
-                      <div className="truncate" title={user.id}>
+                    <TableCell className="font-medium max-w-15 pl-4">
+                      <div className="truncate w-[80px]" title={user.id}>
                         {user.id}
                       </div>
                     </TableCell>
                     <TableCell className="font-medium max-w-48">
-                      <div className="truncate" title={user.displayName || 'Chưa cập nhật'}>
+                      <div className="truncate w-[180px]" title={user.displayName || 'Chưa cập nhật'}>
                         {user.displayName || 'Chưa cập nhật'}
                       </div>
                     </TableCell>
                     <TableCell className="max-w-64">
-                      <div className="truncate" title={user.email}>
+                      <div className="truncate w-[200px]" title={user.email}>
                         {user.email}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div title={user.role === 'admin' ? 'Không thể thay đổi vai trò quản trị' : 'Nhấn để thay đổi vai trò'}>
-                        <Select 
-                          value={user.role} 
+                      <div className="w-[120px]" title={user.role === 'admin' ? 'Không thể thay đổi vai trò quản trị' : 'Nhấn để thay đổi vai trò'}>
+                        <Select
+                          value={user.role}
                           onValueChange={(value) => handleRoleChange(user.id, value)}
                           disabled={user.role === 'admin'}
                         >
-                        <SelectTrigger className={`w-full h-8 text-xs ${user.role === 'admin' ? 'cursor-not-allowed opacity-60' : ''}`}>
-                          <SelectValue>
-                            <span className={`${
-                              user.role === 'admin' ? 'text-red-600 font-medium' : 
-                              user.role === 'university' ? 'text-blue-600 font-medium' : 
-                              'text-gray-600 font-medium'
-                            }`}>
-                              {user.role === 'admin' ? 'Quản trị' : 
-                               user.role === 'university' ? 'Trường ĐH' : 
-                               'Sinh viên'}
-                            </span>
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="student">
-                            <span className="text-gray-600">Sinh viên</span>
-                          </SelectItem>
-                          <SelectItem value="university">
-                            <span className="text-blue-600">Trường ĐH</span>
-                          </SelectItem>
-                          <SelectItem value="admin">
-                            <span className="text-red-600">Quản trị</span>
-                          </SelectItem>
-                        </SelectContent>
-                                              </Select>
+                          <SelectTrigger className={`w-full h-8 text-xs ${user.role === 'admin' ? 'cursor-not-allowed opacity-60' : ''}`}>
+                            <SelectValue>
+                              <span className={`${user.role === 'admin' ? 'text-red-600 font-medium' :
+                                  user.role === 'university' ? 'text-blue-600 font-medium' :
+                                    'text-gray-600 font-medium'
+                                }`}>
+                                {user.role === 'admin' ? 'Quản trị' :
+                                  user.role === 'university' ? 'Trường ĐH' :
+                                    'Sinh viên'}
+                              </span>
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="student">
+                              <span className="text-gray-600">Sinh viên</span>
+                            </SelectItem>
+                            <SelectItem value="university">
+                              <span className="text-blue-600">Trường ĐH</span>
+                            </SelectItem>
+                            <SelectItem value="admin">
+                              <span className="text-red-600">Quản trị</span>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
@@ -471,7 +496,7 @@ const UserManagement = () => {
                   <PaginationItem>
                     <PaginationNext
                       onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}  
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                     />
                   </PaginationItem>
                 </PaginationContent>
@@ -525,6 +550,46 @@ const UserManagement = () => {
             </Button>
             <Button onClick={handleEditSubmit}>
               Cập nhật
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận thao tác</DialogTitle>
+            <DialogDescription>
+              {confirmAction === 'role' && (
+                <>
+                  Bạn có chắc chắn muốn đổi vai trò người dùng "{confirmData?.user?.displayName}" thành <b>{confirmData?.newRole === 'admin' ? 'Quản trị' : confirmData?.newRole === 'university' ? 'Trường ĐH' : 'Sinh viên'}</b>?
+                </>
+              )}
+              {confirmAction === 'verify' && (
+                <>
+                  Bạn có chắc chắn muốn xác minh người dùng "{confirmData?.user?.displayName}"?
+                </>
+              )}
+              {confirmAction === 'edit' && (
+                <>
+                  Bạn có chắc chắn muốn đổi tên hiển thị thành "{confirmData?.displayName}" cho người dùng "{confirmData?.user?.displayName}"?
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setConfirmDialogOpen(false); setConfirmAction(null); setConfirmData(null); }}>
+              Hủy
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (confirmAction === 'role') handleConfirmRoleChange();
+                if (confirmAction === 'verify') handleConfirmVerify();
+                if (confirmAction === 'edit') handleConfirmEdit();
+              }}
+            >
+              Xác nhận
             </Button>
           </DialogFooter>
         </DialogContent>

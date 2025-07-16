@@ -201,7 +201,6 @@ const ScholarshipsTab = ({ universityId }) => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-lg font-semibold">Quản lý học bổng</h3>
@@ -400,7 +399,6 @@ const ScholarshipsTab = ({ universityId }) => {
         </Dialog>
       </div>
 
-      {/* Search */}
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -413,7 +411,6 @@ const ScholarshipsTab = ({ universityId }) => {
         </div>
       </div>
 
-      {/* Scholarships List */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">

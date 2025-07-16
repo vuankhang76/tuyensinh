@@ -7,7 +7,6 @@ import {
   ChevronDown,
   X,
   User,
-  Settings,
   LogOut,
   LogIn,
   LayoutDashboard,
@@ -34,6 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import {
   Avatar,
+  AvatarImage,
   AvatarFallback,
 } from '@/components/ui/avatar'
 import { toast } from 'sonner';
@@ -112,7 +112,6 @@ const Navbar = () => {
       <nav className="bg-white sticky top-0 z-50 border-b shadow-sm border-gray-200">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center py-4">
-            {/* Logo */}
             <Link to="/" className="flex items-center space-x-3 group">
               <div className="w-10 h-10 rounded-full flex items-center justify-center">
                 <img src={logo} alt="logo" className="w-10 h-10" />
@@ -123,11 +122,9 @@ const Navbar = () => {
               </div>
             </Link>
 
-            {/* Desktop Menu */}
             <div className="hidden lg:flex items-center space-x-6">
               <NavigationMenu viewport={false}>
                 <NavigationMenuList>
-                  {/* Home */}
                   <NavigationMenuItem>
                     <NavigationMenuLink asChild>
                       <Link to="/" className={navigationMenuTriggerStyle()}>
@@ -136,7 +133,6 @@ const Navbar = () => {
                     </NavigationMenuLink>
                   </NavigationMenuItem>
 
-                  {/* Universities Dropdown */}
                   {user?.role !== 'admin' && (
                     <NavigationMenuItem>
                       <NavigationMenuTrigger>
@@ -157,8 +153,6 @@ const Navbar = () => {
                       </NavigationMenuContent>
                     </NavigationMenuItem>
                   )}
-
-                  {/* News Dropdown */}
                   {user?.role !== 'admin' && (
                     <NavigationMenuItem>
                       <NavigationMenuLink asChild>
@@ -171,12 +165,8 @@ const Navbar = () => {
                 </NavigationMenuList>
               </NavigationMenu>
             </div>
-
-            {/* User Section & Mobile Menu */}
             <div className="flex items-center">
-              {/* User Section - Desktop */}
               <div className="hidden lg:flex items-center space-x-4">
-                {/* AI Chat */}
                 <NavigationMenu>
                   <NavigationMenuList>
                     {isAuthenticated && (
@@ -194,31 +184,14 @@ const Navbar = () => {
                 {isAuthenticated ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <div className="relative">
-                        {user?.photoURL ? (
-                          <div className="cursor-pointer">
-                            <img
-                              src={user.photoURL}
-                              alt={user?.displayName}
-                              className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
-                              referrerPolicy="no-referrer"
-                              crossOrigin="anonymous"
-                            />
-                            <div
-                              className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center"
-                              style={{ display: 'none' }}
-                            >
-                              <User className="h-4 w-4" />
-                            </div>
-                          </div>
-                        ) : (
-                          <Avatar className="cursor-pointer">
-                            <AvatarFallback className="bg-gray-200 text-gray-800">
-                              <User className="h-4 w-4" />
-                            </AvatarFallback>
-                          </Avatar>
-                        )}
-                      </div>
+                      <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                        <Avatar className="h-9 w-9 cursor-pointer">
+                          <AvatarImage src={user?.photoURL} alt={user?.displayName} />
+                          <AvatarFallback>
+                            {user?.displayName?.charAt(0)?.toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56" align="end" forceMount>
                       <DropdownMenuLabel className="font-normal">
@@ -243,10 +216,10 @@ const Navbar = () => {
                         </DropdownMenuItem>
                       )}
                       {user?.role !== 'admin' && user?.role !== 'university' && (
-                      <DropdownMenuItem onClick={() => navigate('/profile')}>
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Thông tin cá nhân</span>
-                      </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate('/profile')}>
+                          <User className="mr-2 h-4 w-4" />
+                          <span>Thông tin cá nhân</span>
+                        </DropdownMenuItem>
                       )}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={handleLogout}>
@@ -262,8 +235,6 @@ const Navbar = () => {
                   </Button>
                 )}
               </div>
-
-              {/* Mobile Menu Button */}
               <div className="lg:hidden">
                 <Button
                   variant="ghost"
@@ -279,12 +250,9 @@ const Navbar = () => {
               </div>
             </div>
           </div>
-
-          {/* Mobile Menu */}
           {isMobileMenuOpen && (
             <div className="lg:hidden border-t border-gray-200 py-4">
               <div className="space-y-1">
-                {/* User Section - Mobile */}
                 {isAuthenticated ? (
                   <div>
                     <div className="px-4 py-3 border-b border-gray-200 mb-2">
@@ -346,8 +314,6 @@ const Navbar = () => {
                     </button>
                   </div>
                 )}
-
-                {/* Home */}
                 <Link
                   to="/"
                   className="flex items-center space-x-3 px-4 py-2 text-muted-foreground hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
@@ -356,8 +322,6 @@ const Navbar = () => {
                   <Home className="h-4 w-4" />
                   <span>Trang chủ</span>
                 </Link>
-
-                {/* Universities Mobile */}
                 {user?.role !== 'admin' && (
                   <div>
                     <button
@@ -397,7 +361,6 @@ const Navbar = () => {
                   </div>
                 )}
 
-                {/* News Mobile */}
                 {user?.role !== 'admin' && (
                   <div>
                     <button
@@ -424,7 +387,6 @@ const Navbar = () => {
                   </div>
                 )}
 
-                {/* AI Chat Mobile */}
                 {isAuthenticated && (
                   <button
                     onClick={handleAIChat}

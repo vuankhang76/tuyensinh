@@ -16,25 +16,16 @@
         emailOrUsername,
         password
       });
-  
       const data = response.data;
       localStorage.setItem('accessToken', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       localStorage.setItem('authMethod', 'credentials');
-      
       return { user: data.user, error: null };
-  
     } catch (error) {
       if (error.response && error.response.data) {
         const errorData = error.response.data;
-  
         if (errorData.code === 'EMAIL_NOT_VERIFIED') {
-          try {
-            await signInWithEmailAndPassword(auth, errorData.email, password);
-          } catch (firebaseError) {
-              console.error('Lỗi đăng nhập Firebase:', firebaseError.message);
-          }
-          
+          await signInWithEmailAndPassword(auth, errorData.email, password);
           return {
             user: null,
             error: null,
@@ -43,14 +34,11 @@
             message: errorData.message
           };
         }
-        
         return { user: null, error: errorData.message || 'Email hoặc mật khẩu không chính xác' };
       }
-      
       return { user: null, error: 'Không thể kết nối đến server' };
     }
   };
-
   export const loginWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
@@ -66,28 +54,21 @@
         photoURL: firebaseUser.photoURL,
         emailVerified: firebaseUser.emailVerified
       });
-
       const data = response.data;
-      
       localStorage.setItem('accessToken', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       localStorage.setItem('authMethod', 'google');
-      
       return { user: data.user, error: null };
     } catch (error) {
-      console.error('Google login error:', error);
-      
       if (error.code === 'auth/popup-closed-by-user') {
         return { user: null, error: 'Đăng nhập bị hủy' };
       } else if (error.code === 'auth/popup-blocked') {
         return { user: null, error: 'Popup bị chặn. Vui lòng cho phép popup và thử lại' };
       }
-      
       if (error.response) {
         await firebaseSignOut(auth);
         return { user: null, error: error.response.data.message || 'Đồng bộ tài khoản thất bại' };
       }
-      
       return { user: null, error: 'Đăng nhập Google thất bại' };
     }
   };
@@ -115,13 +96,7 @@
             const errorMessage = dbError.response?.data?.message || 'Lỗi lưu dữ liệu';
             return { error: errorMessage };
         }
-
-        try {
-            await sendEmailVerification(firebaseUser);
-        } catch (emailError) {
-            console.warn('Failed to send verification email on registration:', emailError);
-        }
-        
+          await sendEmailVerification(firebaseUser);
         return {
             error: null,
             requiresEmailVerification: true,
@@ -159,13 +134,10 @@
       localStorage.setItem('authMethod', 'credentials');
       
       return { user: data.user, error: null };
-    } catch (error) {
-      console.error('Complete registration error:', error);
-      
+    } catch (error) {      
       if (error.response) {
         return { user: null, error: error.response.data.message || 'Hoàn tất xác thực thất bại' };
       }
-      
       return { user: null, error: 'Không thể kết nối đến server' };
     }
   };
@@ -194,11 +166,7 @@
         await firebaseSignOut(auth);
       }
       
-      try {
         await apiClient.post('/Auth/logout');
-      } catch (error) {
-        console.warn('Backend logout failed:', error);
-      }
       
       localStorage.removeItem('accessToken');
       localStorage.removeItem('user');
@@ -206,7 +174,6 @@
       
       return { success: true, error: null };
     } catch (error) {
-      console.error('Logout error:', error);
       return { success: false, error: error.message };
     }
   };

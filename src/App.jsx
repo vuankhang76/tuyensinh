@@ -26,6 +26,7 @@ import Unauthorized from './pages/Unauthorized'
 import Navbar from './components/common/Layout/Navbar'
 import Footer from './components/common/Layout/Footer'
 import ProtectedRoute from './routes/ProtectedRoute'
+import UniversityCreatePage from './pages/admin/Universities/UniversityCreatePage';
 
 import { Toaster } from './components/ui/sonner'
 
@@ -42,6 +43,7 @@ function App() {
             }>
               <Route index element={<Overview />} />
               <Route path="universities" element={<UniversityManagement />} />
+              <Route path="universities/create" element={<UniversityCreatePage />} />
               <Route path="universities/:id" element={<UniversityDetailPage />} />
               <Route path="users" element={<UserManagement />} />
               <Route path="news" element={<AdmissionNewsManagement />} />

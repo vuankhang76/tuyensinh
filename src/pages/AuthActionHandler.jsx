@@ -23,7 +23,6 @@ const AuthActionHandler = () => {
                 } catch (error) {
                     toast.error("Liên kết xác minh không hợp lệ hoặc đã hết hạn.");
                     setMessage("Đã có lỗi xảy ra. Vui lòng thử lại.");
-                    console.error(error);
                 }
             } else {
                 navigate('/');

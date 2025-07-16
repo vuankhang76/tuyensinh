@@ -147,7 +147,6 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             )}
           </div>
 
-          {/* New Password */}
           <div className="space-y-2">
             <Label htmlFor="newPassword">Mật khẩu mới</Label>
             <div className="relative">

@@ -15,7 +15,6 @@ const UniversityDetailModal = ({ visible, onCancel, record }) => {
         </DialogHeader>
         
         <div className="space-y-6">
-          {/* Header with logo and basic info */}
           <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
             <Avatar className="h-20 w-20">
               <AvatarImage src={record.logo} alt={record.name} />
@@ -37,7 +36,6 @@ const UniversityDetailModal = ({ visible, onCancel, record }) => {
             </div>
           </div>
 
-          {/* Detailed information */}
           <div className="border rounded-lg">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
               <div className="border-b md:border-r md:border-b-0 p-4">
@@ -119,7 +117,6 @@ const UniversityDetailModal = ({ visible, onCancel, record }) => {
             </div>
           </div>
 
-          {/* Statistics section */}
           <div className="bg-blue-50 p-4 rounded-lg">
             <h4 className="font-semibold text-gray-800 mb-3">Thống kê</h4>
             <div className="grid grid-cols-2 gap-4 text-center">

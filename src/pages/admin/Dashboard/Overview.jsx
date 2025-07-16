@@ -27,7 +27,6 @@ const Overview = () => {
     try {
       setLoading(true);
       setError(null);
-
       const [universitiesData, usersData, majorsData, newsData] = await Promise.allSettled([
         universityService.getAllUniversities(),
         userService.getAllUsers(),
@@ -46,13 +45,8 @@ const Overview = () => {
 
       const failedRequests = [universitiesData, usersData, majorsData, newsData]
         .filter(result => result.status === 'rejected');
-      
-      if (failedRequests.length > 0) {
-        console.warn('Một số dữ liệu không thể tải:', failedRequests);
-      }
 
     } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
       setError('Không thể tải dữ liệu thống kê. Vui lòng thử lại sau.');
     } finally {
       setLoading(false);
@@ -156,7 +150,6 @@ const Overview = () => {
         })}
       </div>
       
-      {/* Additional dashboard content */}
       <div className="mt-8">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Card>

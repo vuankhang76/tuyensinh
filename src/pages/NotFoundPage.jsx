@@ -1,9 +1,7 @@
-// src/pages/NotFoundPageNoCard.jsx
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Home, Newspaper, School, Search } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom"; // Giả sử bạn dùng React Router
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 export default function NotFoundPageNoCard() {
@@ -13,7 +11,6 @@ export default function NotFoundPageNoCard() {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // Điều hướng đến trang kết quả tìm kiếm với query
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
@@ -21,7 +18,6 @@ export default function NotFoundPageNoCard() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-center">
       <div className="flex w-full max-w-md flex-col items-center gap-8">
-        {/* Icon và Tiêu đề */}
         <div className="flex flex-col items-center gap-4">
           <div>
             <h1 className="text-5xl font-bold tracking-tight md:text-6xl">404</h1>
@@ -49,7 +45,6 @@ export default function NotFoundPageNoCard() {
             </form>
         </div>
 
-        {/* Các nút điều hướng */}
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
             <Button asChild variant="outline">
             <Link to="/">

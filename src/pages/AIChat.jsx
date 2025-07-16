@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ChatSkeleton, MessageSkeleton } from '@/components/common/Loading/LoadingSkeleton'
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -14,17 +14,18 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/context/AuthContext';
-import { 
-  Send, 
-  Bot, 
-  User, 
-  Plus, 
-  Trash2, 
+import {
+  Send,
+  Bot,
+  User,
+  Plus,
+  Trash2,
   Menu,
   X,
   Edit3,
   Check,
   ChevronLeft,
+  MessageSquarePlus,
 } from 'lucide-react';
 import { chatService } from '@/services/chatService';
 import { toast } from 'sonner';
@@ -44,7 +45,8 @@ const AIChat = () => {
   const [loading, setLoading] = useState(true);
   const [isSessionLoading, setIsSessionLoading] = useState(false);
   const messagesEndRef = useRef(null);
-
+  const isInitialLoad = useRef(true);
+  
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -68,7 +70,6 @@ const AIChat = () => {
       setLoading(true);
       const history = await chatService.getChatHistory();
       setConversations(history);
-      
       if (history.length > 0) {
         setActiveConversationId(history[0].id);
       } else {
@@ -76,32 +77,28 @@ const AIChat = () => {
           id: 'welcome',
           sender: 'Assistant',
           message: `Xin chào ${user?.displayName || 'bạn'}! Tôi là trợ lý AI hỗ trợ tư vấn tuyển sinh đại học. Bạn có thể hỏi tôi về:
-
-• Thông tin các trường đại học
-• Ngành học và điểm chuẩn
-• Học phí và học bổng
-• Chương trình đào tạo
-• Quy trình tuyển sinh
-
-Bạn muốn tìm hiểu điều gì?`,
+          • Thông tin các trường đại học
+          • Ngành học và điểm chuẩn
+          • Học phí và học bổng
+          • Chương trình đào tạo
+          • Quy trình tuyển sinh
+          Bạn muốn tìm hiểu điều gì?`,
           sentAt: new Date().toISOString()
         }]);
       }
     } catch (error) {
-      console.error('Error loading chat history:', error);
       toast.error('Không thể tải lịch sử chat');
     } finally {
-      setLoading(false); // MODIFIED: This will now remove the full-page skeleton
+      setLoading(false);
     }
   };
 
   const loadChatSession = async (sessionId) => {
-    setIsSessionLoading(true); // NEW: Start loading skeleton for messages
+    setIsSessionLoading(true);
     try {
       const session = await chatService.getChatSession(sessionId);
       setMessages(session.messages || []);
     } catch (error) {
-      console.error('Error loading chat session:', error);
       toast.error('Không thể tải cuộc trò chuyện');
       setMessages([]);
     } finally {
@@ -118,10 +115,10 @@ Bạn muốn tìm hiểu điều gì?`,
       message: inputValue,
       sentAt: new Date().toISOString()
     };
-    
-    const newMessages = messages.some(m => m.id === 'welcome') 
-        ? [userMessage] 
-        : [...messages, userMessage];
+
+    const newMessages = messages.some(m => m.id === 'welcome')
+      ? [userMessage]
+      : [...messages, userMessage];
 
     setMessages(newMessages);
     const currentMessage = inputValue;
@@ -130,29 +127,28 @@ Bạn muốn tìm hiểu điều gì?`,
 
     try {
       const response = await chatService.sendMessage(currentMessage, activeConversationId);
-      
+
       const aiMessage = {
         id: Date.now() + 1,
         sender: 'Assistant',
         message: response.botResponse,
         sentAt: response.timestamp
       };
-      
+
       setMessages(prev => [...prev, aiMessage]);
-      
+
       if (!activeConversationId) {
         setActiveConversationId(response.sessionId);
         loadChatHistory();
       } else {
-        setConversations(prev => prev.map(conv => 
-          conv.id === activeConversationId 
+        setConversations(prev => prev.map(conv =>
+          conv.id === activeConversationId
             ? { ...conv, title: response.title || conv.title }
             : conv
         ));
       }
-      
+
     } catch (error) {
-      console.error('Error sending message:', error);
       toast.error('Không thể gửi tin nhắn');
       setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
     } finally {
@@ -181,10 +177,10 @@ Bạn muốn tìm hiểu điều gì?`,
   const deleteConversation = async (convId) => {
     try {
       await chatService.deleteChatSession(convId);
-      
+
       const updatedConversations = conversations.filter(conv => conv.id !== convId);
       setConversations(updatedConversations);
-      
+
       if (convId === activeConversationId) {
         if (updatedConversations.length > 0) {
           setActiveConversationId(updatedConversations[0].id);
@@ -192,10 +188,9 @@ Bạn muốn tìm hiểu điều gì?`,
           await createNewConversation();
         }
       }
-      
+
       toast.success('Đã xóa cuộc trò chuyện');
     } catch (error) {
-      console.error('Error deleting conversation:', error);
       toast.error('Không thể xóa cuộc trò chuyện');
     }
     setConversationToDelete(null);
@@ -212,12 +207,14 @@ Bạn muốn tìm hiểu điều gì?`,
 
   const saveTitle = async () => {
     try {
-      setConversations(prev => prev.map(conv => 
-        conv.id === editingConversationId 
+      await chatService.updateSessionTitle(editingConversationId, editingTitle);
+
+      setConversations(prev => prev.map(conv =>
+        conv.id === editingConversationId
           ? { ...conv, title: editingTitle }
           : conv
       ));
-      
+
       toast.success('Đã cập nhật tiêu đề');
     } catch (error) {
       toast.error('Không thể cập nhật tiêu đề');
@@ -238,16 +235,12 @@ Bạn muốn tìm hiểu điều gì?`,
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
+
     if (days === 0) return 'Hôm nay';
     if (days === 1) return 'Hôm qua';
     if (days < 7) return `${days} ngày trước`;
     return date.toLocaleDateString('vi-VN');
   };
-
-  if (loading) {
-    return <ChatSkeleton />;
-  }
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -263,84 +256,103 @@ Bạn muốn tìm hiểu điều gì?`,
             </Button>
             <span className="text-lg font-semibold">Trang chủ</span>
           </div>
+          {loading ? (
+            <div className="p-3 rounded-lg bg-gray-100 animate-pulse">
+              <div className="h-4 w-3/4 bg-gray-200 rounded"></div>
+            </div>
+          ) : (
           <Button
             onClick={createNewConversation}
             className="w-8 flex bg-white shadow-none hover:bg-gray-100 transition-all duration-300"
           >
             <Plus className="h-4 w-4 text-black" />
           </Button>
-        </div>
 
-        {/* Conversations List */}
+          )}
+        </div>
         <div className="flex-1 overflow-y-auto">
-          <div className="p-2 space-y-1">
-            {conversations.map((conversation) => (
-              <div
-                key={conversation.id}
-                className={`group relative p-3 rounded-lg cursor-pointer transition-colors ${
-                  conversation.id === activeConversationId 
-                    ? 'bg-blue-50 border border-blue-200' 
-                    : 'hover:bg-gray-100'
-                }`}
-                onClick={() => setActiveConversationId(conversation.id)}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    {editingConversationId === conversation.id ? (
-                      <div className="flex items-center space-x-2">
-                        <Input
-                          value={editingTitle}
-                          onChange={(e) => setEditingTitle(e.target.value)}
-                          className="h-6 text-sm"
-                          onKeyPress={(e) => e.key === 'Enter' && saveTitle()}
-                          autoFocus
-                        />
-                        <Button size="sm" variant="ghost" onClick={saveTitle}>
-                          <Check className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <h3 className="font-medium text-sm truncate">
-                        {conversation.title}
-                      </h3>
-                    )}
-                    <p className="text-xs text-gray-500 truncate mt-1">
-                      {formatTimestamp(conversation.startedAt)}
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        startEditingTitle(conversation);
-                      }}
-                    >
-                      <Edit3 className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        confirmDeleteConversation(conversation);
-                      }}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+          <div className="p-2 space-y-1 h-full">
+          {loading ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="p-3 rounded-lg bg-gray-100 animate-pulse">
+                <div className="h-4 w-3/4 bg-gray-200 rounded mb-2"></div>
+                <div className="h-3 w-1/2 bg-gray-200 rounded"></div>
+              </div>
+            ))
+          ) : conversations.length === 0 && !isSessionLoading ? (
+              <div className="flex flex-col items-center justify-center h-full text-center p-6 text-gray-500">
+                <MessageSquarePlus className="w-12 h-12 mb-4 text-gray-300" />
+                <h3 className="text-md font-semibold text-gray-700">Chưa có hội thoại</h3>
+                <p className="mt-1 text-sm">
+                  Bắt đầu trò chuyện với trợ lý AI ngay.
+                </p>
+              </div>
+            ) : (
+              conversations.map((conversation) => (
+                <div
+                  key={conversation.id}
+                  className={`group relative p-3 rounded-lg cursor-pointer transition-colors ${conversation.id === activeConversationId
+                      ? 'bg-blue-50 border border-blue-200'
+                      : 'hover:bg-gray-100'
+                    }`}
+                  onClick={() => setActiveConversationId(conversation.id)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      {editingConversationId === conversation.id ? (
+                        <div className="flex items-center space-x-2">
+                          <Input
+                            value={editingTitle}
+                            onChange={(e) => setEditingTitle(e.target.value)}
+                            className="h-6 text-sm"
+                            onKeyPress={(e) => e.key === 'Enter' && saveTitle()}
+                            autoFocus
+                          />
+                          <Button size="sm" variant="ghost" onClick={saveTitle}>
+                            <Check className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <h3 className="font-medium text-sm truncate">
+                          {conversation.title}
+                        </h3>
+                      )}
+                      <p className="text-xs text-gray-500 truncate mt-1">
+                        {formatTimestamp(conversation.startedAt)}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startEditingTitle(conversation);
+                        }}
+                      >
+                        <Edit3 className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          confirmDeleteConversation(conversation);
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
 
-      {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
-        {/* Top Header */}
         <div className="bg-white border-b border-gray-200 p-4">
           <div className="flex items-center space-x-4">
             <Button
@@ -357,7 +369,6 @@ Bạn muốn tìm hiểu điều gì?`,
           </div>
         </div>
 
-        {/* Quick Questions - Show only on welcome message */}
         {messages.length === 1 && messages[0].id === 'welcome' && (
           <div className="p-4 bg-white border-b">
             <div className="flex flex-wrap gap-2">
@@ -377,9 +388,7 @@ Bạn muốn tìm hiểu điều gì?`,
           </div>
         )}
 
-        {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {/* MODIFIED: Conditional rendering for message loading skeleton */}
           {isSessionLoading ? (
             <MessageSkeleton />
           ) : (
@@ -399,21 +408,19 @@ Bạn muốn tìm hiểu điều gì?`,
                         )}
                       </AvatarFallback>
                     </Avatar>
-                    
+
                     <div
-                      className={`p-3 rounded-lg ${
-                        message.sender === 'User'
+                      className={`p-3 rounded-lg ${message.sender === 'User'
                           ? 'bg-blue-600 text-white'
                           : 'bg-white border border-gray-200'
-                      }`}
+                        }`}
                     >
                       <p className="text-sm whitespace-pre-line">{message.message}</p>
                     </div>
                   </div>
                 </div>
               ))}
-              
-              {/* Typing Indicator */}
+
               {isTyping && (
                 <div className="flex justify-start">
                   <div className="flex items-start space-x-3">
@@ -425,8 +432,8 @@ Bạn muốn tìm hiểu điều gì?`,
                     <div className="bg-white border border-gray-200 p-3 rounded-lg">
                       <div className="flex space-x-1">
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
                     </div>
                   </div>
@@ -437,7 +444,6 @@ Bạn muốn tìm hiểu điều gì?`,
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
         <div className="bg-white border-t border-gray-200 p-4">
           <div className="max-w-4xl mx-auto">
             <div className="flex space-x-3">
@@ -449,8 +455,8 @@ Bạn muốn tìm hiểu điều gì?`,
                 className="flex-1"
                 disabled={isTyping || isSessionLoading}
               />
-              <Button 
-                onClick={handleSendMessage} 
+              <Button
+                onClick={handleSendMessage}
                 disabled={!inputValue.trim() || isTyping || isSessionLoading}
                 className="px-4"
               >
@@ -461,19 +467,18 @@ Bạn muốn tìm hiểu điều gì?`,
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!conversationToDelete} onOpenChange={(open) => !open && setConversationToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Xóa cuộc trò chuyện</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa cuộc trò chuyện "{conversationToDelete?.title}" không? 
+              Bạn có chắc chắn muốn xóa cuộc trò chuyện "{conversationToDelete?.title}" không?
               Hành động này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={() => deleteConversation(conversationToDelete?.id)}
               className="bg-red-600 hover:bg-red-700"
             >

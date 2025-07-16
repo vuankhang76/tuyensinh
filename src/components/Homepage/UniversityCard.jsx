@@ -16,7 +16,6 @@ const UniversityCard = ({ university }) => {
     <Card className="mb-4">
       <CardContent>
         <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-          {/* Logo Section */}
           <div className="mr-6 w-full md:w-auto flex justify-center md:justify-start mb-4 md:mb-0">
             <div className="h-16 w-16 flex-shrink-0 rounded-md flex items-center justify-center border-none">
               {university.logo ? (
@@ -32,12 +31,9 @@ const UniversityCard = ({ university }) => {
             </div>
           </div>
 
-          {/* Main Content */}
           <div className="flex-1 min-w-0 w-full">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              {/* University Info */}
               <div className="flex-1 items-center lg:pr-6">
-                {/* Header */}
                 <div className="mb-3">
                   <div className="flex items-center flex-wrap ">
                     <h3 className="text-xl font-bold text-foreground truncate mr-1">
@@ -46,7 +42,6 @@ const UniversityCard = ({ university }) => {
                   </div>
                 </div>
 
-                {/* Quick Stats */}
                 <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-3">
                   <div className="flex items-center">
                     <MapPin className="text-primary h-4 w-4 mr-1 text-muted-foreground" />
@@ -69,9 +64,7 @@ const UniversityCard = ({ university }) => {
                   </div>
               </div>
 
-              {/* Action Section */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-4 lg:mt-0 w-full md:w-auto">
-                {/* View Details Button */}
                 <Link to={`/danh-sach-truong-dai-hoc/${university.id}`}>
                   <Button
                     size="default"

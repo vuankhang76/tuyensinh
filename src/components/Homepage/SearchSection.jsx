@@ -59,9 +59,7 @@ const SearchSection = ({ searchTerm, setSearchTerm, selectedRegion, setSelectedR
     <div className="w-full max-w-4xl mx-auto">
       <div className="rounded-2xl">
         <div className="space-y-6">
-          {/* Main Search */}
           <div>
-            {/* Search Input */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
               <Input
@@ -82,7 +80,6 @@ const SearchSection = ({ searchTerm, setSearchTerm, selectedRegion, setSelectedR
             </div>
           </div>
 
-          {/* Quick Searches */}
           <div>
             <div className="text-sm text-muted-foreground mb-3 text-center">
               Tìm kiếm phổ biến:
@@ -100,7 +97,6 @@ const SearchSection = ({ searchTerm, setSearchTerm, selectedRegion, setSelectedR
             </div>
           </div>
 
-          {/* Search Tips */}
           <div className="text-center">
             <div className="text-xs text-muted-foreground bg-muted rounded-lg px-4 py-2 inline-block">
               💡 Mẹo: Bạn có thể tìm kiếm theo tên trường, mã trường, hoặc ngành học
