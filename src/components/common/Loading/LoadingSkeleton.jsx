@@ -1,5 +1,17 @@
 import React from 'react';
 
+import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
+
+
 const UniversityCardSkeleton = () => {
   return (
     <div className="animate-pulse border border-gray-200 rounded-lg p-4 bg-white mb-4">
@@ -59,16 +71,16 @@ const TableRowSkeleton = ({ columns = 4, className = "" }) => {
   return (
     <div className={`animate-pulse flex items-center gap-4 p-4 ${className}`}>
       {Array.from({ length: columns }).map((_, index) => (
-        <div 
-          key={index} 
-          className={`h-4 bg-slate-300 dark:bg-slate-600 rounded ${
-            index === 0 ? 'w-16' : index === columns - 1 ? 'w-20' : 'flex-1'
-          }`}
+        <div
+          key={index}
+          className={`h-4 bg-slate-300 dark:bg-slate-600 rounded ${index === 0 ? 'w-16' : index === columns - 1 ? 'w-20' : 'flex-1'
+            }`}
         ></div>
       ))}
     </div>
   );
 };
+
 
 const ListItemSkeleton = ({ showAvatar = true, className = "" }) => {
   return (
@@ -102,6 +114,85 @@ const MessageSkeleton = () => (
     </div>
   </div>
 );
+
+const TableSkeleton = ({ columns, rows = 5 }) => {
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          {columns.map((col, index) => (
+            <TableHead key={index} style={{ width: col.width }}>
+              <Skeleton className="h-5 w-full" />
+            </TableHead>
+          ))}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {Array.from({ length: rows }).map((_, rowIndex) => (
+          <TableRow key={rowIndex}>
+            {columns.map((col, cellIndex) => (
+              <TableCell key={cellIndex}>
+                <Skeleton className="h-5 w-full" />
+              </TableCell>
+            ))}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )
+};
+
+const MethodCardSkeleton = () => {
+  return (
+    <div className="pt-6"> 
+      <div className="flex items-start justify-between">
+        <Skeleton className="h-6 w-3/5" />
+        <Skeleton className="h-6 w-[70px]" />
+      </div>
+      <div className="space-y-2 mt-4">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-4/5" />
+      </div>
+      <div className="space-y-2 mt-6">
+        <Skeleton className="h-4 w-1/3" />
+        <Skeleton className="h-4 w-1/2" />
+      </div>
+    </div>
+  );
+};
+
+const NewsTableSkeleton = ({ rows = 5 }) => {
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-[70%]"><Skeleton className="h-5 w-1/4" /></TableHead>
+          <TableHead className="text-center"><Skeleton className="h-5 w-3/4 mx-auto" /></TableHead>
+          <TableHead className="text-center"><Skeleton className="h-5 w-3/4 mx-auto" /></TableHead>
+          <TableHead className="text-right"><Skeleton className="h-5 w-1/2 ml-auto" /></TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {Array.from({ length: rows }).map((_, rowIndex) => (
+          <TableRow key={rowIndex}>
+            <TableCell>
+              <Skeleton className="h-5 w-3/4" />
+              <Skeleton className="h-4 w-full mt-2" />
+            </TableCell>
+            <TableCell><Skeleton className="h-5 w-3/4 mx-auto" /></TableCell>
+            <TableCell><Skeleton className="h-5 w-3/4 mx-auto" /></TableCell>
+            <TableCell>
+              <div className="flex justify-end gap-2">
+                <Skeleton className="h-8 w-8" />
+                <Skeleton className="h-8 w-8" />
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+};
 
 const ChatSkeleton = () => (
   <div className="flex h-screen bg-gray-50">
@@ -140,11 +231,10 @@ const TextSkeleton = ({ lines = 3, className = "" }) => {
   return (
     <div className={`animate-pulse space-y-2 ${className}`}>
       {Array.from({ length: lines }).map((_, index) => (
-        <div 
+        <div
           key={index}
-          className={`h-4 bg-slate-300 dark:bg-slate-600 rounded ${
-            index === lines - 1 ? 'w-3/4' : 'w-full'
-          }`}
+          className={`h-4 bg-slate-300 dark:bg-slate-600 rounded ${index === lines - 1 ? 'w-3/4' : 'w-full'
+            }`}
         ></div>
       ))}
     </div>
@@ -171,7 +261,7 @@ const PageSkeleton = ({ className = "" }) => {
 const SpinnerLoading = ({ size = "default", className = "" }) => {
   const sizeClasses = {
     small: "w-4 h-4",
-    default: "w-6 h-6", 
+    default: "w-6 h-6",
     large: "w-8 h-8"
   };
 
@@ -182,14 +272,14 @@ const SpinnerLoading = ({ size = "default", className = "" }) => {
   );
 };
 
-const Loading = ({ 
-  type = "spinner", 
+const Loading = ({
+  type = "spinner",
   size = "default",
   tip = "",
   spinning = true,
   children,
   className = "",
-  ...props 
+  ...props
 }) => {
   if (!spinning && children) {
     return children;
@@ -241,14 +331,17 @@ const Loading = ({
 };
 
 export default Loading;
-export { 
-  UniversityCardSkeleton, 
-  TableRowSkeleton, 
-  ListItemSkeleton, 
-  TextSkeleton, 
-  PageSkeleton, 
+export {
+  UniversityCardSkeleton,
+  TableRowSkeleton,
+  ListItemSkeleton,
+  TextSkeleton,
+  PageSkeleton,
   SpinnerLoading,
   NewsSkeleton,
   ChatSkeleton,
-  MessageSkeleton
+  MessageSkeleton,
+  TableSkeleton,
+  MethodCardSkeleton,
+  NewsTableSkeleton
 }; 

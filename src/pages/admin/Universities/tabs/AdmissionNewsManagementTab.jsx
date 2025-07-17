@@ -11,7 +11,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { toast } from 'sonner'
 import { Plus, Edit, Trash2, Newspaper, Calendar } from 'lucide-react'
 import admissionNewsService from '@/services/admissionNewsService'
-
+import {
+  NewsTableSkeleton,
+} from '@/components/common/Loading/LoadingSkeleton'
+import { Skeleton } from '@/components/ui/skeleton';
 const AdmissionNewsTab = ({ universityId }) => {
   const [news, setNews] = useState([])
   const [loading, setLoading] = useState(false)
@@ -55,21 +58,21 @@ const AdmissionNewsTab = ({ universityId }) => {
   }
 
   const handleInputChange = (field, value) => {
-        setFormData(prev => {
-          if (field === 'publishDate') {
-            const year = value ? value.split('-')[0] : '';
-            return {
-              ...prev,
-              publishDate: value,
-              year: year
-            };
-          }
-          return {
-            ...prev,
-            [field]: value
-          };
-        });
-      }
+    setFormData(prev => {
+      if (field === 'publishDate') {
+        const year = value ? value.split('-')[0] : '';
+        return {
+          ...prev,
+          publishDate: value,
+          year: year
+        };
+      }
+      return {
+        ...prev,
+        [field]: value
+      };
+    });
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -164,10 +167,6 @@ const AdmissionNewsTab = ({ universityId }) => {
     }
   }
 
-  const filteredNews = news.filter(newsItem =>
-    newsItem.title?.toLowerCase()
-  )
-
   const formatDate = (date) => {
     if (!date) return '-'
     try {
@@ -246,15 +245,21 @@ const AdmissionNewsTab = ({ universityId }) => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <Newspaper className="h-5 w-5 mr-2" />
-            Danh sách tin tức ({filteredNews.length})
-          </CardTitle>
+          {loading ? (
+            <div className='animate-pulse'>
+              <Skeleton className="h-6 w-1/4" />
+            </div>
+          ) : (
+            <CardTitle className="flex items-center">
+              <Newspaper className="h-5 w-5 mr-2" />
+              Danh sách tin tức ({news.length})
+            </CardTitle>
+          )}
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex justify-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
-          ) : filteredNews.length === 0 ? (
+            <NewsTableSkeleton rows={5} />
+          ) : news.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">Chưa có tin tức nào.</div>
           ) : (
             <Table>
@@ -267,7 +272,7 @@ const AdmissionNewsTab = ({ universityId }) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredNews.map((newsItem) => (
+                {news.map((newsItem) => (
                   <TableRow key={newsItem.id}>
                     <TableCell>
                       <div className="font-medium">{newsItem.title}</div>

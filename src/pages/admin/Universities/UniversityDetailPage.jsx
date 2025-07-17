@@ -13,18 +13,20 @@ import {
   Save,
   Edit,
   Building2,
-  MapPin,
   BookOpen,
   Award,
   GraduationCap,
-  Newspaper
+  Newspaper,
+  Users
 } from 'lucide-react';
 
 import MajorsManagementTab from './tabs/MajorsManagementTab';
 import ProgramsManagementTab from './tabs/ProgramsManagementTab';
-import AdmissionNewsTab from './tabs/AdmissionNewsTab';
-import ScholarshipsTab from './tabs/ScholarshipsTab';
+import AdmissionNewsTab from './tabs/AdmissionNewsManagementTab';
+import ScholarshipsTab from './tabs/ScholarshipsManagementTab';
 import universityService from '@/services/universityService';
+import AdmissionManagementTab from './tabs/AdmissionManagementTab';
+import { Dialog } from '@radix-ui/react-dialog';
 
 const UniversityDetailPage = () => {
   const { id } = useParams();
@@ -35,7 +37,7 @@ const UniversityDetailPage = () => {
   const [university, setUniversity] = useState(null);
   const [formData, setFormData] = useState({});
   const [formErrors, setFormErrors] = useState({});
-  const [activeTab, setActiveTab] = useState('basic');
+  const [currentTab, setCurrentTab] = useState('basic');
 
   useEffect(() => {
     if (id) {
@@ -66,45 +68,45 @@ const UniversityDetailPage = () => {
 
   const validateForm = () => {
     const errors = {};
-    
+
     if (!formData.name?.trim()) {
       errors.name = 'Tên trường là bắt buộc';
     }
-    
+
     if (!formData.shortName?.trim()) {
       errors.shortName = 'Tên viết tắt là bắt buộc';
     }
-    
+
     if (!formData.type?.trim()) {
       errors.type = 'Loại hình là bắt buộc';
     }
-    
+
     if (!formData.locations?.trim()) {
       errors.locations = 'Địa điểm là bắt buộc';
     }
-    
+
     if (!formData.introduction?.trim()) {
       errors.introduction = 'Giới thiệu là bắt buộc';
     }
-    
+
     if (!formData.officialWebsite?.trim()) {
       errors.officialWebsite = 'Website chính thức là bắt buộc';
     }
-    
+
     if (!formData.admissionWebsite?.trim()) {
       errors.admissionWebsite = 'Website tuyển sinh là bắt buộc';
     }
-    
+
     if (!formData.rankingCriteria?.trim()) {
       errors.rankingCriteria = 'Tiêu chí xếp hạng là bắt buộc';
     }
 
     const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/;
-    
+
     if (formData.officialWebsite && !urlPattern.test(formData.officialWebsite)) {
       errors.officialWebsite = 'Website chính thức phải là URL hợp lệ';
     }
-    
+
     if (formData.admissionWebsite && !urlPattern.test(formData.admissionWebsite)) {
       errors.admissionWebsite = 'Website tuyển sinh phải là URL hợp lệ';
     }
@@ -122,7 +124,7 @@ const UniversityDetailPage = () => {
       ...prev,
       [field]: value
     }));
-    
+
     if (formErrors[field]) {
       setFormErrors(prev => ({
         ...prev,
@@ -152,20 +154,18 @@ const UniversityDetailPage = () => {
       };
 
       await universityService.updateUniversity(id, updateData);
-      
+
       await fetchUniversityData();
-      
+
       setEditing(false);
       toast.success("Đã cập nhật thông tin trường đại học thành công!");
     } catch (error) {
       console.error("Lỗi chi tiết khi cập nhật:", error);
-      
-      // Handle validation errors from backend
+
       if (error.response?.status === 400 && error.response?.data?.errors) {
         const backendErrors = {};
         const errorData = error.response.data.errors;
-        
-        // Map backend field names to frontend field names
+
         const fieldMapping = {
           'Name': 'name',
           'ShortName': 'shortName',
@@ -176,14 +176,14 @@ const UniversityDetailPage = () => {
           'Locations': 'locations',
           'Type': 'type'
         };
-        
+
         Object.entries(errorData).forEach(([backendField, messages]) => {
           const frontendField = fieldMapping[backendField] || backendField.toLowerCase();
           if (Array.isArray(messages) && messages.length > 0) {
             backendErrors[frontendField] = messages[0];
           }
         });
-        
+
         setFormErrors(backendErrors);
         toast.error('Có lỗi validation từ server');
       } else {
@@ -233,7 +233,7 @@ const UniversityDetailPage = () => {
         </div>
 
         <div className="flex space-x-2">
-        {(activeTab === 'basic' || activeTab === 'contact') && (
+          {(currentTab == 'basic' || currentTab == 'contact') && (
             editing ? (
               <>
                 <Button variant="outline" onClick={handleCancel} disabled={saving}>
@@ -254,19 +254,11 @@ const UniversityDetailPage = () => {
         </div>
       </div>
 
-      <Tabs 
-      value={activeTab}
-      onValueChange={setActiveTab}
-      defaultValue="basic"
-      className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+      <Tabs value={currentTab} onValueChange={setCurrentTab} defaultValue="basic" className="space-y-6">
+        <TabsList className="w-full flex items-center justify-start md:justify-center">
           <TabsTrigger value="basic" className="flex items-center space-x-2">
             <Building2 className="h-4 w-4" />
             <span>Thông tin cơ bản</span>
-          </TabsTrigger>
-          <TabsTrigger value="contact" className="flex items-center space-x-2">
-            <MapPin className="h-4 w-4" />
-            <span>Liên hệ</span>
           </TabsTrigger>
           <TabsTrigger value="majors" className="flex items-center space-x-2">
             <GraduationCap className="h-4 w-4" />
@@ -284,6 +276,10 @@ const UniversityDetailPage = () => {
             <Award className="h-4 w-4" />
             <span>Học bổng</span>
           </TabsTrigger>
+          <TabsTrigger value="admission" className="flex items-center space-x-2">
+            <Users className="h-4 w-4" />
+            <span>Phương thức tuyển sinh</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="basic" className="space-y-6">
@@ -300,8 +296,8 @@ const UniversityDetailPage = () => {
                     value={formData.name || ''}
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     readOnly={!editing}
-                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" : 
-                              formErrors.name ? "border-red-500" : ""}
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.name ? "border-red-500" : ""}
                   />
                   {formErrors.name && <p className="text-red-500 text-sm mt-1">{formErrors.name}</p>}
                 </div>
@@ -312,8 +308,8 @@ const UniversityDetailPage = () => {
                     value={formData.shortName || ''}
                     onChange={(e) => handleInputChange('shortName', e.target.value)}
                     readOnly={!editing}
-                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" : 
-                              formErrors.shortName ? "border-red-500" : ""}
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.shortName ? "border-red-500" : ""}
                   />
                   {formErrors.shortName && <p className="text-red-500 text-sm mt-1">{formErrors.shortName}</p>}
                 </div>
@@ -343,21 +339,60 @@ const UniversityDetailPage = () => {
                     value={formData.ranking || ''}
                     onChange={(e) => handleInputChange('ranking', e.target.value)}
                     readOnly={!editing}
-                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" : 
-                              formErrors.ranking ? "border-red-500" : ""}
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.ranking ? "border-red-500" : ""}
                   />
                   {formErrors.ranking && <p className="text-red-500 text-sm mt-1">{formErrors.ranking}</p>}
                 </div>
-                <div className="md:col-span-2">
-                  <Label htmlFor="rankingCriteria" className="mb-2">Tiêu chí xếp hạng *</Label>
+                <div>
+                  <Label htmlFor="officialWebsite" className="mb-2">Website chính thức *</Label>
                   <Input
+                    id="officialWebsite"
+                    value={formData.officialWebsite || ''}
+                    onChange={(e) => handleInputChange('officialWebsite', e.target.value)}
+                    readOnly={!editing}
+                    placeholder="https://www.hust.edu.vn"
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.officialWebsite ? "border-red-500" : ""}
+                  />
+                  {formErrors.officialWebsite && <p className="text-red-500 text-sm mt-1">{formErrors.officialWebsite}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="admissionWebsite" className="mb-2">Website tuyển sinh *</Label>
+                  <Input
+                    id="admissionWebsite"
+                    value={formData.admissionWebsite || ''}
+                    onChange={(e) => handleInputChange('admissionWebsite', e.target.value)}
+                    readOnly={!editing}
+                    placeholder="https://tuyensinh.hust.edu.vn"
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.admissionWebsite ? "border-red-500" : ""}
+                  />
+                  {formErrors.admissionWebsite && <p className="text-red-500 text-sm mt-1">{formErrors.admissionWebsite}</p>}
+                </div>
+                <div className="col-span-2">
+                  <Label htmlFor="locations" className="mb-2">Địa điểm *</Label>
+                  <Input
+                    id="locations"
+                    value={formData.locations || ''}
+                    onChange={(e) => handleInputChange('locations', e.target.value)}
+                    rows={3}
+                    readOnly={!editing}
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.locations ? "border-red-500" : ""}
+                  />
+                  {formErrors.locations && <p className="text-red-500 text-sm mt-1">{formErrors.locations}</p>}
+                </div>
+                <div className="col-span-2">
+                  <Label htmlFor="rankingCriteria" className="mb-2">Tiêu chí xếp hạng *</Label>
+                  <Textarea
                     id="rankingCriteria"
                     value={formData.rankingCriteria || ''}
                     onChange={(e) => handleInputChange('rankingCriteria', e.target.value)}
                     readOnly={!editing}
                     placeholder="VD: QS World University Rankings"
-                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" : 
-                              formErrors.rankingCriteria ? "border-red-500" : ""}
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.rankingCriteria ? "border-red-500" : ""}
                   />
                   {formErrors.rankingCriteria && <p className="text-red-500 text-sm mt-1">{formErrors.rankingCriteria}</p>}
                 </div>
@@ -370,64 +405,10 @@ const UniversityDetailPage = () => {
                   onChange={(e) => handleInputChange('introduction', e.target.value)}
                   rows={4}
                   readOnly={!editing}
-                  className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" : 
-                            formErrors.introduction ? "border-red-500" : ""}
+                  className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                    formErrors.introduction ? "border-red-500" : ""}
                 />
                 {formErrors.introduction && <p className="text-red-500 text-sm mt-1">{formErrors.introduction}</p>}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="contact" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <MapPin className="h-5 w-5 mr-2" />
-                Thông tin liên hệ
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="locations" className="mb-2">Địa điểm *</Label>
-                <Textarea
-                  id="locations"
-                  value={formData.locations || ''}
-                  onChange={(e) => handleInputChange('locations', e.target.value)}
-                  rows={3}
-                  readOnly={!editing}
-                  className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" : 
-                            formErrors.locations ? "border-red-500" : ""}
-                />
-                {formErrors.locations && <p className="text-red-500 text-sm mt-1">{formErrors.locations}</p>}
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="officialWebsite" className="mb-2">Website chính thức *</Label>
-                  <Input
-                    id="officialWebsite"
-                    value={formData.officialWebsite || ''}
-                    onChange={(e) => handleInputChange('officialWebsite', e.target.value)}
-                    readOnly={!editing}
-                    placeholder="https://www.hust.edu.vn"
-                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" : 
-                              formErrors.officialWebsite ? "border-red-500" : ""}
-                  />
-                  {formErrors.officialWebsite && <p className="text-red-500 text-sm mt-1">{formErrors.officialWebsite}</p>}
-                </div>
-                <div>
-                  <Label htmlFor="admissionWebsite" className="mb-2">Website tuyển sinh *</Label>
-                  <Input
-                    id="admissionWebsite"
-                    value={formData.admissionWebsite || ''}
-                    onChange={(e) => handleInputChange('admissionWebsite', e.target.value)}
-                    readOnly={!editing}
-                    placeholder="https://tuyensinh.hust.edu.vn"
-                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" : 
-                              formErrors.admissionWebsite ? "border-red-500" : ""}
-                  />
-                  {formErrors.admissionWebsite && <p className="text-red-500 text-sm mt-1">{formErrors.admissionWebsite}</p>}
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -447,6 +428,10 @@ const UniversityDetailPage = () => {
 
         <TabsContent value="scholarships">
           <ScholarshipsTab universityId={id} />
+        </TabsContent>
+
+        <TabsContent value="admission">
+          <AdmissionManagementTab universityId={id} />
         </TabsContent>
       </Tabs>
     </div>

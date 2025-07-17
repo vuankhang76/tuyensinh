@@ -11,6 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from 'sonner'
 import { Plus, Edit, Trash2, GraduationCap } from 'lucide-react'
 import academicProgramService from '@/services/academicProgramService'
+import { TableSkeleton } from '@/components/common/Loading/LoadingSkeleton'
+import { Skeleton } from '@/components/ui/skeleton';
 
 const ProgramsManagementTab = ({ universityId }) => {
   const [programs, setPrograms] = useState([])
@@ -93,7 +95,19 @@ const ProgramsManagementTab = ({ universityId }) => {
       resetForm()
       fetchPrograms()
     } catch (error) {
-      toast.error(editingProgram ? 'Lỗi khi cập nhật' : 'Lỗi khi thêm mới')
+      if (error.response) {
+        const { status, data } = error.response;
+        if (status === 400 && data.errors) {
+          const messages = Object.values(data.errors).flat();
+          messages.forEach(msg => toast.error(msg));
+        } else if (data.title) {
+          toast.error(data.title);
+        } else {
+          toast.error('Có lỗi xảy ra khi lưu thông tin');
+        }
+      } else {
+        toast.error(`Lỗi: ${error.message || 'Không xác định'}`);
+      }
     } finally {
       setLoading(false)
     }
@@ -124,29 +138,49 @@ const ProgramsManagementTab = ({ universityId }) => {
     }
   }
 
-  const filteredPrograms = programs.filter(program =>
-    program.name?.toLowerCase()
-  )
-
   const validateForm = () => {
     const errors = {};
-    if (!formData.name.trim()) {
-      errors.name = 'Tên chương trình là bắt buộc';
+    const currentYear = new Date().getFullYear();
+
+    if (!formData.name?.trim()) {
+      errors.name = 'Tên chương trình là bắt buộc.';
+    } else if (formData.name.trim().length > 255) {
+      errors.name = 'Tên chương trình không được vượt quá 255 ký tự.';
     }
-    if (!formData.year || isNaN(formData.year) || parseInt(formData.year) < 1900) {
-      errors.year = 'Năm áp dụng phải là số hợp lệ';
+
+    if (!formData.year) {
+      errors.year = 'Năm bắt đầu là bắt buộc.';
+    } else if (isNaN(formData.year) || !Number.isInteger(Number(formData.year))) {
+      errors.year = 'Năm phải là một số nguyên.';
+    } else if (parseInt(formData.year) < 2010 || parseInt(formData.year) > currentYear + 3) {
+      errors.year = `Năm phải nằm trong khoảng từ 2010 đến ${currentYear + 3}.`;
     }
+
     if (formData.tuition) {
-      if (isNaN(formData.tuition) || parseFloat(formData.tuition) < 0) {
-        errors.tuition = 'Học phí phải là số không âm';
+      if (isNaN(formData.tuition)) {
+        errors.tuition = 'Học phí phải là một số.';
+      } else if (parseFloat(formData.tuition) < 0) {
+        errors.tuition = 'Học phí không thể là số âm.';
+      } else if (parseFloat(formData.tuition) > 1000000000) {
+        errors.tuition = 'Học phí có vẻ quá cao, vui lòng kiểm tra lại.';
       }
-      if (!formData.tuitionUnit.trim()) {
-        errors.tuitionUnit = 'Vui lòng nhập đơn vị học phí';
+
+      if (!formData.tuitionUnit?.trim()) {
+        errors.tuitionUnit = 'Vui lòng nhập đơn vị học phí (ví dụ: VNĐ/năm).';
       }
     }
+
+    if (formData.duration?.length > 100) {
+      errors.duration = 'Thời gian đào tạo không được vượt quá 100 ký tự.';
+    }
+
+    if (formData.description?.length > 5000) {
+      errors.description = 'Mô tả không được vượt quá 5000 ký tự.';
+    }
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -206,15 +240,28 @@ const ProgramsManagementTab = ({ universityId }) => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <GraduationCap className="h-5 w-5 mr-2" />
-            Danh sách chương trình ({filteredPrograms.length})
-          </CardTitle>
+          {loading ? (
+            <div className='animate-pulse'>
+              <Skeleton className="h-6 w-1/4" />
+            </div>
+          ) : (
+            <CardTitle className="flex items-center">
+              <GraduationCap className="h-5 w-5 mr-2" />
+              Danh sách chương trình ({programs.length})
+            </CardTitle>
+          )}
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex justify-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
-          ) : filteredPrograms.length === 0 ? (
+            <TableSkeleton
+              columns={[
+                { width: "40%" },
+                { width: "10%" },
+                { width: "10%" },
+              ]}
+              rows={5}
+            />
+          ) : programs.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">Không tìm thấy chương trình nào.</div>
           ) : (
             <Table>
@@ -227,7 +274,7 @@ const ProgramsManagementTab = ({ universityId }) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPrograms.map((program) => (
+                {programs.map((program) => (
                   <TableRow key={program.id}>
                     <TableCell>
                       <div className="font-medium">{program.name}</div>

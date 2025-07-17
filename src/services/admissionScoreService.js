@@ -19,6 +19,15 @@ export const admissionScoreService = {
         }
     },
 
+    getScoresByUniversity: async (universityId) => {
+        try {
+          const response = await axios.get(`/AdmissionScores/University/${universityId}`)
+          return response.data
+        } catch (error) {
+          throw error
+        }
+      },
+
     getAdmissionScoresByMajor: async (majorId) => {
         try {
             const response = await axios.get(`/AdmissionScores/major/${majorId}`)
