@@ -69,12 +69,6 @@ const AdminLayout = () => {
       type: 'item',
     },
     {
-      key: 'news',
-      icon: Bell,
-      label: 'Quản lý tin',
-      type: 'item',
-    },
-    {
       type: 'divider',
     },
     {

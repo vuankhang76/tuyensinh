@@ -18,6 +18,7 @@ import {
   admissionScoreService,
   scholarshipService
 } from '@/services'
+
 import Loading from '@/components/common/Loading/LoadingSkeleton'
 import UniversityHero from '@/components/university/UniversityHero'
 import UniversityStats from '@/components/university/UniversityStats'
@@ -52,11 +53,9 @@ const UniversityDetail = () => {
   useEffect(() => {
     const fetchUniversityData = async () => {
       if (!id) return
-
       try {
         setLoading(true)
         setError(null)
-
         const [
           universityResult,
           programsResult,
@@ -186,7 +185,7 @@ const UniversityDetail = () => {
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link to="/universities">Danh sách trường</Link>
+                  <Link to="/danh-sach-truong">Danh sách trường</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />

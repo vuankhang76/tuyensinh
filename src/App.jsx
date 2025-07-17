@@ -18,7 +18,6 @@ import Overview from './pages/admin/Dashboard/Overview'
 import UniversityManagement from './pages/admin/Universities/UniversityManagement'
 import UniversityDetailPage from './pages/admin/Universities/UniversityDetailPage'
 import UserManagement from './pages/admin/Users/UserManagement'
-import AdmissionNewsManagement from './pages/admin/AdmissionNews/AdmissionNewsManagement'
 import UniversityAdmin from './pages/university/UniversityAdmin'
 import UserProfile from './pages/user/UserProfile'
 import AIChat from './pages/AIChat'
@@ -46,7 +45,6 @@ function App() {
               <Route path="universities/create" element={<UniversityCreatePage />} />
               <Route path="universities/:id" element={<UniversityDetailPage />} />
               <Route path="users" element={<UserManagement />} />
-              <Route path="news" element={<AdmissionNewsManagement />} />
             </Route>
 
             <Route path="/university-admin" element={

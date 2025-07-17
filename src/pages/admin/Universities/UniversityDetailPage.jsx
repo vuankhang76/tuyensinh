@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
@@ -14,27 +13,31 @@ import {
   Save,
   Edit,
   Building2,
-  MapPin,
-  Users,
   BookOpen,
   Award,
   GraduationCap,
-  Newspaper
+  Newspaper,
+  Users
 } from 'lucide-react';
 
 import MajorsManagementTab from './tabs/MajorsManagementTab';
 import ProgramsManagementTab from './tabs/ProgramsManagementTab';
-import AdmissionNewsTab from './tabs/AdmissionNewsTab';
-import ScholarshipsTab from './tabs/ScholarshipsTab';
+import AdmissionNewsTab from './tabs/AdmissionNewsManagementTab';
+import ScholarshipsTab from './tabs/ScholarshipsManagementTab';
 import universityService from '@/services/universityService';
+import AdmissionManagementTab from './tabs/AdmissionManagementTab';
+import { Dialog } from '@radix-ui/react-dialog';
 
 const UniversityDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
   const [university, setUniversity] = useState(null);
   const [formData, setFormData] = useState({});
+  const [formErrors, setFormErrors] = useState({});
+  const [currentTab, setCurrentTab] = useState('basic');
 
   useEffect(() => {
     if (id) {
@@ -45,6 +48,7 @@ const UniversityDetailPage = () => {
   useEffect(() => {
     if (university) {
       setFormData(university);
+      setFormErrors({});
     }
   }, [university]);
 
@@ -54,6 +58,7 @@ const UniversityDetailPage = () => {
       const data = await universityService.getUniversityById(id);
       setUniversity(data);
     } catch (error) {
+      console.error("Lỗi chi tiết khi tải dữ liệu trường:", error);
       toast.error('Có lỗi xảy ra khi tải thông tin trường đại học');
       navigate('/admin/universities');
     } finally {
@@ -61,48 +66,139 @@ const UniversityDetailPage = () => {
     }
   };
 
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formData.name?.trim()) {
+      errors.name = 'Tên trường là bắt buộc';
+    }
+
+    if (!formData.shortName?.trim()) {
+      errors.shortName = 'Tên viết tắt là bắt buộc';
+    }
+
+    if (!formData.type?.trim()) {
+      errors.type = 'Loại hình là bắt buộc';
+    }
+
+    if (!formData.locations?.trim()) {
+      errors.locations = 'Địa điểm là bắt buộc';
+    }
+
+    if (!formData.introduction?.trim()) {
+      errors.introduction = 'Giới thiệu là bắt buộc';
+    }
+
+    if (!formData.officialWebsite?.trim()) {
+      errors.officialWebsite = 'Website chính thức là bắt buộc';
+    }
+
+    if (!formData.admissionWebsite?.trim()) {
+      errors.admissionWebsite = 'Website tuyển sinh là bắt buộc';
+    }
+
+    if (!formData.rankingCriteria?.trim()) {
+      errors.rankingCriteria = 'Tiêu chí xếp hạng là bắt buộc';
+    }
+
+    const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/;
+
+    if (formData.officialWebsite && !urlPattern.test(formData.officialWebsite)) {
+      errors.officialWebsite = 'Website chính thức phải là URL hợp lệ';
+    }
+
+    if (formData.admissionWebsite && !urlPattern.test(formData.admissionWebsite)) {
+      errors.admissionWebsite = 'Website tuyển sinh phải là URL hợp lệ';
+    }
+
+    if (formData.ranking && (isNaN(formData.ranking) || formData.ranking < 1)) {
+      errors.ranking = 'Thứ hạng phải là số dương';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+
+    if (formErrors[field]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [field]: null
+      }));
+    }
   };
 
   const handleSave = async () => {
-    setLoading(true);
+    if (!validateForm()) {
+      toast.error('Vui lòng sửa các lỗi trong form');
+      return;
+    }
+
+    setSaving(true);
     try {
-      const updatedData = await universityService.updateUniversity(id, formData);
-      setUniversity(updatedData);
+      const updateData = {
+        name: formData.name?.trim(),
+        shortName: formData.shortName?.trim(),
+        introduction: formData.introduction?.trim(),
+        officialWebsite: formData.officialWebsite?.trim(),
+        admissionWebsite: formData.admissionWebsite?.trim(),
+        ranking: formData.ranking ? parseInt(formData.ranking) : null,
+        rankingCriteria: formData.rankingCriteria?.trim(),
+        locations: formData.locations?.trim(),
+        type: formData.type?.trim()
+      };
+
+      await universityService.updateUniversity(id, updateData);
+
+      await fetchUniversityData();
+
       setEditing(false);
       toast.success("Đã cập nhật thông tin trường đại học thành công!");
     } catch (error) {
-      toast.error("Có lỗi xảy ra khi cập nhật thông tin");
+      console.error("Lỗi chi tiết khi cập nhật:", error);
+
+      if (error.response?.status === 400 && error.response?.data?.errors) {
+        const backendErrors = {};
+        const errorData = error.response.data.errors;
+
+        const fieldMapping = {
+          'Name': 'name',
+          'ShortName': 'shortName',
+          'Introduction': 'introduction',
+          'OfficialWebsite': 'officialWebsite',
+          'AdmissionWebsite': 'admissionWebsite',
+          'RankingCriteria': 'rankingCriteria',
+          'Locations': 'locations',
+          'Type': 'type'
+        };
+
+        Object.entries(errorData).forEach(([backendField, messages]) => {
+          const frontendField = fieldMapping[backendField] || backendField.toLowerCase();
+          if (Array.isArray(messages) && messages.length > 0) {
+            backendErrors[frontendField] = messages[0];
+          }
+        });
+
+        setFormErrors(backendErrors);
+        toast.error('Có lỗi validation từ server');
+      } else {
+        toast.error("Có lỗi xảy ra khi cập nhật thông tin");
+      }
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   const handleCancel = () => {
     setFormData(university);
+    setFormErrors({});
     setEditing(false);
   };
-
-  const getStatusColor = (status) => {
-    return status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-  };
-
-  const getTypeColor = (type) => {
-    return type === 'Công lập' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800';
-  };
-
-  const ReadOnlyField = ({ label, value, className = "" }) => (
-    <div className={`space-y-1 ${className}`}>
-      <Label className="text-sm font-medium text-muted-foreground">{label}</Label>
-      <div className="text-sm p-3 rounded-md border bg-muted/50">
-        {value || "Chưa có thông tin"}
-      </div>
-    </div>
-  );
 
   if (loading && !university) {
     return (
@@ -124,55 +220,45 @@ const UniversityDetailPage = () => {
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-4">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => navigate('/admin/universities')}
             className="p-2"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">{formData.name || university.name}</h1>
-            <div className="flex items-center space-x-2 mt-2">
-              <Badge variant="secondary" className={getTypeColor(formData.type || university.type)}>
-                {formData.type || university.type}
-              </Badge>
-              <Badge variant="outline">
-                {formData.shortName || university.shortName}
-              </Badge>
-            </div>
+            <h1 className="text-3xl font-bold">{university.name} ({university.shortName})</h1>
           </div>
         </div>
-        
+
         <div className="flex space-x-2">
-          {editing ? (
-            <>
-              <Button variant="outline" onClick={handleCancel}>
-                Hủy
+          {(currentTab == 'basic' || currentTab == 'contact') && (
+            editing ? (
+              <>
+                <Button variant="outline" onClick={handleCancel} disabled={saving}>
+                  Hủy
+                </Button>
+                <Button onClick={handleSave} disabled={saving}>
+                  <Save className="h-4 w-4 mr-2" />
+                  {saving ? 'Đang lưu...' : 'Lưu'}
+                </Button>
+              </>
+            ) : (
+              <Button onClick={() => setEditing(true)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Chỉnh sửa
               </Button>
-              <Button onClick={handleSave} disabled={loading}>
-                <Save className="h-4 w-4 mr-2" />
-                {loading ? 'Đang lưu...' : 'Lưu'}
-              </Button>
-            </>
-          ) : (
-            <Button onClick={() => setEditing(true)}>
-              <Edit className="h-4 w-4 mr-2" />
-              Chỉnh sửa
-            </Button>
+            )
           )}
         </div>
       </div>
 
-      <Tabs defaultValue="basic" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+      <Tabs value={currentTab} onValueChange={setCurrentTab} defaultValue="basic" className="space-y-6">
+        <TabsList className="w-full flex items-center justify-start md:justify-center">
           <TabsTrigger value="basic" className="flex items-center space-x-2">
             <Building2 className="h-4 w-4" />
             <span>Thông tin cơ bản</span>
-          </TabsTrigger>
-          <TabsTrigger value="contact" className="flex items-center space-x-2">
-            <MapPin className="h-4 w-4" />
-            <span>Liên hệ</span>
           </TabsTrigger>
           <TabsTrigger value="majors" className="flex items-center space-x-2">
             <GraduationCap className="h-4 w-4" />
@@ -190,162 +276,140 @@ const UniversityDetailPage = () => {
             <Award className="h-4 w-4" />
             <span>Học bổng</span>
           </TabsTrigger>
+          <TabsTrigger value="admission" className="flex items-center space-x-2">
+            <Users className="h-4 w-4" />
+            <span>Phương thức tuyển sinh</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="basic" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Building2 className="h-5 w-5 mr-2" />
-                Thông tin cơ bản
-              </CardTitle>
+              <CardTitle>Thông tin cơ bản</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {editing ? (
-                  <>
-                    <div>
-                      <Label htmlFor="name">Tên trường</Label>
-                      <Input
-                        id="name"
-                        value={formData.name || ''}
-                        onChange={(e) => handleInputChange('name', e.target.value)}
-                        placeholder="Nhập tên trường đại học"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="shortName">Tên viết tắt</Label>
-                      <Input
-                        id="shortName"
-                        value={formData.shortName || ''}
-                        onChange={(e) => handleInputChange('shortName', e.target.value)}
-                        placeholder="Nhập tên viết tắt"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="type">Loại hình</Label>
-                      <Select 
-                        value={formData.type || ''} 
-                        onValueChange={(value) => handleInputChange('type', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn loại hình" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Công lập">Công lập</SelectItem>
-                          <SelectItem value="Tư thục">Tư thục</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="ranking">Thứ hạng</Label>
-                      <Input
-                        id="ranking"
-                        type="number"
-                        value={formData.ranking || ''}
-                        onChange={(e) => handleInputChange('ranking', e.target.value)}
-                        placeholder="Nhập thứ hạng"
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <ReadOnlyField label="Tên trường" value={formData.name} />
-                    <ReadOnlyField label="Tên viết tắt" value={formData.shortName} />
-                    <ReadOnlyField label="Loại hình" value={formData.type} />
-                    <ReadOnlyField label="Thứ hạng" value={formData.ranking} />
-                  </>
-                )}
-              </div>
-              
-              {editing ? (
                 <div>
-                  <Label htmlFor="introduction">Giới thiệu</Label>
-                  <Textarea
-                    id="introduction"
-                    value={formData.introduction || ''}
-                    onChange={(e) => handleInputChange('introduction', e.target.value)}
-                    rows={4}
-                    placeholder="Nhập giới thiệu về trường đại học"
+                  <Label htmlFor="name" className="mb-2">Tên trường *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name || ''}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    readOnly={!editing}
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.name ? "border-red-500" : ""}
                   />
+                  {formErrors.name && <p className="text-red-500 text-sm mt-1">{formErrors.name}</p>}
                 </div>
-              ) : (
-                <ReadOnlyField 
-                  label="Giới thiệu" 
-                  value={formData.introduction} 
-                  className="col-span-full"
+                <div>
+                  <Label htmlFor="shortName" className="mb-2">Tên viết tắt *</Label>
+                  <Input
+                    id="shortName"
+                    value={formData.shortName || ''}
+                    onChange={(e) => handleInputChange('shortName', e.target.value)}
+                    readOnly={!editing}
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.shortName ? "border-red-500" : ""}
+                  />
+                  {formErrors.shortName && <p className="text-red-500 text-sm mt-1">{formErrors.shortName}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="type" className="mb-2">Loại hình *</Label>
+                  <Select
+                    value={formData.type || ''}
+                    onValueChange={(value) => handleInputChange('type', value)}
+                    disabled={!editing}
+                  >
+                    <SelectTrigger className={formErrors.type ? "border-red-500" : ""}>
+                      <SelectValue placeholder="Chọn loại hình" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Công lập">Công lập</SelectItem>
+                      <SelectItem value="Tư thục">Tư thục</SelectItem>
+                      <SelectItem value="Dân lập">Dân lập</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {formErrors.type && <p className="text-red-500 text-sm mt-1">{formErrors.type}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="ranking" className="mb-2">Thứ hạng</Label>
+                  <Input
+                    id="ranking"
+                    type="number"
+                    value={formData.ranking || ''}
+                    onChange={(e) => handleInputChange('ranking', e.target.value)}
+                    readOnly={!editing}
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.ranking ? "border-red-500" : ""}
+                  />
+                  {formErrors.ranking && <p className="text-red-500 text-sm mt-1">{formErrors.ranking}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="officialWebsite" className="mb-2">Website chính thức *</Label>
+                  <Input
+                    id="officialWebsite"
+                    value={formData.officialWebsite || ''}
+                    onChange={(e) => handleInputChange('officialWebsite', e.target.value)}
+                    readOnly={!editing}
+                    placeholder="https://www.hust.edu.vn"
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.officialWebsite ? "border-red-500" : ""}
+                  />
+                  {formErrors.officialWebsite && <p className="text-red-500 text-sm mt-1">{formErrors.officialWebsite}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="admissionWebsite" className="mb-2">Website tuyển sinh *</Label>
+                  <Input
+                    id="admissionWebsite"
+                    value={formData.admissionWebsite || ''}
+                    onChange={(e) => handleInputChange('admissionWebsite', e.target.value)}
+                    readOnly={!editing}
+                    placeholder="https://tuyensinh.hust.edu.vn"
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.admissionWebsite ? "border-red-500" : ""}
+                  />
+                  {formErrors.admissionWebsite && <p className="text-red-500 text-sm mt-1">{formErrors.admissionWebsite}</p>}
+                </div>
+                <div className="col-span-2">
+                  <Label htmlFor="locations" className="mb-2">Địa điểm *</Label>
+                  <Input
+                    id="locations"
+                    value={formData.locations || ''}
+                    onChange={(e) => handleInputChange('locations', e.target.value)}
+                    rows={3}
+                    readOnly={!editing}
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.locations ? "border-red-500" : ""}
+                  />
+                  {formErrors.locations && <p className="text-red-500 text-sm mt-1">{formErrors.locations}</p>}
+                </div>
+                <div className="col-span-2">
+                  <Label htmlFor="rankingCriteria" className="mb-2">Tiêu chí xếp hạng *</Label>
+                  <Textarea
+                    id="rankingCriteria"
+                    value={formData.rankingCriteria || ''}
+                    onChange={(e) => handleInputChange('rankingCriteria', e.target.value)}
+                    readOnly={!editing}
+                    placeholder="VD: QS World University Rankings"
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.rankingCriteria ? "border-red-500" : ""}
+                  />
+                  {formErrors.rankingCriteria && <p className="text-red-500 text-sm mt-1">{formErrors.rankingCriteria}</p>}
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="introduction" className="mb-2">Giới thiệu *</Label>
+                <Textarea
+                  id="introduction"
+                  value={formData.introduction || ''}
+                  onChange={(e) => handleInputChange('introduction', e.target.value)}
+                  rows={4}
+                  readOnly={!editing}
+                  className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                    formErrors.introduction ? "border-red-500" : ""}
                 />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="contact" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <MapPin className="h-5 w-5 mr-2" />
-                Thông tin liên hệ
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {editing ? (
-                <>
-                  <div>
-                    <Label htmlFor="locations">Địa điểm</Label>
-                    <Textarea
-                      id="locations"
-                      value={formData.locations || ''}
-                      onChange={(e) => handleInputChange('locations', e.target.value)}
-                      rows={3}
-                      placeholder="Nhập địa điểm các cơ sở"
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="officialWebsite">Website chính thức</Label>
-                      <Input
-                        id="officialWebsite"
-                        value={formData.officialWebsite || ''}
-                        onChange={(e) => handleInputChange('officialWebsite', e.target.value)}
-                        placeholder="https://university.edu.vn"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="admissionWebsite">Website tuyển sinh</Label>
-                      <Input
-                        id="admissionWebsite"
-                        value={formData.admissionWebsite || ''}
-                        onChange={(e) => handleInputChange('admissionWebsite', e.target.value)}
-                        placeholder="https://admission.university.edu.vn"
-                      />
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="space-y-4">
-                  <ReadOnlyField label="Địa điểm" value={formData.locations} />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <ReadOnlyField 
-                      label="Website chính thức" 
-                      value={formData.officialWebsite ? (
-                        <a href={formData.officialWebsite} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                          {formData.officialWebsite}
-                        </a>
-                      ) : "Chưa có thông tin"} 
-                    />
-                    <ReadOnlyField 
-                      label="Website tuyển sinh" 
-                      value={formData.admissionWebsite ? (
-                        <a href={formData.admissionWebsite} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                          {formData.admissionWebsite}
-                        </a>
-                      ) : "Chưa có thông tin"} 
-                    />
-                  </div>
-                </div>
-              )}
+                {formErrors.introduction && <p className="text-red-500 text-sm mt-1">{formErrors.introduction}</p>}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -365,9 +429,13 @@ const UniversityDetailPage = () => {
         <TabsContent value="scholarships">
           <ScholarshipsTab universityId={id} />
         </TabsContent>
+
+        <TabsContent value="admission">
+          <AdmissionManagementTab universityId={id} />
+        </TabsContent>
       </Tabs>
     </div>
   );
 };
 
-export default UniversityDetailPage; 
+export default UniversityDetailPage;
