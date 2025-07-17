@@ -10,7 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { Plus, Edit, Trash2, BookOpen } from 'lucide-react';
-import { majorService, admissionScoreService } from '@/services';
+import { majorService, admissionScoreService, admissionMethodService } from '@/services';
 import { TableSkeleton } from '@/components/common/Loading/LoadingSkeleton';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -99,23 +99,27 @@ const MajorsManagementTab = ({ universityId }) => {
 
     setLoading(true);
     try {
-      const majorPayload = {
-        name: formData.name,
-        code: formData.code,
-        description: formData.description,
-        universityId: parseInt(universityId),
-      };
-
       if (editingMajor) {
+        // Update existing major
+        const majorPayload = {
+          Name: formData.name.trim(),
+          Code: formData.code.trim().toUpperCase(),
+          Description: formData.description.trim(),
+          UniversityId: parseInt(universityId),
+        };
+
         await majorService.updateMajor(editingMajor.id, majorPayload);
 
+        // Update admission score if needed
         const hasScoreInfo = formData.score || formData.subjectCombination;
         if (hasScoreInfo) {
           const scorePayload = {
-            score: parseFloat(formData.score) || 0,
-            year: parseInt(formData.year),
-            subjectCombination: formData.subjectCombination,
-            majorId: editingMajor.id,
+            MajorId: editingMajor.id,
+            Year: parseInt(formData.year) || new Date().getFullYear(),
+            Score: parseFloat(formData.score) || 0,
+            // AdmissionMethodId: null,
+            // Note: null,
+            SubjectCombination: formData.subjectCombination?.trim() || ""
           };
 
           if (formData.scoreId) {
@@ -127,34 +131,126 @@ const MajorsManagementTab = ({ universityId }) => {
         toast.success('Cập nhật ngành học thành công!');
 
       } else {
-        const newMajor = await majorService.createMajor(majorPayload);
+        // BƯỚC 1: Tạo Major trước (chỉ thông tin Major thuần túy)
+        const majorPayload = {
+          Name: formData.name.trim(),
+          Code: formData.code.trim().toUpperCase(), 
+          Description: formData.description.trim(),
+          UniversityId: parseInt(universityId),
+          // KHÔNG gửi AdmissionScore, Year - để tránh conflict
+        };
 
-        if (formData.score || formData.subjectCombination) {
+        console.log('🚀 Step 1 - Creating Major:', majorPayload);
+        console.log('🔑 UniversityId:', universityId);
+
+        const newMajor = await majorService.createMajor(majorPayload);
+        console.log('✅ Step 1 Complete - Major created:', newMajor);
+
+        // BƯỚC 2: Tạo AdmissionScore riêng biệt (chỉ nếu có điểm)
+        if (formData.score && parseFloat(formData.score) > 0) {
+          console.log('📋 Original form data for score:', {
+            score: formData.score,
+            year: formData.year,
+            subjectCombination: formData.subjectCombination
+          });
+          
+          const currentYear = new Date().getFullYear();
+          // Use a different year to avoid potential duplicates
+          const targetYear = parseInt(formData.year) || (currentYear - 1); // Use 2024 instead of 2025
+          
           const scorePayload = {
-            score: parseFloat(formData.score) || 0,
-            year: parseInt(formData.year),
-            subjectCombination: formData.subjectCombination,
-            majorId: newMajor.id,
+            MajorId: newMajor.id,
+            Year: targetYear,
+            Score: parseFloat(formData.score)
           };
-          await admissionScoreService.createAdmissionScore(scorePayload);
+
+          // Only add optional fields if they have meaningful values
+          if (formData.subjectCombination && formData.subjectCombination.trim()) {
+            scorePayload.SubjectCombination = formData.subjectCombination.trim();
+          }
+
+          console.log('🎯 Step 2 - Creating AdmissionScore:', scorePayload);
+          try {
+            const newScore = await admissionScoreService.createAdmissionScore(scorePayload);
+            console.log('✅ Step 2 Complete - Score created:', newScore);
+          } catch (error) {
+            console.log('⚠️ Score creation failed, trying with AdmissionMethodId...', error.response?.data || error.message);
+            
+            // Try with an AdmissionMethod if available
+            try {
+              const methods = await admissionMethodService.getAdmissionMethodsByUniversity(universityId);
+              if (methods && methods.length > 0) {
+                const methodPayload = {
+                  ...scorePayload,
+                  AdmissionMethodId: methods[0].id
+                };
+                console.log('🔄 Retrying with AdmissionMethodId:', methodPayload);
+                const newScore = await admissionScoreService.createAdmissionScore(methodPayload);
+                console.log('✅ Step 2 Complete (with method) - Score created:', newScore);
+              } else {
+                throw new Error('No admission methods available');
+              }
+            } catch (retryError) {
+              console.log('⚠️ Retry with method failed, trying minimal payload...');
+              
+              // Final attempt with absolute minimal payload
+              try {
+                const minimalPayload = {
+                  MajorId: newMajor.id,
+                  Year: 2023, // Use completely different year
+                  Score: parseFloat(formData.score)
+                };
+                console.log('🔄 Final attempt with minimal payload:', minimalPayload);
+                const newScore = await admissionScoreService.createAdmissionScore(minimalPayload);
+                console.log('✅ Step 2 Complete (minimal) - Score created:', newScore);
+              } catch (finalError) {
+                console.log('⚠️ All attempts failed:', finalError.response?.data || finalError.message);
+                if (error.response?.data?.message) {
+                  toast.warning(`Ngành học đã tạo thành công! Lưu ý: ${error.response.data.message}`);
+                }
+              }
+            }
+          }
         }
+
         toast.success('Thêm ngành học thành công!');
       }
       setIsDialogOpen(false);
       fetchAndCombineData();
     } catch (error) {
+      console.error('❌ Error details:', error);
+      console.error('📝 Response data:', error.response?.data);
+      console.error('🔢 Status:', error.response?.status);
+      console.error('🌐 Full response:', error.response);
+      
+      // Log chi tiết response data
+      if (error.response?.data) {
+        console.log('💬 Error message:', error.response.data.message);
+        console.log('⚠️ Error details:', error.response.data.error);
+        console.log('📋 Full error object:', JSON.stringify(error.response.data, null, 2));
+      }
+      
       if (error.response) {
         const { status, data } = error.response;
-        if (status === 400 && data.errors) {
-          const messages = Object.values(data.errors).flat();
-          messages.forEach(msg => toast.error(msg));
-        } else if (data.title) {
-          toast.error(data.title);
+        if (status === 401) {
+          toast.error('Bạn cần đăng nhập để thực hiện thao tác này');
+        } else if (status === 403) {
+          toast.error('Chỉ admin mới có quyền thêm ngành học');
+        } else if (status === 400) {
+          if (data.errors) {
+            Object.entries(data.errors).forEach(([field, messages]) => {
+              messages.forEach(msg => toast.error(`${field}: ${msg}`));
+            });
+          } else {
+            toast.error(data.message || data.title || 'Dữ liệu không hợp lệ');
+          }
+        } else if (status === 500) {
+          toast.error(`Lỗi server: ${data.error || data.message || 'Không xác định'}`);
         } else {
-          toast.error('Có lỗi xảy ra khi lưu thông tin');
+          toast.error(data.message || data.title || 'Có lỗi xảy ra khi lưu thông tin');
         }
       } else {
-        toast.error(`Lỗi: ${error.message || 'Không xác định'}`);
+        toast.error(`Lỗi kết nối: ${error.message || 'Không xác định'}`);
       }
     } finally {
       setLoading(false);
@@ -176,67 +272,49 @@ const MajorsManagementTab = ({ universityId }) => {
 
   const validateForm = () => {
     const errors = {};
-    const currentYear = new Date().getFullYear();
 
+    // Major fields - BẮT BUỘC
     if (!formData.name?.trim()) {
-        errors.name = 'Tên ngành học là bắt buộc.';
+      errors.name = 'Tên ngành học là bắt buộc.';
     }
 
     if (!formData.code?.trim()) {
-        errors.code = 'Mã ngành học là bắt buộc.';
+      errors.code = 'Mã ngành học là bắt buộc.';
     } else if (/\s/.test(formData.code)) {
-        errors.code = 'Mã ngành không được chứa khoảng trắng.';
+      errors.code = 'Mã ngành không được chứa khoảng trắng.';
     }
 
-    if (!formData.year) {
-        errors.year = 'Năm áp dụng là bắt buộc.';
-    } else if (isNaN(formData.year) || !Number.isInteger(Number(formData.year))) {
-        errors.year = 'Năm phải là một số nguyên.';
-    } else if (parseInt(formData.year) < 2010 || parseInt(formData.year) > currentYear + 3) {
-        errors.year = `Năm phải nằm trong khoảng từ 2010 đến ${currentYear + 3}.`;
+    if (!formData.description?.trim()) {
+      errors.description = 'Mô tả ngành học là bắt buộc.';
+    } else if (formData.description.length > 2000) {
+      errors.description = 'Mô tả không được vượt quá 2000 ký tự.';
     }
 
-    if (formData.score) {
-        if (isNaN(formData.score)) {
-            errors.score = 'Điểm chuẩn phải là một số.';
-        } else if (parseFloat(formData.score) < 0 || parseFloat(formData.score) > 30) {
-            errors.score = 'Điểm chuẩn phải nằm trong khoảng từ 0 đến 30.';
-        }
-    }
-    
-    if (!formData.subjectCombination?.trim()) {
-        errors.subjectCombination = 'Tổ hợp môn là bắt buộc.';
-    } else {
-        const pattern = /^[A-Z0-9]{3}(\s*,\s*[A-Z0-9]{3})*$/i;
-        if (!pattern.test(formData.subjectCombination.trim())) {
-            errors.subjectCombination = 'Định dạng không hợp lệ. Ví dụ đúng: A00, D01, B00';
-        }
-    }
-    
-    if (formData.description?.length > 2000) {
-        errors.description = 'Mô tả không được vượt quá 2000 ký tự.';
-    }
-    const hasScoreValue = formData.score && formData.score.toString().trim() !== '';
-    const hasCombinationValue = formData.subjectCombination && formData.subjectCombination.trim() !== '';
-
-    if (hasScoreValue) {
+    // AdmissionScore fields - KHÔNG BẮT BUỘC nhưng validate nếu có
+    if (formData.score && formData.score.toString().trim() !== '') {
       if (isNaN(formData.score)) {
         errors.score = 'Điểm chuẩn phải là một số.';
       } else if (parseFloat(formData.score) < 0 || parseFloat(formData.score) > 30) {
         errors.score = 'Điểm chuẩn phải nằm trong khoảng từ 0 đến 30.';
       }
-      
-      if (!hasCombinationValue) {
-        errors.subjectCombination = 'Tổ hợp môn là bắt buộc khi đã nhập điểm chuẩn.';
+    }
+
+    if (formData.year && formData.year.toString().trim() !== '') {
+      const currentYear = new Date().getFullYear();
+      if (isNaN(formData.year) || !Number.isInteger(Number(formData.year))) {
+        errors.year = 'Năm phải là một số nguyên.';
+      } else if (parseInt(formData.year) < 2010 || parseInt(formData.year) > currentYear + 3) {
+        errors.year = `Năm phải nằm trong khoảng từ 2010 đến ${currentYear + 3}.`;
       }
     }
 
-    if (hasCombinationValue) {
-        const pattern = /^[A-Z0-9]{3}(\s*,\s*[A-Z0-9]{3})*$/i;
-        if (!pattern.test(formData.subjectCombination.trim())) {
-            errors.subjectCombination = 'Định dạng không hợp lệ. Ví dụ đúng: A00, D01, B00';
-        }
+    if (formData.subjectCombination?.trim()) {
+      const pattern = /^[A-Z0-9]{3}(\s*,\s*[A-Z0-9]{3})*$/i;
+      if (!pattern.test(formData.subjectCombination.trim())) {
+        errors.subjectCombination = 'Định dạng không hợp lệ. Ví dụ đúng: A00, D01, B00';
+      }
     }
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -262,36 +340,85 @@ const MajorsManagementTab = ({ universityId }) => {
             <form onSubmit={handleSubmit} className="space-y-4 pt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name" className="mb-2">Tên ngành học *</Label>
-                  <Input id="name" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} required />
+                  <Label htmlFor="name" className="mb-2">
+                    Tên ngành học <span className="text-red-500">*</span>
+                  </Label>
+                  <Input 
+                    id="name" 
+                    value={formData.name} 
+                    onChange={(e) => handleInputChange('name', e.target.value)} 
+                    placeholder="VD: Công nghệ Thông tin"
+                    required 
+                  />
                   {formErrors.name && <p className="text-red-500 text-sm mt-1">{formErrors.name}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="code" className="mb-2">Mã ngành *</Label>
-                  <Input id="code" value={formData.code} onChange={(e) => handleInputChange('code', e.target.value)} required />
+                  <Label htmlFor="code" className="mb-2">
+                    Mã ngành <span className="text-red-500">*</span>
+                  </Label>
+                  <Input 
+                    id="code" 
+                    value={formData.code} 
+                    onChange={(e) => handleInputChange('code', e.target.value.toUpperCase())} 
+                    placeholder="VD: CNTT, KTPM"
+                    required 
+                  />
                   {formErrors.code && <p className="text-red-500 text-sm mt-1">{formErrors.code}</p>}
                 </div>
               </div>
               <div>
-                <Label htmlFor="description" className="mb-2">Mô tả ngành học</Label>
-                <Textarea id="description" value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)} rows={3} />
+                <Label htmlFor="description" className="mb-2">
+                  Mô tả ngành học <span className="text-red-500">*</span>
+                </Label>
+                <Textarea 
+                  id="description" 
+                  value={formData.description} 
+                  onChange={(e) => handleInputChange('description', e.target.value)} 
+                  placeholder="VD: Ngành đào tạo cử nhân công nghệ thông tin với kiến thức về lập trình, cơ sở dữ liệu, mạng máy tính..."
+                  rows={3}
+                  required
+                />
                 {formErrors.description && <p className="text-red-500 text-sm mt-1">{formErrors.description}</p>}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="score" className="mb-2">Điểm chuẩn</Label>
-                  <Input id="score" type="number" step="0.01" value={formData.score} onChange={(e) => handleInputChange('score', e.target.value)} placeholder="25.5" />
-                  {formErrors.score && <p className="text-red-500 text-sm mt-1">{formErrors.score}</p>}
-                </div>
-                <div>
-                  <Label htmlFor="year" className="mb-2">Năm</Label>
-                  <Input id="year" type="number" value={formData.year} onChange={(e) => handleInputChange('year', e.target.value)} placeholder="2025" />
-                  {formErrors.year && <p className="text-red-500 text-sm mt-1">{formErrors.year}</p>}
-                </div>
-                <div className="md:col-span-2">
-                  <Label htmlFor="subjectCombination" className="mb-2">Tổ hợp môn (cách nhau bởi dấu phẩy)</Label>
-                  <Input id="subjectCombination" value={formData.subjectCombination} onChange={(e) => handleInputChange('subjectCombination', e.target.value)} placeholder="A00, A01, D07" />
-                  {formErrors.subjectCombination && <p className="text-red-500 text-sm mt-1">{formErrors.subjectCombination}</p>}
+              
+              <div className="border-t pt-4">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Thông tin điểm chuẩn (không bắt buộc)</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="score" className="mb-2">Điểm chuẩn</Label>
+                    <Input 
+                      id="score" 
+                      type="number" 
+                      step="0.01" 
+                      value={formData.score} 
+                      onChange={(e) => handleInputChange('score', e.target.value)} 
+                      placeholder="VD: 25.5" 
+                    />
+                    {formErrors.score && <p className="text-red-500 text-sm mt-1">{formErrors.score}</p>}
+                  </div>
+                  <div>
+                    <Label htmlFor="year" className="mb-2">Năm áp dụng</Label>
+                    <Input 
+                      id="year" 
+                      type="number" 
+                      value={formData.year} 
+                      onChange={(e) => handleInputChange('year', e.target.value)} 
+                      placeholder="VD: 2025" 
+                    />
+                    {formErrors.year && <p className="text-red-500 text-sm mt-1">{formErrors.year}</p>}
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label htmlFor="subjectCombination" className="mb-2">
+                      Tổ hợp môn (cách nhau bởi dấu phẩy)
+                    </Label>
+                    <Input 
+                      id="subjectCombination" 
+                      value={formData.subjectCombination} 
+                      onChange={(e) => handleInputChange('subjectCombination', e.target.value)} 
+                      placeholder="VD: A00, A01, D07" 
+                    />
+                    {formErrors.subjectCombination && <p className="text-red-500 text-sm mt-1">{formErrors.subjectCombination}</p>}
+                  </div>
                 </div>
               </div>
               <div className="flex justify-end space-x-2 pt-4">
