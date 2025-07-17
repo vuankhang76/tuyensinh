@@ -2,17 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Mail, CheckCircle, RefreshCw, ArrowLeft } from 'lucide-react';
+import { Mail, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import { checkEmailVerificationStatus, completeRegistration, resendVerificationEmail } from '@/services/authService';
+import { resendVerificationEmail } from '@/services/authService';
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
 const EmailVerification = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const [isChecking, setIsChecking] = useState(false);
-    const [isCompleting, setIsCompleting] = useState(false);
+
     const [email, setEmail] = useState('');
 
     const [cooldown, setCooldown] = useState(0);
@@ -66,32 +65,7 @@ const EmailVerification = () => {
     }, [cooldown]);
 
 
-    const handleCheckVerification = async () => {
-        setIsChecking(true);
-            const isVerified = await checkEmailVerificationStatus();
-            if (isVerified) {
-                await handleCompleteRegistration();
-            } else {
-                toast.warning('Email chưa được xác minh. Vui lòng kiểm tra hộp thư và nhấp vào link xác minh.');
-            }
-            setIsChecking(false);
-    };
 
-    const handleCompleteRegistration = async () => {
-        setIsCompleting(true);
-            const result = await completeRegistration();
-            if (result.error) {
-                toast.error(result.error);
-                setIsCompleting(false);
-                return;
-            }
-            toast.success('Đăng ký thành công!', {
-                description: 'Vui lòng đăng nhập để tiếp tục!'
-            });
-            navigate('/dang-nhap', { replace: true });
-            setIsCompleting(false);
-        
-    };
 
     const handleResendEmail = async () => {
         if (cooldown > 0 || !email) return;
@@ -174,28 +148,13 @@ const EmailVerification = () => {
                         <div className="space-y-3 text-sm text-muted-foreground">
                             <p>• Kiểm tra hộp thư đến (và cả thư mục spam)</p>
                             <p>• Nhấp vào link xác minh trong email</p>
-                            <p>• Quay lại trang này và nhấn "Kiểm tra xác minh"</p>
+                            <p>• Sau khi nhấp link, bạn sẽ được chuyển hướng tự động</p>
                         </div>
 
                         <div className="space-y-3">
                             <Button
-                                onClick={handleCheckVerification}
-                                disabled={isChecking || isCompleting}
-                                className="w-full"
-                            >
-                                {isChecking ? (
-                                    <><RefreshCw className="mr-2 h-4 w-4 animate-spin" /> Đang kiểm tra...</>
-                                ) : isCompleting ? (
-                                    <><RefreshCw className="mr-2 h-4 w-4 animate-spin" /> Đang hoàn tất đăng ký...</>
-                                ) : (
-                                    <><CheckCircle className="mr-2 h-4 w-4" /> Kiểm tra xác minh</>
-                                )}
-                            </Button>
-
-                            <Button
                                 variant="outline"
                                 onClick={handleBackToRegister}
-                                disabled={isChecking || isCompleting}
                                 className="w-full"
                             >
                                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -209,7 +168,7 @@ const EmailVerification = () => {
                                 variant="link"
                                 className="p-0 h-auto font-semibold text-primary"
                                 onClick={handleResendEmail}
-                                disabled={cooldown > 0 || isChecking || isCompleting}
+                                disabled={cooldown > 0}
                             >
                                 {cooldown > 0
                                     ? `Gửi lại sau ${cooldown} giây`

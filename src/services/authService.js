@@ -5,6 +5,10 @@
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     sendEmailVerification,
+    sendPasswordResetEmail,
+    confirmPasswordReset,
+    verifyPasswordResetCode,
+    fetchSignInMethodsForEmail,
     onAuthStateChanged
   } from 'firebase/auth';
   import { auth } from '../lib/firebase';
@@ -209,4 +213,169 @@
   
   export const getAuthMethod = () => {
     return localStorage.getItem('authMethod') || 'credentials';
+  };
+
+  export const checkAccountType = async (email) => {
+    try {
+      const normalizedEmail = email.toLowerCase().trim();
+      const response = await apiClient.get(`/Auth/check-availability?email=${encodeURIComponent(normalizedEmail)}`);
+      if (!response.data.exists) {
+        return { 
+          exists: false,
+          accountType: null,
+          error: 'Không tìm thấy tài khoản với email này'
+        };
+      }
+
+      const { provider, hasPassword } = response.data;
+      
+      let accountType = 'unknown';
+      let canResetPassword = false;
+      
+      if (provider === 'google' && !hasPassword) {
+        accountType = 'google';
+        canResetPassword = false;
+      } else if (provider === 'google' && hasPassword) {
+        accountType = 'mixed';
+        canResetPassword = true;
+      } else if (provider === 'email' || hasPassword) {
+        accountType = 'email';
+        canResetPassword = true;
+      }
+      
+      return {
+        exists: true,
+        accountType,
+        provider,
+        hasPassword,
+        canResetPassword
+      };
+    } catch (error) {
+      return {
+        exists: false,
+        accountType: null,
+        error: 'Có lỗi xảy ra khi kiểm tra loại tài khoản'
+      };
+    }
+  };
+
+  export const sendPasswordReset = async (email) => {
+    try {
+      const accountCheck = await checkAccountType(email);
+      
+      if (!accountCheck.exists) {
+        return { 
+          success: false, 
+          error: accountCheck.error || 'Không tìm thấy tài khoản với email này' 
+        };
+      }
+
+      if (accountCheck.accountType === 'google') {
+        return { 
+          success: false, 
+          error: 'Tài khoản này được đăng ký bằng Google. Vui lòng sử dụng "Đăng nhập với Google"',
+          isGoogleAccount: true,
+          accountType: 'google'
+        };
+      }
+
+      if (!accountCheck.canResetPassword) {
+        return { 
+          success: false, 
+          error: 'Tài khoản này không hỗ trợ reset mật khẩu'
+        };
+      }
+
+      await sendPasswordResetEmail(auth, email, {
+        url: `${window.location.origin}/dang-nhap`,
+        handleCodeInApp: false
+      });
+      
+      return { 
+        success: true, 
+        message: 'Email reset mật khẩu đã được gửi',
+        accountType: accountCheck.accountType
+      };
+    } catch (error) {
+      let errorMessage = 'Có lỗi xảy ra khi gửi email reset mật khẩu';
+      switch (error.code) {
+        case 'auth/user-not-found':
+          errorMessage = 'Không tìm thấy tài khoản với email này';
+          break;
+        case 'auth/invalid-email':
+          errorMessage = 'Email không hợp lệ';
+          break;
+        case 'auth/too-many-requests':
+          errorMessage = 'Quá nhiều yêu cầu. Vui lòng thử lại sau';
+          break;
+        default:
+          errorMessage = error.message || errorMessage;
+      }
+      
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  export const verifyResetCode = async (code) => {
+    try {
+      const email = await verifyPasswordResetCode(auth, code);
+      return { success: true, email };
+    } catch (error) {
+      let errorMessage = 'Mã reset không hợp lệ hoặc đã hết hạn';
+      
+      switch (error.code) {
+        case 'auth/expired-action-code':
+          errorMessage = 'Mã reset đã hết hạn';
+          break;
+        case 'auth/invalid-action-code':
+          errorMessage = 'Mã reset không hợp lệ';
+          break;
+        case 'auth/user-disabled':
+          errorMessage = 'Tài khoản đã bị vô hiệu hóa';
+          break;
+        default:
+          errorMessage = error.message || errorMessage;
+      }
+      
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  export const confirmPasswordResetWithCode = async (code, newPassword) => {
+    try {
+      const verifyResult = await verifyResetCode(code);
+      if (!verifyResult.success) {
+        return verifyResult;
+      }
+
+      await confirmPasswordReset(auth, code, newPassword);
+
+      try {
+        await apiClient.put('/Auth/update-password-after-reset', {
+          email: verifyResult.email,
+          newPassword: newPassword
+        });
+      } catch (backendError) {
+      }
+
+      return { success: true, message: 'Mật khẩu đã được đặt lại thành công' };
+    } catch (error) {
+      let errorMessage = 'Có lỗi xảy ra khi đặt lại mật khẩu';
+      
+      switch (error.code) {
+        case 'auth/expired-action-code':
+          errorMessage = 'Mã reset đã hết hạn';
+          break;
+        case 'auth/invalid-action-code':
+          errorMessage = 'Mã reset không hợp lệ';
+          break;
+        case 'auth/weak-password':
+          errorMessage = 'Mật khẩu quá yếu. Vui lòng chọn mật khẩu mạnh hơn';
+          break;
+        default:
+          errorMessage = error.message || errorMessage;
+      }
+      
+      return { success: false, error: errorMessage };
+    }
   };
