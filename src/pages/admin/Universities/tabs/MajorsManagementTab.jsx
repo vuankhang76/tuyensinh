@@ -19,6 +19,7 @@ const INITIAL_FORM_DATA = {
   code: '',
   description: '',
   scoreId: null,
+  score: '',
   year: new Date().getFullYear().toString(),
   subjectCombination: '',
 };
@@ -52,7 +53,8 @@ const MajorsManagementTab = ({ universityId }) => {
           subjectCombination: scoreInfo.subjectCombination,
         };
       });
-      setMajors(combinedData);
+      const sortedData = combinedData.sort((a, b) => a.id - b.id);
+      setMajors(sortedData);
     } catch (error) {
       toast.error('Có lỗi xảy ra khi tải dữ liệu ngành học');
     } finally {
@@ -214,7 +216,27 @@ const MajorsManagementTab = ({ universityId }) => {
     if (formData.description?.length > 2000) {
         errors.description = 'Mô tả không được vượt quá 2000 ký tự.';
     }
+    const hasScoreValue = formData.score && formData.score.toString().trim() !== '';
+    const hasCombinationValue = formData.subjectCombination && formData.subjectCombination.trim() !== '';
 
+    if (hasScoreValue) {
+      if (isNaN(formData.score)) {
+        errors.score = 'Điểm chuẩn phải là một số.';
+      } else if (parseFloat(formData.score) < 0 || parseFloat(formData.score) > 30) {
+        errors.score = 'Điểm chuẩn phải nằm trong khoảng từ 0 đến 30.';
+      }
+      
+      if (!hasCombinationValue) {
+        errors.subjectCombination = 'Tổ hợp môn là bắt buộc khi đã nhập điểm chuẩn.';
+      }
+    }
+
+    if (hasCombinationValue) {
+        const pattern = /^[A-Z0-9]{3}(\s*,\s*[A-Z0-9]{3})*$/i;
+        if (!pattern.test(formData.subjectCombination.trim())) {
+            errors.subjectCombination = 'Định dạng không hợp lệ. Ví dụ đúng: A00, D01, B00';
+        }
+    }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -264,10 +286,12 @@ const MajorsManagementTab = ({ universityId }) => {
                 <div>
                   <Label htmlFor="year" className="mb-2">Năm</Label>
                   <Input id="year" type="number" value={formData.year} onChange={(e) => handleInputChange('year', e.target.value)} placeholder="2025" />
+                  {formErrors.year && <p className="text-red-500 text-sm mt-1">{formErrors.year}</p>}
                 </div>
                 <div className="md:col-span-2">
                   <Label htmlFor="subjectCombination" className="mb-2">Tổ hợp môn (cách nhau bởi dấu phẩy)</Label>
                   <Input id="subjectCombination" value={formData.subjectCombination} onChange={(e) => handleInputChange('subjectCombination', e.target.value)} placeholder="A00, A01, D07" />
+                  {formErrors.subjectCombination && <p className="text-red-500 text-sm mt-1">{formErrors.subjectCombination}</p>}
                 </div>
               </div>
               <div className="flex justify-end space-x-2 pt-4">
@@ -310,8 +334,9 @@ const MajorsManagementTab = ({ universityId }) => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[5%]">ID</TableHead>
                   <TableHead>Tên ngành</TableHead>
-                  <TableHead>Mã ngành</TableHead>
+                  <TableHead className="text-center">Mã ngành</TableHead>
                   <TableHead className="text-center">Điểm chuẩn</TableHead>
                   <TableHead>Năm</TableHead>
                   <TableHead>Tổ hợp môn</TableHead>
@@ -321,8 +346,9 @@ const MajorsManagementTab = ({ universityId }) => {
               <TableBody>
                 {majors.map((major) => (
                   <TableRow key={major.id}>
+                    <TableCell className="font-medium">{major.id}</TableCell>
                     <TableCell className="font-medium">{major.name}</TableCell>
-                    <TableCell><Badge variant="outline">{major.code}</Badge></TableCell>
+                    <TableCell className="text-center"><Badge variant="outline">{major.code}</Badge></TableCell>
                     <TableCell className="font-semibold text-blue-600 text-center">{major.score || 'N/A'}</TableCell>
                     <TableCell>{major.year || 'N/A'}</TableCell>
                     <TableCell>
