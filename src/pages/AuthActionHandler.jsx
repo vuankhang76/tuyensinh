@@ -14,7 +14,6 @@ const AuthActionHandler = () => {
     
     useEffect(() => {
         if (hasProcessed.current) return;
-        
         const mode = searchParams.get('mode');
         const actionCode = searchParams.get('oobCode');
         const handleAction = async () => {
