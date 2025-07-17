@@ -33,7 +33,8 @@ const AdmissionManagementTab = ({ universityId }) => {
         setLoading(true);
         try {
             const data = await admissionMethodService.getAdmissionMethodsByUniversity(universityId);
-            setAdmissionMethods(data || []);
+            const sortedData = data.sort((a, b) => a.id - b.id);
+            setAdmissionMethods(sortedData);
         } catch (error) {
             toast.error('Có lỗi xảy ra khi tải danh sách phương thức');
         } finally {
@@ -130,12 +131,12 @@ const AdmissionManagementTab = ({ universityId }) => {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h3 className="text-lg font-semibold">Quản lý Phương thức tuyển sinh</h3>
+                    <h3 className="text-lg font-semibold">Quản lý phương thức tuyển sinh</h3>
                     <p className="text-sm text-muted-foreground">Thêm, sửa, xóa các phương thức tuyển sinh của trường.</p>
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button onClick={handleOpenNewDialog}><Plus className="h-4 w-4 mr-1" />Thêm phương thức</Button>
+                        <Button onClick={handleOpenNewDialog} disabled={loading}><Plus className="h-4 w-4 mr-1" />Thêm phương thức</Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl">
                         <DialogHeader>
@@ -199,8 +200,9 @@ const AdmissionManagementTab = ({ universityId }) => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead className="w-[5%]">ID</TableHead>
                                     <TableHead>Tên phương thức</TableHead>
-                                    <TableHead className="w-[40%]">Mô tả</TableHead>
+                                    <TableHead>Mô tả</TableHead>
                                     <TableHead className="text-center">Năm</TableHead>
                                     <TableHead className="text-right">Thao tác</TableHead>
                                 </TableRow>
@@ -208,9 +210,10 @@ const AdmissionManagementTab = ({ universityId }) => {
                             <TableBody>
                                 {admissionMethods.map(method => (
                                     <TableRow key={method.id}>
-                                        <TableCell className="font-medium">{method.name}</TableCell>
+                                        <TableCell className="font-medium">{method.id}</TableCell>
+                                        <TableCell className="font-medium truncate max-w-60" title={method.name}>{method.name}</TableCell>
                                         <TableCell>
-                                            <p className="text-sm text-muted-foreground line-clamp-2">{method.description}</p>
+                                            <p className="text-sm text-muted-foreground line-clamp-2 truncate w-110" title={method.description}>{method.description}</p>
                                         </TableCell>
                                         <TableCell className="text-center">
                                             <Badge variant="outline">{method.year}</Badge>

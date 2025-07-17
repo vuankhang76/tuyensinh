@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,6 +31,7 @@ import { Dialog } from '@radix-ui/react-dialog';
 const UniversityDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -38,6 +39,17 @@ const UniversityDetailPage = () => {
   const [formData, setFormData] = useState({});
   const [formErrors, setFormErrors] = useState({});
   const [currentTab, setCurrentTab] = useState('basic');
+
+  // Initialize currentTab from URL parameter
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab');
+    const validTabs = ['basic', 'majors', 'programs', 'news', 'scholarships', 'admission'];
+    if (tabFromUrl && validTabs.includes(tabFromUrl)) {
+      setCurrentTab(tabFromUrl);
+    } else {
+      setCurrentTab('basic');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (id) {
@@ -200,6 +212,18 @@ const UniversityDetailPage = () => {
     setEditing(false);
   };
 
+  // Handle tab change and update URL
+  const handleTabChange = (newTab) => {
+    setCurrentTab(newTab);
+    const params = new URLSearchParams(searchParams);
+    if (newTab === 'basic') {
+      params.delete('tab'); // Remove tab param for basic tab (default)
+    } else {
+      params.set('tab', newTab);
+    }
+    setSearchParams(params, { replace: true });
+  };
+
   if (loading && !university) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -254,7 +278,7 @@ const UniversityDetailPage = () => {
         </div>
       </div>
 
-      <Tabs value={currentTab} onValueChange={setCurrentTab} defaultValue="basic" className="space-y-6">
+      <Tabs value={currentTab} onValueChange={handleTabChange} defaultValue="basic" className="space-y-6">
         <TabsList className="w-full flex items-center justify-start md:justify-center">
           <TabsTrigger value="basic" className="flex items-center space-x-2">
             <Building2 className="h-4 w-4" />

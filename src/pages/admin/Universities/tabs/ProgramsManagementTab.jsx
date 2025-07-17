@@ -4,7 +4,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -38,7 +37,8 @@ const ProgramsManagementTab = ({ universityId }) => {
     try {
       setLoading(true)
       const data = await academicProgramService.getProgramsByUniversity(universityId)
-      setPrograms(data)
+      const sortedData = data.sort((a, b) => a.id - b.id);
+      setPrograms(sortedData)
     } catch (error) {
       toast.error('Có lỗi xảy ra khi tải danh sách chương trình')
       setPrograms([])
@@ -267,6 +267,7 @@ const ProgramsManagementTab = ({ universityId }) => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[5%]">ID</TableHead>
                   <TableHead className="w-[40%]">Tên chương trình</TableHead>
                   <TableHead className="text-center">Năm</TableHead>
                   <TableHead>Học phí</TableHead>
@@ -276,9 +277,10 @@ const ProgramsManagementTab = ({ universityId }) => {
               <TableBody>
                 {programs.map((program) => (
                   <TableRow key={program.id}>
+                    <TableCell className="font-medium">{program.id}</TableCell>
                     <TableCell>
-                      <div className="font-medium">{program.name}</div>
-                      <p className="text-sm text-muted-foreground truncate">{program.description}</p>
+                      <div className="font-medium" title={program.name}>{program.name}</div>
+                      <p className="text-sm text-muted-foreground truncate w-140" title={program.description}>{program.description}</p>
                     </TableCell>
                     <TableCell className="text-center">{program.year}</TableCell>
                     <TableCell>

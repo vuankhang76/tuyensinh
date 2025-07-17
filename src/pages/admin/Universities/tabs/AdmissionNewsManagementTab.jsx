@@ -25,7 +25,7 @@ const AdmissionNewsTab = ({ universityId }) => {
     title: '',
     content: '',
     publishDate: '',
-    year: ''
+    year: new Date().getFullYear()
   })
 
   useEffect(() => {
@@ -38,7 +38,8 @@ const AdmissionNewsTab = ({ universityId }) => {
     try {
       setLoading(true)
       const data = await admissionNewsService.getAdmissionNewsByUniversity(universityId)
-      setNews(data)
+      const sortedData = data.sort((a, b) => a.id - b.id);
+      setNews(sortedData)
     } catch (error) {
       toast.error('Có lỗi xảy ra khi tải danh sách tin tức')
       setNews([])
@@ -53,25 +54,15 @@ const AdmissionNewsTab = ({ universityId }) => {
       title: '',
       content: '',
       publishDate: '',
-      year: ''
+      year: new Date().getFullYear()
     })
   }
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => {
-      if (field === 'publishDate') {
-        const year = value ? value.split('-')[0] : '';
-        return {
-          ...prev,
-          publishDate: value,
-          year: year
-        };
-      }
-      return {
-        ...prev,
-        [field]: value
-      };
-    });
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   }
 
   const handleSubmit = async (e) => {
@@ -86,9 +77,9 @@ const AdmissionNewsTab = ({ universityId }) => {
         title: formData.title,
         content: formData.content,
         publishDate: formData.publishDate
-          ? `${formData.publishDate}T00:00:00.000Z`
-          : new Date().toISOString(),
-        year: formData.year ? parseInt(formData.year) : new Date().getFullYear(),
+          ? new Date(formData.publishDate).toISOString()
+          : null,
+        year: parseInt(formData.year),
         universityId: parseInt(universityId)
       }
 
@@ -112,22 +103,35 @@ const AdmissionNewsTab = ({ universityId }) => {
 
   const validateForm = () => {
     const errors = {};
-    if (!formData.title.trim()) {
-      errors.title = 'Tiêu đề là bắt buộc';
+    const currentYear = new Date().getFullYear();
+
+    if (!formData.title?.trim()) errors.title = 'Tiêu đề là bắt buộc.';
+    if (!formData.content?.trim()) errors.content = 'Nội dung là bắt buộc.';
+
+    if (!formData.year) {
+      errors.year = 'Năm là bắt buộc.';
+    } else if (isNaN(formData.year) || !Number.isInteger(Number(formData.year))) {
+      errors.year = 'Năm phải là một số nguyên.';
+    } else if (parseInt(formData.year) < 2015 || parseInt(formData.year) > currentYear + 1) {
+      errors.year = `Năm phải nằm trong khoảng từ 2015 đến ${currentYear + 1}.`;
     }
-    if (!formData.year || isNaN(formData.year) || parseInt(formData.year) < 1900) {
-      errors.year = 'Năm áp dụng phải là số hợp lệ';
-    }
-    if (!formData.content.trim()) {
-      errors.content = 'Nội dung là bắt buộc';
-    }
+
     if (formData.publishDate) {
-      const date = new Date(formData.publishDate);
-      const isValidFormat = /^\d{4}-\d{2}-\d{2}$/.test(formData.publishDate);
-      if (!isValidFormat || isNaN(date.getTime())) {
-        errors.publishDate = 'Ngày xuất bản không hợp lệ (định dạng yyyy-mm-dd)';
+      const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+      if (!datePattern.test(formData.publishDate)) {
+        errors.publishDate = 'Định dạng ngày phải là YYYY-MM-DD.';
+      } else {
+        const dateObj = new Date(formData.publishDate);
+        const yearFromDate = dateObj.getFullYear();
+
+        const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+        const day = dateObj.getDate().toString().padStart(2, '0');
+        if (`${yearFromDate}-${month}-${day}` !== formData.publishDate) {
+          errors.publishDate = 'Ngày không tồn tại trên lịch.';
+        }
       }
     }
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   }
@@ -220,14 +224,14 @@ const AdmissionNewsTab = ({ universityId }) => {
                   {formErrors.content && <p className="text-red-500 text-sm mt-1">{formErrors.content}</p>}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex flex-col">
-                    <Label htmlFor="publishDate" className="mb-2">Ngày xuất bản</Label>
-                    <DatePicker
-                      id="publishDate"
-                      value={formData.publishDate}
-                      onChange={val => handleInputChange('publishDate', val)}
-                      placeholder="Chọn ngày xuất bản"
-                    />
+                  <div>
+                    <Label htmlFor="year" className="mb-2">Năm *</Label>
+                    <Input id="year" type="number" value={formData.year} onChange={(e) => handleInputChange('year', e.target.value)} />
+                    {formErrors.year && <p className="text-red-500 text-sm mt-1">{formErrors.year}</p>}
+                  </div>
+                  <div>
+                    <Label htmlFor="publishDate" className="mb-2">Ngày xuất bản (Tùy chọn)</Label>
+                    <DatePicker id="publishDate" value={formData.publishDate} onChange={val => handleInputChange('publishDate', val)} />
                     {formErrors.publishDate && <p className="text-red-500 text-sm mt-1">{formErrors.publishDate}</p>}
                   </div>
                 </div>
@@ -265,7 +269,8 @@ const AdmissionNewsTab = ({ universityId }) => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[80%]">Tiêu đề</TableHead>
+                  <TableHead className="w-[5%]">ID</TableHead>
+                  <TableHead className="w-[60%]">Tiêu đề</TableHead>
                   <TableHead className="text-center">Năm</TableHead>
                   <TableHead className="text-center">Ngày xuất bản</TableHead>
                   <TableHead className="text-center">Thao tác</TableHead>
@@ -274,9 +279,10 @@ const AdmissionNewsTab = ({ universityId }) => {
               <TableBody>
                 {news.map((newsItem) => (
                   <TableRow key={newsItem.id}>
+                    <TableCell className="font-medium">{newsItem.id}</TableCell>
                     <TableCell>
                       <div className="font-medium">{newsItem.title}</div>
-                      <p className="text-sm text-muted-foreground line-clamp-2 truncate w-170">{newsItem.content}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2 truncate w-145" title={newsItem.content}>{newsItem.content}</p>
                     </TableCell>
                     <TableCell className="text-center">{newsItem.year}</TableCell>
                     <TableCell className="text-center">

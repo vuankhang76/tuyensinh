@@ -1,26 +1,27 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Plus, Edit, Trash2, Award } from 'lucide-react';
 import { scholarshipService } from '@/services';
 import { TableSkeleton } from '@/components/common/Loading/LoadingSkeleton';
 import { Skeleton } from '@/components/ui/skeleton';
+
 const INITIAL_FORM_DATA = {
     name: '',
     description: '',
     value: '',
-    valueType: 'amount',
+    valueType: '',
     criteria: '',
     year: new Date().getFullYear().toString(),
 };
+
 const ScholarshipsTab = ({ universityId }) => {
     const [scholarships, setScholarships] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -28,90 +29,77 @@ const ScholarshipsTab = ({ universityId }) => {
     const [editingScholarship, setEditingScholarship] = useState(null);
     const [formData, setFormData] = useState(INITIAL_FORM_DATA);
     const [formErrors, setFormErrors] = useState({});
+
     const fetchScholarships = useCallback(async () => {
         if (!universityId) return;
         setLoading(true);
         try {
             const data = await scholarshipService.getScholarshipsByUniversity(universityId);
-            setScholarships(data || []);
+            const sortedData = data.sort((a, b) => a.id - b.id);
+            setScholarships(sortedData);
         } catch (error) {
             toast.error('Có lỗi xảy ra khi tải danh sách học bổng');
         } finally {
             setLoading(false);
         }
     }, [universityId]);
+
     useEffect(() => {
         fetchScholarships();
     }, [fetchScholarships]);
+
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         if (formErrors[field]) {
             setFormErrors(prev => ({ ...prev, [field]: null }));
         }
     };
+
     const handleOpenNewDialog = () => {
         setEditingScholarship(null);
         setFormData(INITIAL_FORM_DATA);
         setFormErrors({});
         setIsDialogOpen(true);
     };
+
     const handleEdit = (scholarship) => {
         setEditingScholarship(scholarship);
         setFormData({
             name: scholarship.name || '',
             description: scholarship.description || '',
             value: scholarship.value?.toString() || '',
-            valueType: scholarship.valueType || 'amount',
+            valueType: scholarship.valueType || '',
             criteria: scholarship.criteria || '',
             year: scholarship.year?.toString() || new Date().getFullYear().toString(),
         });
         setIsDialogOpen(true);
     };
+
     const validateForm = () => {
         const errors = {};
         const currentYear = new Date().getFullYear();
         if (!formData.name?.trim()) {
             errors.name = 'Tên học bổng là bắt buộc.';
-        } else if (formData.name.trim().length > 255) {
-            errors.name = 'Tên học bổng không được vượt quá 255 ký tự.';
         }
         if (formData.value) {
             if (isNaN(formData.value)) {
                 errors.value = 'Giá trị phải là một số.';
-            } else {
-                const numericValue = parseFloat(formData.value);
-                if (numericValue < 0) {
-                    errors.value = 'Giá trị không thể là số âm.';
-                }
-
-                if (formData.valueType === 'Percentage' && numericValue > 100) {
-                    errors.value = 'Giá trị phần trăm không thể lớn hơn 100.';
-                } else if (formData.valueType === 'amount' && numericValue > 1000000000) {
-                    errors.value = 'Giá trị tiền có vẻ quá cao, vui lòng kiểm tra lại.';
-                }
+            } else if (parseFloat(formData.value) < 0) {
+                errors.value = 'Giá trị không thể là số âm.';
+            }
+            if (!formData.valueType?.trim()) {
+                errors.valueType = 'Vui lòng nhập đơn vị cho giá trị (vd: VNĐ, %, suất...).';
             }
         }
-        if (formData.value && !formData.valueType) {
-            errors.valueType = 'Vui lòng chọn loại giá trị (Số tiền hoặc Phần trăm).';
-        }
-        if (!formData.year) {
-            errors.year = 'Năm học bổng là bắt buộc.';
-        } else if (isNaN(formData.year) || !Number.isInteger(Number(formData.year))) {
-            errors.year = 'Năm phải là một số nguyên.';
-        } else if (parseInt(formData.year) < 2020 || parseInt(formData.year) > currentYear + 2) {
+        if (!formData.year || isNaN(formData.year) || parseInt(formData.year) < 2020 || parseInt(formData.year) > currentYear + 2) {
             errors.year = `Năm phải nằm trong khoảng từ 2020 đến ${currentYear + 2}.`;
-        }
-        if (formData.description?.length > 5000) {
-            errors.description = 'Mô tả không được vượt quá 5000 ký tự.';
-        }
-        if (formData.criteria?.length > 5000) {
-            errors.criteria = 'Tiêu chí không được vượt quá 5000 ký tự.';
         }
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
     };
+
     const handleSubmit = async (e) => {
-        e.preventDefault()
+        e.preventDefault();
         if (!validateForm()) {
             toast.error('Vui lòng sửa các lỗi trong form');
             return;
@@ -138,23 +126,12 @@ const ScholarshipsTab = ({ universityId }) => {
             setIsDialogOpen(false);
             fetchScholarships();
         } catch (error) {
-            if (error.response) {
-                const { status, data } = error.response;
-                if (status === 400 && data.errors) {
-                    const messages = Object.values(data.errors).flat();
-                    messages.forEach(msg => toast.error(msg));
-                } else if (data.title) {
-                    toast.error(data.title);
-                } else {
-                    toast.error('Có lỗi xảy ra khi lưu thông tin');
-                }
-            } else {
-                toast.error(`Lỗi: ${error.message || 'Không xác định'}`);
-            }
+            toast.error(`Lỗi: ${error?.response?.data?.title || error.message || 'Không xác định'}`);
         } finally {
             setLoading(false);
         }
     };
+
     const handleDelete = async (scholarshipId) => {
         setLoading(true);
         try {
@@ -167,17 +144,15 @@ const ScholarshipsTab = ({ universityId }) => {
             setLoading(false);
         }
     };
+
     const formatValue = (value, valueType) => {
-        if (valueType === 'Percentage') {
-            return `${value}%`
-        } else if (valueType === 'Fixed') {
-            return new Intl.NumberFormat('vi-VN', {
-                style: 'currency',
-                currency: 'VND'
-            }).format(value)
+        if (value === null || value === undefined || value === '') {
+            return '-';
         }
-        return value
-    }
+        const formattedNumber = Number(value).toLocaleString('vi-VN');
+        return valueType ? `${formattedNumber} ${valueType}` : formattedNumber;
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -187,6 +162,7 @@ const ScholarshipsTab = ({ universityId }) => {
                 </div>
                 <Button onClick={handleOpenNewDialog} disabled={loading}><Plus className="h-4 w-4 mr-1" /> Thêm học bổng</Button>
             </div>
+
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
@@ -199,25 +175,21 @@ const ScholarshipsTab = ({ universityId }) => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="md:col-span-2">
                                 <Label htmlFor="name" className="mb-2">Tên học bổng *</Label>
-                                <Input id="name" value={formData.name} onChange={e => handleInputChange('name', e.target.value)} required />
+                                <Input id="name" value={formData.name} onChange={e => handleInputChange('name', e.target.value)} />
                                 {formErrors.name && <p className="text-red-500 text-sm mt-1">{formErrors.name}</p>}
                             </div>
-                            <div>
-                                <Label htmlFor="valueType" className="mb-2">Loại giá trị</Label>
-                                <Select value={formData.valueType} onValueChange={(value) => handleInputChange('valueType', value)}>
-                                    <SelectTrigger><SelectValue placeholder="Chọn loại giá trị" /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="amount">Số tiền</SelectItem>
-                                        <SelectItem value="Percentage">Phần trăm</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                {formErrors.valueType && <p className="text-red-500 text-sm mt-1">{formErrors.valueType}</p>}
-                            </div>
+
                             <div>
                                 <Label htmlFor="value" className="mb-2">Giá trị</Label>
                                 <Input id="value" type="number" value={formData.value} onChange={e => handleInputChange('value', e.target.value)} />
                                 {formErrors.value && <p className="text-red-500 text-sm mt-1">{formErrors.value}</p>}
                             </div>
+                            <div>
+                                <Label htmlFor="valueType" className="mb-2">Đơn vị của giá trị</Label>
+                                <Input id="valueType" value={formData.valueType} onChange={e => handleInputChange('valueType', e.target.value)} placeholder="VNĐ/năm, %, Toàn phần..." />
+                                {formErrors.valueType && <p className="text-red-500 text-sm mt-1">{formErrors.valueType}</p>}
+                            </div>
+
                             <div className="md:col-span-2">
                                 <Label htmlFor="year" className="mb-2">Năm</Label>
                                 <Input id="year" type="number" value={formData.year} onChange={e => handleInputChange('year', e.target.value)} />
@@ -226,18 +198,17 @@ const ScholarshipsTab = ({ universityId }) => {
                         </div>
                         <div>
                             <Label htmlFor="description" className="mb-2">Mô tả</Label>
-                            <Textarea id="description" value={formData.description} onChange={e => handleInputChange('description', e.target.value)} placeholder="Mô tả ngắn gọn về học bổng..." />
-                            {formErrors.description && <p className="text-red-500 text-sm mt-1">{formErrors.description}</p>}
+                            <Textarea id="description" value={formData.description} onChange={e => handleInputChange('description', e.target.value)} />
                         </div>
                         <div>
                             <Label htmlFor="criteria" className="mb-2">Điều kiện</Label>
-                            <Textarea id="criteria" value={formData.criteria} onChange={e => handleInputChange('criteria', e.target.value)} placeholder="Mô tả chi tiết về tiêu chí và quyền lợi..." rows={4} />
-                            {formErrors.criteria && <p className="text-red-500 text-sm mt-1">{formErrors.criteria}</p>}
+                            <Textarea id="criteria" value={formData.criteria} onChange={e => handleInputChange('criteria', e.target.value)} rows={4} />
                         </div>
                         <div className="flex justify-end space-x-2 pt-4"><Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Hủy</Button><Button type="submit" disabled={loading}>{loading ? 'Đang lưu...' : 'Lưu'}</Button></div>
                     </form>
                 </DialogContent>
             </Dialog>
+
             <Card>
                 <CardHeader>
                     {loading ? (
@@ -251,18 +222,12 @@ const ScholarshipsTab = ({ universityId }) => {
                     )}
                 </CardHeader>
                 <CardContent>
-                    {loading ? <TableSkeleton
-                        columns={[
-                            { width: "40%" },
-                            { width: "10%" },
-                            { width: "10%" },
-                        ]}
-                        rows={5}
-                    /> : (
+                    {loading ? <TableSkeleton columns={[{ width: "5%" }, { width: "40%" }, { width: "20%" }, { width: "15%" }, { width: "20%" }]} rows={5} /> : (
                         <>
                             <Table>
                                 <TableHeader>
                                     <TableRow>
+                                        <TableHead className="w-[5%]">ID</TableHead>
                                         <TableHead>Tên học bổng</TableHead>
                                         <TableHead>Giá trị</TableHead>
                                         <TableHead>Năm</TableHead>
@@ -272,8 +237,9 @@ const ScholarshipsTab = ({ universityId }) => {
                                 <TableBody>
                                     {scholarships.length > 0 ? scholarships.map(scholarship => (
                                         <TableRow key={scholarship.id}>
-                                            <TableCell className="font-medium">{scholarship.name}</TableCell>
-                                            <TableCell>{formatValue(scholarship.value, scholarship.valueType)}</TableCell>
+                                            <TableCell className="font-medium">{scholarship.id}</TableCell>
+                                            <TableCell className="font-medium" title={scholarship.name}>{scholarship.name}</TableCell>
+                                            <TableCell title={formatValue(scholarship.value, scholarship.valueType)}>{formatValue(scholarship.value, scholarship.valueType)}</TableCell>
                                             <TableCell>{scholarship.year}</TableCell>
                                             <TableCell className="text-right">
                                                 <Button variant="ghost" size="icon" onClick={() => handleEdit(scholarship)}><Edit className="h-4 w-4" /></Button>
@@ -287,7 +253,7 @@ const ScholarshipsTab = ({ universityId }) => {
                                             </TableCell>
                                         </TableRow>
                                     )) : (
-                                        <TableRow><TableCell colSpan={4} className="h-24 text-center">Không có học bổng nào.</TableCell></TableRow>
+                                        <TableRow><TableCell colSpan={5} className="h-24 text-center">Không có học bổng nào.</TableCell></TableRow>
                                     )}
                                 </TableBody>
                             </Table>
