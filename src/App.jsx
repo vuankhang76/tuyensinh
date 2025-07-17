@@ -10,6 +10,8 @@ import NotFoundPage from './pages/NotFoundPage'
 import SearchResults from './pages/SearchResults'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import EmailVerification from './pages/EmailVerification'
 import AllUniversities from './pages/AllUniversities'
 import AllNews from './pages/AllNews'
@@ -73,6 +75,8 @@ function App() {
                     <Route path="/search" element={<SearchResults />} />
                     <Route path="/dang-nhap" element={<Login />} />
                     <Route path="/dang-ky" element={<Register />} />
+                    <Route path="/quen-mat-khau" element={<ForgotPassword />} />
+                    <Route path="/dat-lai-mat-khau" element={<ResetPassword />} />
                     <Route path="/xac-minh-email" element={<EmailVerification />} />
                     <Route path="/auth-action" element={<AuthActionHandler />} />
                     <Route path="/profile" element={

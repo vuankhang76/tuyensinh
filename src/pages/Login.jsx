@@ -242,8 +242,8 @@ const Login = () => {
                   <Label htmlFor="remember" className="text-sm">Ghi nhớ đăng nhập</Label>
                 </div>
                 <Link
-                  to="/forgot-password"
-                  className="text-primary text-sm"
+                  to="/quen-mat-khau"
+                  className="text-primary text-sm hover:underline"
                 >
                   Quên mật khẩu?
                 </Link>
