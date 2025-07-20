@@ -1,283 +1,444 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
-import { 
-  Building2, 
-  Users, 
-  CheckCircle, 
-  Clock, 
-  Eye,
-  Check,
-  X,
-  Edit
+import {
+  Save,
+  Edit,
+  Building2,
+  BookOpen,
+  Award,
+  GraduationCap,
+  Newspaper,
+  Users,
+  FileText,
+  BarChart3,
+  Upload
 } from 'lucide-react';
+
+import UniversityMajorsTab from './tabs/UniversityMajorsTab';
+import UniversityProgramsTab from './tabs/UniversityProgramsTab';
+import UniversityNewsTab from './tabs/UniversityNewsTab';
+import UniversityScholarshipsTab from './tabs/UniversityScholarshipsTab';
+import UniversityAdmissionTab from './tabs/UniversityAdmissionTab';
+import { universityViewService } from '@/services';
 
 const UniversityAdmin = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('info');
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [university, setUniversity] = useState(null);
+  const [formData, setFormData] = useState({});
+  const [formErrors, setFormErrors] = useState({});
+  const [currentTab, setCurrentTab] = useState('info');
+  const [logoFile, setLogoFile] = useState(null);
 
-  const universityInfo = {
-    name: "Đại học FPT",
-    code: "FPU",
-    logo: "/images/fpu.jpg",
-    location: "Hà Nội",
-    type: "Tư thục",
-    establishedYear: 2006,
-    students: 15000,
-    website: "https://fpt.edu.vn",
-    email: "info@fpt.edu.vn",
-    phone: "024 7300 1955"
-  };
+  useEffect(() => {
+    fetchUniversityData();
+  }, []);
 
-  const [pendingApprovals, setPendingApprovals] = useState([
-    {
-      id: 1,
-      type: 'admission_info',
-      title: 'Thông tin tuyển sinh 2024',
-      content: 'Cập nhật điểm chuẩn và chỉ tiêu tuyển sinh',
-      submittedBy: 'admin@fpt.edu.vn',
-      submittedAt: '2024-01-15',
-      status: 'pending'
-    },
-    {
-      id: 2,
-      type: 'program_update',
-      title: 'Chương trình đào tạo mới',
-      content: 'Thêm ngành AI và Machine Learning',
-      submittedBy: 'dean@fpt.edu.vn',
-      submittedAt: '2024-01-14',
-      status: 'pending'
-    },
-    {
-      id: 3,
-      type: 'fee_update',
-      title: 'Cập nhật học phí',
-      content: 'Điều chỉnh học phí các ngành kỹ thuật',
-      submittedBy: 'finance@fpt.edu.vn',
-      submittedAt: '2024-01-13',
-      status: 'approved'
+  useEffect(() => {
+    if (university) {
+      setFormData(university);
+      setFormErrors({});
     }
-  ]);
+  }, [university]);
 
-  const handleApprove = (id) => {
-    setPendingApprovals(prev => 
-      prev.map(item => 
-        item.id === id ? { ...item, status: 'approved' } : item
-      )
-    );
-  };
-
-  const handleReject = (id) => {
-    setPendingApprovals(prev => 
-      prev.map(item => 
-        item.id === id ? { ...item, status: 'rejected' } : item
-      )
-    );
-  };
-
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Chờ duyệt</Badge>;
-      case 'approved':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Đã duyệt</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive"><X className="h-3 w-3 mr-1" />Từ chối</Badge>;
-      default:
-        return <Badge variant="outline">Không xác định</Badge>;
+  const fetchUniversityData = async () => {
+    try {
+      setLoading(true);
+      const data = await universityViewService.getMyUniversity();
+      setUniversity(data);
+    } catch (error) {
+      console.error("Lỗi khi tải dữ liệu trường:", error);
+      toast.error('Có lỗi xảy ra khi tải thông tin trường đại học');
+    } finally {
+      setLoading(false);
     }
   };
+
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formData.name?.trim()) {
+      errors.name = 'Tên trường là bắt buộc';
+    }
+
+    if (!formData.shortName?.trim()) {
+      errors.shortName = 'Tên viết tắt là bắt buộc';
+    }
+
+    if (!formData.type?.trim()) {
+      errors.type = 'Loại hình là bắt buộc';
+    }
+
+    if (!formData.locations?.trim()) {
+      errors.locations = 'Địa điểm là bắt buộc';
+    }
+
+    if (!formData.introduction?.trim()) {
+      errors.introduction = 'Giới thiệu là bắt buộc';
+    }
+
+    if (!formData.officialWebsite?.trim()) {
+      errors.officialWebsite = 'Website chính thức là bắt buộc';
+    }
+
+    if (!formData.admissionWebsite?.trim()) {
+      errors.admissionWebsite = 'Website tuyển sinh là bắt buộc';
+    }
+
+    const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/;
+
+    if (formData.officialWebsite && !urlPattern.test(formData.officialWebsite)) {
+      errors.officialWebsite = 'Website chính thức phải là URL hợp lệ';
+    }
+
+    if (formData.admissionWebsite && !urlPattern.test(formData.admissionWebsite)) {
+      errors.admissionWebsite = 'Website tuyển sinh phải là URL hợp lệ';
+    }
+
+    if (formData.ranking && (isNaN(formData.ranking) || formData.ranking < 1)) {
+      errors.ranking = 'Thứ hạng phải là số dương';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+
+    if (formErrors[field]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [field]: null
+      }));
+    }
+  };
+
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File logo không được vượt quá 5MB');
+        return;
+      }
+      
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error('Chỉ hỗ trợ file ảnh (JPEG, PNG, GIF, WebP)');
+        return;
+      }
+      
+      setLogoFile(file);
+      
+      // Preview the image
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFormData(prev => ({
+          ...prev,
+          logo: e.target.result
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!validateForm()) {
+      toast.error('Vui lòng sửa các lỗi trong form');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const updateData = {
+        id: formData.id,
+        name: formData.name?.trim(),
+        shortName: formData.shortName?.trim(),
+        introduction: formData.introduction?.trim(),
+        officialWebsite: formData.officialWebsite?.trim(),
+        admissionWebsite: formData.admissionWebsite?.trim(),
+        ranking: formData.ranking ? parseInt(formData.ranking) : null,
+        rankingCriteria: formData.rankingCriteria?.trim(),
+        locations: formData.locations?.trim(),
+        type: formData.type?.trim(),
+        logo: formData.logo
+      };
+
+      await universityViewService.updateMyUniversity(updateData);
+
+      if (logoFile) {
+        const logoData = new FormData();
+        logoData.append('logo', logoFile);
+        await universityViewService.updateMyUniversityLogo({ logo: formData.logo });
+      }
+
+      await fetchUniversityData();
+      setEditing(false);
+      setLogoFile(null);
+      toast.success("Đã cập nhật thông tin trường đại học thành công!");
+    } catch (error) {
+      console.error("Lỗi khi cập nhật:", error);
+      
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Có lỗi xảy ra khi cập nhật thông tin");
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setFormData(university);
+    setFormErrors({});
+    setEditing(false);
+    setLogoFile(null);
+  };
+
+  if (loading && !university) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!university) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">Không tìm thấy thông tin trường đại học</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className="container p-6">
       <div className="mb-8">
-        <div className="flex items-center space-x-4 mb-4">
-          <div className="p-3 bg-green-100 rounded-full">
-            <Building2 className="h-8 w-8 text-green-600" />
-          </div>
+        <div className="flex items-center mb-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-800">Quản lý trường đại học</h1>
-            <p className="text-gray-600">Xin chào {user?.displayName} - {universityInfo.name}</p>
+            <p className="text-gray-600">Xin chào {university.name}</p>
           </div>
-        </div>
-
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
-          <Button
-            variant={activeTab === 'info' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setActiveTab('info')}
-          >
-            Thông tin trường
-          </Button>
-          <Button
-            variant={activeTab === 'approvals' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setActiveTab('approvals')}
-          >
-            Duyệt thông tin
-            {pendingApprovals.filter(item => item.status === 'pending').length > 0 && (
-              <Badge className="ml-2 bg-red-500 text-white">
-                {pendingApprovals.filter(item => item.status === 'pending').length}
-              </Badge>
-            )}
-          </Button>
         </div>
       </div>
 
-      {activeTab === 'info' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
+        <TabsList className="w-full flex items-center justify-start overflow-x-auto">
+          <TabsTrigger value="info" className="flex items-center space-x-2 whitespace-nowrap">
+            <Building2 className="h-4 w-4" />
+            <span>Thông tin trường</span>
+          </TabsTrigger>
+          <TabsTrigger value="majors" className="flex items-center space-x-2 whitespace-nowrap">
+            <GraduationCap className="h-4 w-4" />
+            <span>Ngành học</span>
+          </TabsTrigger>
+          <TabsTrigger value="programs" className="flex items-center space-x-2 whitespace-nowrap">
+            <BookOpen className="h-4 w-4" />
+            <span>Chương trình</span>
+          </TabsTrigger>
+          <TabsTrigger value="admission" className="flex items-center space-x-2 whitespace-nowrap">
+            <Users className="h-4 w-4" />
+            <span>Phương thức tuyển sinh</span>
+          </TabsTrigger>
+          <TabsTrigger value="scores" className="flex items-center space-x-2 whitespace-nowrap">
+            <BarChart3 className="h-4 w-4" />
+            <span>Điểm chuẩn</span>
+          </TabsTrigger>
+          <TabsTrigger value="news" className="flex items-center space-x-2 whitespace-nowrap">
+            <Newspaper className="h-4 w-4" />
+            <span>Tin tức</span>
+          </TabsTrigger>
+          <TabsTrigger value="scholarships" className="flex items-center space-x-2 whitespace-nowrap">
+            <Award className="h-4 w-4" />
+            <span>Học bổng</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="info" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Building2 className="h-5 w-5" />
-                <span>Thông tin cơ bản</span>
-                <Button size="sm" variant="outline">
-                  <Edit className="h-4 w-4 mr-1" />
-                  Chỉnh sửa
-                </Button>
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Thông tin cơ bản</CardTitle>
+                <div className="flex space-x-2">
+                  {editing ? (
+                    <>
+                      <Button variant="outline" onClick={handleCancel} disabled={saving}>
+                        Hủy
+                      </Button>
+                      <Button onClick={handleSave} disabled={saving}>
+                        <Save className="h-4 w-4 mr-2" />
+                        {saving ? 'Đang lưu...' : 'Lưu'}
+                      </Button>
+                    </>
+                  ) : (
+                    <Button onClick={() => setEditing(true)}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Chỉnh sửa
+                    </Button>
+                  )}
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Tên trường</label>
-                  <p className="text-gray-800">{universityInfo.name}</p>
+                  <Label htmlFor="name" className="mb-2">Tên trường *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name || ''}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    readOnly={!editing}
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.name ? "border-red-500" : ""}
+                  />
+                  {formErrors.name && <p className="text-red-500 text-sm mt-1">{formErrors.name}</p>}
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Mã trường</label>
-                  <p className="text-gray-800">{universityInfo.code}</p>
+                  <Label htmlFor="shortName" className="mb-2">Tên viết tắt *</Label>
+                  <Input
+                    id="shortName"
+                    value={formData.shortName || ''}
+                    onChange={(e) => handleInputChange('shortName', e.target.value)}
+                    readOnly={!editing}
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.shortName ? "border-red-500" : ""}
+                  />
+                  {formErrors.shortName && <p className="text-red-500 text-sm mt-1">{formErrors.shortName}</p>}
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Loại hình</label>
-                  <p className="text-gray-800">{universityInfo.type}</p>
+                  <Label htmlFor="type" className="mb-2">Loại hình *</Label>
+                  <Select
+                    value={formData.type || ''}
+                    onValueChange={(value) => handleInputChange('type', value)}
+                    disabled={!editing}
+                  >
+                    <SelectTrigger className={formErrors.type ? "border-red-500" : ""}>
+                      <SelectValue placeholder="Chọn loại hình" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Công lập">Công lập</SelectItem>
+                      <SelectItem value="Tư thục">Tư thục</SelectItem>
+                      <SelectItem value="Dân lập">Dân lập</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {formErrors.type && <p className="text-red-500 text-sm mt-1">{formErrors.type}</p>}
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Năm thành lập</label>
-                  <p className="text-gray-800">{universityInfo.establishedYear}</p>
+                  <Label htmlFor="ranking" className="mb-2">Thứ hạng</Label>
+                  <Input
+                    id="ranking"
+                    type="number"
+                    value={formData.ranking || ''}
+                    onChange={(e) => handleInputChange('ranking', e.target.value)}
+                    readOnly={!editing}
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.ranking ? "border-red-500" : ""}
+                  />
+                  {formErrors.ranking && <p className="text-red-500 text-sm mt-1">{formErrors.ranking}</p>}
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Địa điểm</label>
-                  <p className="text-gray-800">{universityInfo.location}</p>
+                  <Label htmlFor="officialWebsite" className="mb-2">Website chính thức *</Label>
+                  <Input
+                    id="officialWebsite"
+                    value={formData.officialWebsite || ''}
+                    onChange={(e) => handleInputChange('officialWebsite', e.target.value)}
+                    readOnly={!editing}
+                    placeholder="https://www.university.edu.vn"
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.officialWebsite ? "border-red-500" : ""}
+                  />
+                  {formErrors.officialWebsite && <p className="text-red-500 text-sm mt-1">{formErrors.officialWebsite}</p>}
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Sinh viên</label>
-                  <p className="text-gray-800">{universityInfo.students.toLocaleString()}</p>
+                  <Label htmlFor="admissionWebsite" className="mb-2">Website tuyển sinh *</Label>
+                  <Input
+                    id="admissionWebsite"
+                    value={formData.admissionWebsite || ''}
+                    onChange={(e) => handleInputChange('admissionWebsite', e.target.value)}
+                    readOnly={!editing}
+                    placeholder="https://tuyensinh.university.edu.vn"
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.admissionWebsite ? "border-red-500" : ""}
+                  />
+                  {formErrors.admissionWebsite && <p className="text-red-500 text-sm mt-1">{formErrors.admissionWebsite}</p>}
+                </div>
+                <div className="col-span-2">
+                  <Label htmlFor="locations" className="mb-2">Địa điểm *</Label>
+                  <Input
+                    id="locations"
+                    value={formData.locations || ''}
+                    onChange={(e) => handleInputChange('locations', e.target.value)}
+                    readOnly={!editing}
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.locations ? "border-red-500" : ""}
+                  />
+                  {formErrors.locations && <p className="text-red-500 text-sm mt-1">{formErrors.locations}</p>}
+                </div>
+                <div className="col-span-2">
+                  <Label htmlFor="rankingCriteria" className="mb-2">Tiêu chí xếp hạng</Label>
+                  <Textarea
+                    id="rankingCriteria"
+                    value={formData.rankingCriteria || ''}
+                    onChange={(e) => handleInputChange('rankingCriteria', e.target.value)}
+                    readOnly={!editing}
+                    placeholder="VD: QS World University Rankings"
+                    className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                      formErrors.rankingCriteria ? "border-red-500" : ""}
+                  />
+                  {formErrors.rankingCriteria && <p className="text-red-500 text-sm mt-1">{formErrors.rankingCriteria}</p>}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Users className="h-5 w-5" />
-                <span>Thông tin liên hệ</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-600">Website</label>
-                <p className="text-blue-600 hover:underline cursor-pointer">{universityInfo.website}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Email</label>
-                <p className="text-gray-800">{universityInfo.email}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Điện thoại</label>
-                <p className="text-gray-800">{universityInfo.phone}</p>
+                <Label htmlFor="introduction" className="mb-2">Giới thiệu *</Label>
+                <Textarea
+                  id="introduction"
+                  value={formData.introduction || ''}
+                  onChange={(e) => handleInputChange('introduction', e.target.value)}
+                  rows={4}
+                  readOnly={!editing}
+                  className={!editing ? "bg-muted cursor-default focus-visible:ring-0 focus-visible:ring-offset-0" :
+                    formErrors.introduction ? "border-red-500" : ""}
+                />
+                {formErrors.introduction && <p className="text-red-500 text-sm mt-1">{formErrors.introduction}</p>}
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
 
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Thống kê nhanh</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">24</div>
-                  <div className="text-sm text-gray-600">Ngành đào tạo</div>
-                </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">1,200</div>
-                  <div className="text-sm text-gray-600">Sinh viên mới</div>
-                </div>
-                <div className="text-center p-4 bg-orange-50 rounded-lg">
-                  <div className="text-2xl font-bold text-orange-600">85%</div>
-                  <div className="text-sm text-gray-600">Tỷ lệ việc làm</div>
-                </div>
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">4.2</div>
-                  <div className="text-sm text-gray-600">Đánh giá TB</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+        <TabsContent value="majors">
+          <UniversityMajorsTab />
+        </TabsContent>
 
-      {activeTab === 'approvals' && (
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5" />
-                <span>Danh sách chờ duyệt</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {pendingApprovals.map((item) => (
-                  <div key={item.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <h3 className="font-medium text-gray-900">{item.title}</h3>
-                          {getStatusBadge(item.status)}
-                        </div>
-                        <p className="text-gray-600 text-sm mb-2">{item.content}</p>
-                        <div className="text-xs text-gray-500">
-                          Gửi bởi: {item.submittedBy} • {item.submittedAt}
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2 ml-4">
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-4 w-4 mr-1" />
-                          Xem
-                        </Button>
-                        {item.status === 'pending' && (
-                          <>
-                            <Button 
-                              size="sm" 
-                              onClick={() => handleApprove(item.id)}
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              <Check className="h-4 w-4 mr-1" />
-                              Duyệt
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="destructive"
-                              onClick={() => handleReject(item.id)}
-                            >
-                              <X className="h-4 w-4 mr-1" />
-                              Từ chối
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+        <TabsContent value="programs">
+          <UniversityProgramsTab />
+        </TabsContent>
+
+        <TabsContent value="admission">
+          <UniversityAdmissionTab />
+        </TabsContent>
+
+        <TabsContent value="news">
+          <UniversityNewsTab />
+        </TabsContent>
+
+        <TabsContent value="scholarships">
+          <UniversityScholarshipsTab />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

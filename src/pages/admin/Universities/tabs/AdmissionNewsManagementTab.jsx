@@ -15,7 +15,7 @@ import {
   NewsTableSkeleton,
 } from '@/components/common/Loading/LoadingSkeleton'
 import { Skeleton } from '@/components/ui/skeleton';
-const AdmissionNewsTab = ({ universityId }) => {
+const AdmissionManagementTab = ({ universityId }) => {
   const [news, setNews] = useState([])
   const [loading, setLoading] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -328,4 +328,4 @@ const AdmissionNewsTab = ({ universityId }) => {
   )
 }
 
-export default AdmissionNewsTab
+export default AdmissionManagementTab

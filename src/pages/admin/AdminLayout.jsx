@@ -5,14 +5,7 @@ import AdminNavbar from '@/components/admin/AdminNavbar';
 import {
   LayoutDashboard,
   Building2,
-  BookOpen,
-  Bell,
   User,
-  Settings,
-  Shield,
-  GraduationCap,
-  DollarSign,
-  Trophy,
   ChevronDown,
   ChevronRight
 } from 'lucide-react';
@@ -67,15 +60,6 @@ const AdminLayout = () => {
       icon: User,
       label: 'Quản lý người dùng',
       type: 'item',
-    },
-    {
-      type: 'divider',
-    },
-    {
-      key: 'settings',
-      icon: Settings,
-      label: 'Cài đặt Hệ thống',
-      type: 'item'
     },
   ];
 

@@ -22,7 +22,7 @@ const INITIAL_FORM_DATA = {
     year: new Date().getFullYear().toString(),
 };
 
-const ScholarshipsTab = ({ universityId }) => {
+const ScholarshipsManagementTab = ({ universityId }) => {
     const [scholarships, setScholarships] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -265,4 +265,4 @@ const ScholarshipsTab = ({ universityId }) => {
     );
 };
 
-export default ScholarshipsTab;
+export default ScholarshipsManagementTab;
