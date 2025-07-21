@@ -31,7 +31,8 @@ const Homepage = () => {
                     featured: uni.ranking <= 10,
                     description: uni.introduction || 'Chưa có mô tả',
                     website: uni.officialWebsite,
-                    admissionWebsite: uni.admissionWebsite
+                    admissionWebsite: uni.admissionWebsite,
+                    isVerified: uni.isVerified,
                 }))
                 
                 setUniversities(transformedData)

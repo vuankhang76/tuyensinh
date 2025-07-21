@@ -9,7 +9,9 @@ import {
   Share,
   ExternalLink,
   Mail,
-  Building2
+  Building2,
+  Shield,
+  ShieldCheck
 } from 'lucide-react'
 
 const UniversityHero = ({ university, onShare }) => {
@@ -42,6 +44,17 @@ const UniversityHero = ({ university, onShare }) => {
               <Badge variant="default" className="text-xs">
                 {university.type}
               </Badge>
+              {university.isVerified ? (
+                <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-200 text-xs">
+                  <ShieldCheck className="h-3 w-3 mr-1" />
+                  Đã xác thực
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="bg-gray-100 text-gray-600 text-xs">
+                  <Shield className="h-3 w-3 mr-1" />
+                  Chưa xác thực
+                </Badge>
+              )}
               {getLocationString(university.locations).split(',').filter(loc => loc !== '').map((location, index) => (
                 <Badge key={index} variant="secondary" className="text-xs">
                   {location}
@@ -92,13 +105,6 @@ const UniversityHero = ({ university, onShare }) => {
                 </div>
               )}
             </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button variant="outline" onClick={onShare}>
-              <Share className="h-4 w-4 mr-2" />
-              Chia sẻ
-            </Button>
           </div>
         </div>
       </div>

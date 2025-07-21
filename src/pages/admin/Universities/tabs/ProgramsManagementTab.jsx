@@ -263,7 +263,7 @@ const ProgramsManagementTab = ({ universityId }) => {
               rows={5}
             />
           ) : programs.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">Không tìm thấy chương trình nào.</div>
+            <div className="text-center py-8 text-muted-foreground">Chưa có chương trình nào.</div>
           ) : (
             <Table>
               <TableHeader>
@@ -302,7 +302,7 @@ const ProgramsManagementTab = ({ universityId }) => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Bạn có chắc chắn muốn xóa chương trình "{program.name}" (Năm {program.year})? Hành động này không thể hoàn tác.
+                                Bạn có chắc chắn muốn xóa chương trình <strong>"{program.name}"</strong> (Năm {program.year})? Hành động này không thể hoàn tác.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

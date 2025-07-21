@@ -1,7 +1,6 @@
 import axios from '../api/axios'
 
 export const universityViewService = {
-  // University Info Management
   getMyUniversity: async () => {
     try {
       const response = await axios.get('/UniversityView/my-university')
@@ -29,7 +28,6 @@ export const universityViewService = {
     }
   },
 
-  // Programs Management
   getMyPrograms: async () => {
     try {
       const response = await axios.get('/UniversityView/my-programs')
@@ -66,7 +64,6 @@ export const universityViewService = {
     }
   },
 
-  // Majors Management
   getMyMajors: async () => {
     try {
       const response = await axios.get('/UniversityView/my-majors')
@@ -112,7 +109,6 @@ export const universityViewService = {
     }
   },
 
-  // Admission Methods Management
   getMyAdmissionMethods: async () => {
     try {
       const response = await axios.get('/UniversityView/my-admission-methods')
@@ -149,7 +145,6 @@ export const universityViewService = {
     }
   },
 
-  // Admission Scores Management
   getMyAdmissionScores: async () => {
     try {
       const response = await axios.get('/UniversityView/my-admission-scores')
@@ -204,7 +199,6 @@ export const universityViewService = {
     }
   },
 
-  // Admission Criteria Management
   getMyAdmissionCriteria: async () => {
     try {
       const response = await axios.get('/UniversityView/my-admission-criteria')
@@ -241,7 +235,6 @@ export const universityViewService = {
     }
   },
 
-  // Admission News Management
   getMyAdmissionNews: async () => {
     try {
       const response = await axios.get('/UniversityView/my-admission-news')
@@ -287,7 +280,6 @@ export const universityViewService = {
     }
   },
 
-  // Scholarships Management
   getMyScholarships: async () => {
     try {
       const response = await axios.get('/UniversityView/my-scholarships')
@@ -319,6 +311,15 @@ export const universityViewService = {
     try {
       await axios.delete(`/UniversityView/my-scholarships/${id}`)
       return true
+    } catch (error) {
+      throw error
+    }
+  },
+
+  updateMyVerify: async () => {
+    try {
+      const response = await axios.post(`/UniversityView/verify-my-university`)
+      return response.data
     } catch (error) {
       throw error
     }

@@ -49,7 +49,6 @@ export function DatePicker({ id = "date", value, onChange, placeholder = "Chọn
     setInputValue(val)
     
     if (val === '') {
-      // Người dùng xóa input
       handleDateChange(null)
       setHasError(false)
       return

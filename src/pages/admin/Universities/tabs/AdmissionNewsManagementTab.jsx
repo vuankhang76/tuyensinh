@@ -107,7 +107,6 @@ const AdmissionManagementTab = ({ universityId }) => {
       await fetchNewsData();
       
     } catch (error) {
-      console.error('Error details:', error.response?.data);
       if (error.response) {
         const { status, data } = error.response;
         if (status === 400 && data.errors) {
@@ -337,7 +336,7 @@ const AdmissionManagementTab = ({ universityId }) => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Bạn có chắc chắn muốn xóa tin tức "{newsItem.title}"? Hành động này không thể hoàn tác.
+                                Bạn có chắc chắn muốn xóa tin tức <strong>"{newsItem.title}"</strong>? Hành động này không thể hoàn tác.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

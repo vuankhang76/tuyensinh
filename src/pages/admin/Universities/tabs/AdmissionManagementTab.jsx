@@ -107,7 +107,6 @@ const AdmissionManagementTab = ({ universityId }) => {
             setIsDialogOpen(false);
             fetchMethods();
         } catch (error) {
-            console.error('Lỗi khi lưu phương thức:', error);
             if (error.response?.data?.message) {
                 toast.error(error.response.data.message);
             } else {
@@ -234,7 +233,7 @@ const AdmissionManagementTab = ({ universityId }) => {
                                                     <AlertDialogContent>
                                                         <AlertDialogHeader>
                                                             <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-                                                            <AlertDialogDescription>Bạn có chắc chắn muốn xóa phương thức "{method.name}"?</AlertDialogDescription>
+                                                            <AlertDialogDescription>Bạn có chắc chắn muốn xóa phương thức <strong>"{method.name}"</strong>?</AlertDialogDescription>
                                                         </AlertDialogHeader>
                                                         <AlertDialogFooter>
                                                             <AlertDialogCancel>Hủy</AlertDialogCancel>
