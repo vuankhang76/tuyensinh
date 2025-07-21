@@ -100,7 +100,6 @@ const MajorsManagementTab = ({ universityId }) => {
     setLoading(true);
     try {
       if (editingMajor) {
-        // Update existing major
         const majorPayload = {
           Name: formData.name.trim(),
           Code: formData.code.trim().toUpperCase(),
@@ -110,15 +109,12 @@ const MajorsManagementTab = ({ universityId }) => {
 
         await majorService.updateMajor(editingMajor.id, majorPayload);
 
-        // Update admission score if needed
         const hasScoreInfo = formData.score || formData.subjectCombination;
         if (hasScoreInfo) {
           const scorePayload = {
             MajorId: editingMajor.id,
             Year: parseInt(formData.year) || new Date().getFullYear(),
             Score: parseFloat(formData.score) || 0,
-            // AdmissionMethodId: null,
-            // Note: null,
             SubjectCombination: formData.subjectCombination?.trim() || ""
           };
 
@@ -131,58 +127,34 @@ const MajorsManagementTab = ({ universityId }) => {
         toast.success('Cập nhật ngành học thành công!');
 
       } else {
-        // BƯỚC 1: Tạo Major trước (chỉ thông tin Major thuần túy)
         const majorPayload = {
           Name: formData.name.trim(),
           Code: formData.code.trim().toUpperCase(), 
           Description: formData.description.trim(),
           UniversityId: parseInt(universityId),
-          // KHÔNG gửi AdmissionScore, Year - để tránh conflict
         };
-
-        console.log('🚀 Step 1 - Creating Major:', majorPayload);
-        console.log('🔑 UniversityId:', universityId);
-
         const newMajor = await majorService.createMajor(majorPayload);
-        console.log('✅ Step 1 Complete - Major created:', newMajor);
-
-        // BƯỚC 2: Tạo AdmissionScore riêng biệt (chỉ nếu có điểm)
         let scoreCreated = false;
         if (formData.score && parseFloat(formData.score) > 0) {
-          console.log('📋 Original form data for score:', {
-            score: formData.score,
-            year: formData.year,
-            subjectCombination: formData.subjectCombination
-          });
-          
           const currentYear = new Date().getFullYear();
-          // Use a different year to avoid potential duplicates
-          const targetYear = parseInt(formData.year) || (currentYear - 1); // Use 2024 instead of 2025
-          
+          const targetYear = parseInt(formData.year) || (currentYear - 1);
           const scorePayload = {
             MajorId: newMajor.id,
             Year: targetYear,
             Score: parseFloat(formData.score)
           };
 
-          // Only add optional fields if they have meaningful values
           if (formData.subjectCombination && formData.subjectCombination.trim()) {
             scorePayload.SubjectCombination = formData.subjectCombination.trim();
           }
-
-          console.log('🎯 Step 2 - Creating AdmissionScore:', scorePayload);
           
           try {
-            const newScore = await admissionScoreService.createAdmissionScore(scorePayload);
-            console.log('✅ Step 2 Complete - Score created/updated:', newScore);
+            await admissionScoreService.createAdmissionScore(scorePayload);
             scoreCreated = true;
           } catch (error) {
-            console.log('⚠️ Score creation failed:', error.response?.data || error.message);
-            // Chỉ log lỗi, không thử lại
           }
         }
 
-        // Hiển thị thông báo thành công dựa trên kết quả
         if (scoreCreated) {
           toast.success('Thêm ngành học và điểm chuẩn thành công!');
         } else if (formData.score && parseFloat(formData.score) > 0) {
@@ -194,18 +166,6 @@ const MajorsManagementTab = ({ universityId }) => {
       setIsDialogOpen(false);
       fetchAndCombineData();
     } catch (error) {
-      console.error('❌ Error details:', error);
-      console.error('📝 Response data:', error.response?.data);
-      console.error('🔢 Status:', error.response?.status);
-      console.error('🌐 Full response:', error.response);
-      
-      // Log chi tiết response data
-      if (error.response?.data) {
-        console.log('💬 Error message:', error.response.data.message);
-        console.log('⚠️ Error details:', error.response.data.error);
-        console.log('📋 Full error object:', JSON.stringify(error.response.data, null, 2));
-      }
-      
       if (error.response) {
         const { status, data } = error.response;
         if (status === 401) {
@@ -249,7 +209,6 @@ const MajorsManagementTab = ({ universityId }) => {
   const validateForm = () => {
     const errors = {};
 
-    // Major fields - BẮT BUỘC
     if (!formData.name?.trim()) {
       errors.name = 'Tên ngành học là bắt buộc.';
     }
@@ -266,7 +225,6 @@ const MajorsManagementTab = ({ universityId }) => {
       errors.description = 'Mô tả không được vượt quá 2000 ký tự.';
     }
 
-    // AdmissionScore fields - KHÔNG BẮT BUỘC nhưng validate nếu có
     if (formData.score && formData.score.toString().trim() !== '') {
       if (isNaN(formData.score)) {
         errors.score = 'Điểm chuẩn phải là một số.';
@@ -472,7 +430,7 @@ const MajorsManagementTab = ({ universityId }) => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Bạn có chắc chắn muốn xóa ngành "{major.name}"? Hành động này sẽ xóa cả các điểm chuẩn liên quan và không thể hoàn tác.
+                                Bạn có chắc chắn muốn xóa ngành <strong>"{major.name}"</strong>? Hành động này sẽ xóa cả các điểm chuẩn liên quan và không thể hoàn tác.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

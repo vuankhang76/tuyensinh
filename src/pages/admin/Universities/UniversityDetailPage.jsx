@@ -76,7 +76,6 @@ const UniversityDetailPage = () => {
       const data = await universityService.getUniversityById(id);
       setUniversity(data);
     } catch (error) {
-      console.error("Lỗi chi tiết khi tải dữ liệu trường:", error);
       toast.error('Có lỗi xảy ra khi tải thông tin trường đại học');
       navigate('/admin/universities');
     } finally {
@@ -232,8 +231,6 @@ const UniversityDetailPage = () => {
       setEditing(false);
       toast.success("Đã cập nhật thông tin trường đại học thành công!");
     } catch (error) {
-      console.error("Lỗi chi tiết khi cập nhật:", error);
-
       if (error.response?.status === 400 && error.response?.data?.errors) {
         const backendErrors = {};
         const errorData = error.response.data.errors;

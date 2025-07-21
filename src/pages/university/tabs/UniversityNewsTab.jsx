@@ -64,7 +64,6 @@ const UniversityNewsTab = () => {
       errors.year = `Năm phải nằm trong khoảng từ 2015 đến ${currentYear + 1}.`;
     }
 
-    // Cải thiện validation cho publishDate
     if (formData.publishDate && formData.publishDate.trim() !== '') {
       const datePattern = /^\d{4}-\d{2}-\d{2}$/;
       if (!datePattern.test(formData.publishDate)) {
@@ -115,7 +114,6 @@ const UniversityNewsTab = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-    // Đảm bảo validation được gọi và ngăn submit nếu có lỗi
     if (!validateForm()) {
       toast.error('Vui lòng sửa các lỗi trong form');
       return;
@@ -123,7 +121,6 @@ const UniversityNewsTab = () => {
 
     setLoading(true)
     try {
-      // Cải thiện xử lý publishDate
       let processedPublishDate;
       if (formData.publishDate && formData.publishDate.trim() !== '') {
         const dateObj = new Date(formData.publishDate);
@@ -145,7 +142,6 @@ const UniversityNewsTab = () => {
       }
 
       if (editingNews) {
-        // Thêm Id vào newsData khi update để khớp với backend requirement
         newsData.Id = editingNews.id;
         await universityViewService.updateMyAdmissionNews(editingNews.id, newsData)
         toast.success('Cập nhật tin tức thành công!');
@@ -158,7 +154,6 @@ const UniversityNewsTab = () => {
       resetForm()
       fetchData()
     } catch (error) {
-      console.error('Error details:', error.response?.data); // Debug log
       if (error.response) {
         const { status, data } = error.response;
         if (status === 400 && data.errors) {
@@ -206,9 +201,8 @@ const UniversityNewsTab = () => {
       setLoading(true)
       await universityViewService.deleteMyAdmissionNews(newsId)
       toast.success('Xóa tin tức thành công!')
-      fetchData() // Sửa từ fetchNews() thành fetchData()
+      fetchData()
     } catch (error) {
-      console.error('Delete error:', error.response?.data); // Debug log
       if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
@@ -354,7 +348,7 @@ const UniversityNewsTab = () => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Bạn có chắc chắn muốn xóa tin tức "{newsItem.title}"? Hành động này không thể hoàn tác.
+                                Bạn có chắc chắn muốn xóa tin tức <strong>"{newsItem.title}"</strong>? Hành động này không thể hoàn tác.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

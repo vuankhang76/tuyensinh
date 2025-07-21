@@ -600,7 +600,7 @@ const UserManagement = () => {
           <DialogHeader>
             <DialogTitle>Xác nhận xóa người dùng</DialogTitle>
             <DialogDescription>
-              Bạn có chắc chắn muốn xóa người dùng "{userToDelete?.displayName}"?
+              Bạn có chắc chắn muốn xóa người dùng <strong>"{userToDelete?.displayName}"</strong>?
               Hành động này không thể hoàn tác.
             </DialogDescription>
           </DialogHeader>

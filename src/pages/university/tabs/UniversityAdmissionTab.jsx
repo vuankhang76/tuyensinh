@@ -36,7 +36,6 @@ const UniversityAdmissionTab = () => {
       const sortedData = data.sort((a, b) => a.id - b.id);
       setAdmissionMethods(sortedData);
     } catch (error) {
-      console.error('Lỗi khi tải dữ liệu:', error);
       toast.error('Có lỗi xảy ra khi tải dữ liệu');
     } finally {
       setLoading(false);
@@ -80,7 +79,7 @@ const UniversityAdmissionTab = () => {
     setLoading(true);
     try {
       const methodData = {
-        methodId: editingMethod?.id,
+        Id: editingMethod?.id,
         name: formData.name,
         description: formData.description,
         criteria: formData.criteria,
@@ -97,7 +96,6 @@ const UniversityAdmissionTab = () => {
       setIsDialogOpen(false);
       await fetchData();
     } catch (error) {
-      console.error('Lỗi khi lưu phương thức:', error);
       if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
@@ -126,7 +124,6 @@ const UniversityAdmissionTab = () => {
       toast.success('Xóa phương thức thành công!');
       await fetchData();
     } catch (error) {
-      console.error('Lỗi khi xóa phương thức:', error);
       if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
@@ -234,7 +231,7 @@ const UniversityAdmissionTab = () => {
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-                              <AlertDialogDescription>Bạn có chắc chắn muốn xóa phương thức "{method.name}"?</AlertDialogDescription>
+                              <AlertDialogDescription>Bạn có chắc chắn muốn xóa phương thức <strong>"{method.name}"</strong>?</AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Hủy</AlertDialogCancel>
