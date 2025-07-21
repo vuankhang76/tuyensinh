@@ -27,17 +27,14 @@ const INITIAL_FORM_DATA = {
 const MajorsManagementTab = ({ universityId }) => {
   const [majors, setMajors] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [deleting, setDeleting] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMajor, setEditingMajor] = useState(null);
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
-  const [formErrors, setFormErrors] = useState({})
+  const [formErrors, setFormErrors] = useState({});
 
   const fetchAndCombineData = useCallback(async () => {
     if (!universityId) return;
     setLoading(true);
-    setMajors([]); // Clear old data immediately
     try {
       const [majorsData, scoresData] = await Promise.all([
         majorService.getMajorsByUniversity(universityId),
@@ -60,7 +57,6 @@ const MajorsManagementTab = ({ universityId }) => {
       setMajors(sortedData);
     } catch (error) {
       toast.error('Có lỗi xảy ra khi tải dữ liệu ngành học');
-      setMajors([]);
     } finally {
       setLoading(false);
     }
@@ -77,7 +73,6 @@ const MajorsManagementTab = ({ universityId }) => {
   const handleOpenNewDialog = () => {
     setEditingMajor(null);
     setFormData(INITIAL_FORM_DATA);
-    setFormErrors({});
     setIsDialogOpen(true);
   };
 
@@ -92,7 +87,6 @@ const MajorsManagementTab = ({ universityId }) => {
       year: major.year?.toString() || new Date().getFullYear().toString(),
       subjectCombination: major.subjectCombination || '',
     });
-    setFormErrors({});
     setIsDialogOpen(true);
   };
 
@@ -103,10 +97,10 @@ const MajorsManagementTab = ({ universityId }) => {
       return;
     }
 
-    setSubmitting(true);
     setLoading(true);
     try {
       if (editingMajor) {
+        // Update existing major
         const majorPayload = {
           Name: formData.name.trim(),
           Code: formData.code.trim().toUpperCase(),
@@ -115,12 +109,16 @@ const MajorsManagementTab = ({ universityId }) => {
         };
 
         await majorService.updateMajor(editingMajor.id, majorPayload);
+
+        // Update admission score if needed
         const hasScoreInfo = formData.score || formData.subjectCombination;
         if (hasScoreInfo) {
           const scorePayload = {
             MajorId: editingMajor.id,
             Year: parseInt(formData.year) || new Date().getFullYear(),
             Score: parseFloat(formData.score) || 0,
+            // AdmissionMethodId: null,
+            // Note: null,
             SubjectCombination: formData.subjectCombination?.trim() || ""
           };
 
@@ -133,61 +131,81 @@ const MajorsManagementTab = ({ universityId }) => {
         toast.success('Cập nhật ngành học thành công!');
 
       } else {
+        // BƯỚC 1: Tạo Major trước (chỉ thông tin Major thuần túy)
         const majorPayload = {
           Name: formData.name.trim(),
           Code: formData.code.trim().toUpperCase(), 
           Description: formData.description.trim(),
           UniversityId: parseInt(universityId),
+          // KHÔNG gửi AdmissionScore, Year - để tránh conflict
         };
-        const newMajor = await majorService.createMajor(majorPayload);
 
+        console.log('🚀 Step 1 - Creating Major:', majorPayload);
+        console.log('🔑 UniversityId:', universityId);
+
+        const newMajor = await majorService.createMajor(majorPayload);
+        console.log('✅ Step 1 Complete - Major created:', newMajor);
+
+        // BƯỚC 2: Tạo AdmissionScore riêng biệt (chỉ nếu có điểm)
+        let scoreCreated = false;
         if (formData.score && parseFloat(formData.score) > 0) {
+          console.log('📋 Original form data for score:', {
+            score: formData.score,
+            year: formData.year,
+            subjectCombination: formData.subjectCombination
+          });
+          
           const currentYear = new Date().getFullYear();
-          const targetYear = parseInt(formData.year) || (currentYear - 1);
+          // Use a different year to avoid potential duplicates
+          const targetYear = parseInt(formData.year) || (currentYear - 1); // Use 2024 instead of 2025
+          
           const scorePayload = {
             MajorId: newMajor.id,
             Year: targetYear,
             Score: parseFloat(formData.score)
           };
+
+          // Only add optional fields if they have meaningful values
           if (formData.subjectCombination && formData.subjectCombination.trim()) {
             scorePayload.SubjectCombination = formData.subjectCombination.trim();
           }
+
+          console.log('🎯 Step 2 - Creating AdmissionScore:', scorePayload);
+          
           try {
             const newScore = await admissionScoreService.createAdmissionScore(scorePayload);
-          } catch (error) {            
-            try {
-              const methods = await admissionMethodService.getAdmissionMethodsByUniversity(universityId);
-              if (methods && methods.length > 0) {
-                const methodPayload = {
-                  ...scorePayload,
-                  AdmissionMethodId: methods[0].id
-                };
-                await admissionScoreService.createAdmissionScore(methodPayload);
-              } else {
-                throw new Error('No admission methods available');
-              }
-            } catch (retryError) {              
-              try {
-                const minimalPayload = {
-                  MajorId: newMajor.id,
-                  Year: 2023,
-                  Score: parseFloat(formData.score)
-                };
-                await admissionScoreService.createAdmissionScore(minimalPayload);
-              } catch (finalError) {
-                if (error.response?.data?.message) {
-                  toast.warning(`Ngành học đã tạo thành công! Lưu ý: ${error.response.data.message}`);
-                }
-              }
-            }
+            console.log('✅ Step 2 Complete - Score created/updated:', newScore);
+            scoreCreated = true;
+          } catch (error) {
+            console.log('⚠️ Score creation failed:', error.response?.data || error.message);
+            // Chỉ log lỗi, không thử lại
           }
         }
 
-        toast.success('Thêm ngành học thành công!');
+        // Hiển thị thông báo thành công dựa trên kết quả
+        if (scoreCreated) {
+          toast.success('Thêm ngành học và điểm chuẩn thành công!');
+        } else if (formData.score && parseFloat(formData.score) > 0) {
+          toast.success('Thêm ngành học thành công! Vui lòng thêm điểm chuẩn thủ công.');
+        } else {
+          toast.success('Thêm ngành học thành công!');
+        }
       }
       setIsDialogOpen(false);
-      await fetchAndCombineData(); // Refresh data after successful operation
+      fetchAndCombineData();
     } catch (error) {
+      console.error('❌ Error details:', error);
+      console.error('📝 Response data:', error.response?.data);
+      console.error('🔢 Status:', error.response?.status);
+      console.error('🌐 Full response:', error.response);
+      
+      // Log chi tiết response data
+      if (error.response?.data) {
+        console.log('💬 Error message:', error.response.data.message);
+        console.log('⚠️ Error details:', error.response.data.error);
+        console.log('📋 Full error object:', JSON.stringify(error.response.data, null, 2));
+      }
+      
       if (error.response) {
         const { status, data } = error.response;
         if (status === 401) {
@@ -211,22 +229,19 @@ const MajorsManagementTab = ({ universityId }) => {
         toast.error(`Lỗi kết nối: ${error.message || 'Không xác định'}`);
       }
     } finally {
-      setSubmitting(false);
       setLoading(false);
     }
   };
 
   const handleDelete = async (majorId) => {
-    setDeleting(majorId);
     setLoading(true);
     try {
       await majorService.deleteMajor(majorId);
       toast.success('Xóa ngành học thành công!');
-      await fetchAndCombineData(); // Refresh data after successful deletion
+      fetchAndCombineData();
     } catch (error) {
       toast.error('Có lỗi xảy ra khi xóa ngành học');
     } finally {
-      setDeleting(null);
       setLoading(false);
     }
   };
@@ -234,6 +249,7 @@ const MajorsManagementTab = ({ universityId }) => {
   const validateForm = () => {
     const errors = {};
 
+    // Major fields - BẮT BUỘC
     if (!formData.name?.trim()) {
       errors.name = 'Tên ngành học là bắt buộc.';
     }
@@ -250,6 +266,7 @@ const MajorsManagementTab = ({ universityId }) => {
       errors.description = 'Mô tả không được vượt quá 2000 ký tự.';
     }
 
+    // AdmissionScore fields - KHÔNG BẮT BUỘC nhưng validate nếu có
     if (formData.score && formData.score.toString().trim() !== '') {
       if (isNaN(formData.score)) {
         errors.score = 'Điểm chuẩn phải là một số.';
@@ -287,9 +304,7 @@ const MajorsManagementTab = ({ universityId }) => {
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={handleOpenNewDialog} disabled={loading || submitting}>
-              <Plus className="h-4 w-4 mr-2" />Thêm ngành học
-            </Button>
+            <Button onClick={handleOpenNewDialog} disabled={loading}><Plus className="h-4 w-4 mr-2" />Thêm ngành học</Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
@@ -310,7 +325,6 @@ const MajorsManagementTab = ({ universityId }) => {
                     onChange={(e) => handleInputChange('name', e.target.value)} 
                     placeholder="VD: Công nghệ Thông tin"
                     required 
-                    disabled={submitting}
                   />
                   {formErrors.name && <p className="text-red-500 text-sm mt-1">{formErrors.name}</p>}
                 </div>
@@ -324,7 +338,6 @@ const MajorsManagementTab = ({ universityId }) => {
                     onChange={(e) => handleInputChange('code', e.target.value.toUpperCase())} 
                     placeholder="VD: CNTT, KTPM"
                     required 
-                    disabled={submitting}
                   />
                   {formErrors.code && <p className="text-red-500 text-sm mt-1">{formErrors.code}</p>}
                 </div>
@@ -340,7 +353,6 @@ const MajorsManagementTab = ({ universityId }) => {
                   placeholder="VD: Ngành đào tạo cử nhân công nghệ thông tin với kiến thức về lập trình, cơ sở dữ liệu, mạng máy tính..."
                   rows={3}
                   required
-                  disabled={submitting}
                 />
                 {formErrors.description && <p className="text-red-500 text-sm mt-1">{formErrors.description}</p>}
               </div>
@@ -357,7 +369,6 @@ const MajorsManagementTab = ({ universityId }) => {
                       value={formData.score} 
                       onChange={(e) => handleInputChange('score', e.target.value)} 
                       placeholder="VD: 25.5" 
-                      disabled={submitting}
                     />
                     {formErrors.score && <p className="text-red-500 text-sm mt-1">{formErrors.score}</p>}
                   </div>
@@ -369,7 +380,6 @@ const MajorsManagementTab = ({ universityId }) => {
                       value={formData.year} 
                       onChange={(e) => handleInputChange('year', e.target.value)} 
                       placeholder="VD: 2025" 
-                      disabled={submitting}
                     />
                     {formErrors.year && <p className="text-red-500 text-sm mt-1">{formErrors.year}</p>}
                   </div>
@@ -382,19 +392,14 @@ const MajorsManagementTab = ({ universityId }) => {
                       value={formData.subjectCombination} 
                       onChange={(e) => handleInputChange('subjectCombination', e.target.value)} 
                       placeholder="VD: A00, A01, D07" 
-                      disabled={submitting}
                     />
                     {formErrors.subjectCombination && <p className="text-red-500 text-sm mt-1">{formErrors.subjectCombination}</p>}
                   </div>
                 </div>
               </div>
               <div className="flex justify-end space-x-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} disabled={submitting}>
-                  Hủy
-                </Button>
-                <Button type="submit" disabled={submitting}>
-                  {submitting ? 'Đang lưu...' : (editingMajor ? 'Cập nhật' : 'Thêm mới')}
-                </Button>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Hủy</Button>
+                <Button type="submit" disabled={loading}>{loading ? 'Đang lưu...' : (editingMajor ? 'Cập nhật' : 'Thêm mới')}</Button>
               </div>
             </form>
           </DialogContent>
@@ -443,7 +448,7 @@ const MajorsManagementTab = ({ universityId }) => {
               </TableHeader>
               <TableBody>
                 {majors.map((major) => (
-                  <TableRow key={major.id} className={deleting === major.id ? "opacity-50" : ""}>
+                  <TableRow key={major.id}>
                     <TableCell className="font-medium">{major.id}</TableCell>
                     <TableCell className="font-medium">{major.name}</TableCell>
                     <TableCell className="text-center"><Badge variant="outline">{major.code}</Badge></TableCell>
@@ -458,28 +463,10 @@ const MajorsManagementTab = ({ universityId }) => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-1">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleEdit(major)}
-                          disabled={submitting || deleting === major.id}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(major)}><Edit className="h-4 w-4" /></Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="text-red-600 hover:text-red-700"
-                              disabled={submitting || deleting === major.id}
-                            >
-                              {deleting === major.id ? (
-                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
-                              ) : (
-                                <Trash2 className="h-4 w-4" />
-                              )}
-                            </Button>
+                            <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700"><Trash2 className="h-4 w-4" /></Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
@@ -489,14 +476,8 @@ const MajorsManagementTab = ({ universityId }) => {
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel disabled={deleting === major.id}>Hủy</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => handleDelete(major.id)} 
-                                className="bg-red-600 hover:bg-red-700"
-                                disabled={deleting === major.id}
-                              >
-                                {deleting === major.id ? 'Đang xóa...' : 'Xóa'}
-                              </AlertDialogAction>
+                              <AlertDialogCancel>Hủy</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDelete(major.id)} className="bg-red-600 hover:bg-red-700">Xóa</AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
