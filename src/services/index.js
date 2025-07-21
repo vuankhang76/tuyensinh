@@ -9,6 +9,7 @@ import admissionCriteriaService from './admissionCriteriaService'
 import admissionScoreService from './admissionScoreService'
 import admissionNewsService from './admissionNewsService'
 import chatService from './chatService'
+import fileService from './fileService'
 
 export { universityService }
 export { universityViewService }
@@ -21,6 +22,7 @@ export { admissionCriteriaService }
 export { admissionScoreService }
 export { admissionNewsService }
 export { chatService }
+export { fileService }
 
 export const services = {
   university: universityService,
@@ -33,7 +35,8 @@ export const services = {
   admissionCriteria: admissionCriteriaService,
   admissionScore: admissionScoreService,
   admissionNews: admissionNewsService,
-  chat: chatService
+  chat: chatService,
+  file: fileService
 }
 
 export default services 
