@@ -1,4 +1,5 @@
 import universityService from './universityService'
+import universityViewService from './universityViewService'
 import userService from './userService'
 import majorService from './majorService'
 import scholarshipService from './scholarshipService'
@@ -10,6 +11,7 @@ import admissionNewsService from './admissionNewsService'
 import chatService from './chatService'
 
 export { universityService }
+export { universityViewService }
 export { userService }
 export { majorService }
 export { scholarshipService }
@@ -22,6 +24,7 @@ export { chatService }
 
 export const services = {
   university: universityService,
+  universityView: universityViewService,
   user: userService,
   major: majorService,
   scholarship: scholarshipService,

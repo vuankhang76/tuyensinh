@@ -36,19 +36,17 @@ const ResetPassword = () => {
   const mode = searchParams.get('mode');
 
   useEffect(() => {
-    // Redirect if user is already logged in
     if (user) {
       if (user.role === 'admin') {
         navigate('/admin', { replace: true });
       } else if (user.role === 'university') {
-        navigate('/university-admin', { replace: true });
+        navigate('/university', { replace: true });
       } else {
         navigate('/', { replace: true });
       }
       return;
     }
 
-    // Verify the reset code
     const verifyCode = async () => {
       if (!oobCode || mode !== 'resetPassword') {
         toast.error('Link reset mật khẩu không hợp lệ');

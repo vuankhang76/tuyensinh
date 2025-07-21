@@ -23,7 +23,7 @@ import {
 import MajorsManagementTab from './tabs/MajorsManagementTab';
 import ProgramsManagementTab from './tabs/ProgramsManagementTab';
 import AdmissionNewsTab from './tabs/AdmissionNewsManagementTab';
-import ScholarshipsTab from './tabs/ScholarshipsManagementTab';
+import ScholarshipsManagementTab from './tabs/ScholarshipsManagementTab';
 import universityService from '@/services/universityService';
 import AdmissionManagementTab from './tabs/AdmissionManagementTab';
 import { Dialog } from '@radix-ui/react-dialog';
@@ -40,7 +40,6 @@ const UniversityDetailPage = () => {
   const [formErrors, setFormErrors] = useState({});
   const [currentTab, setCurrentTab] = useState('basic');
 
-  // Initialize currentTab from URL parameter
   useEffect(() => {
     const tabFromUrl = searchParams.get('tab');
     const validTabs = ['basic', 'majors', 'programs', 'news', 'scholarships', 'admission'];
@@ -212,12 +211,11 @@ const UniversityDetailPage = () => {
     setEditing(false);
   };
 
-  // Handle tab change and update URL
   const handleTabChange = (newTab) => {
     setCurrentTab(newTab);
     const params = new URLSearchParams(searchParams);
     if (newTab === 'basic') {
-      params.delete('tab'); // Remove tab param for basic tab (default)
+      params.delete('tab');
     } else {
       params.set('tab', newTab);
     }
@@ -451,7 +449,7 @@ const UniversityDetailPage = () => {
         </TabsContent>
 
         <TabsContent value="scholarships">
-          <ScholarshipsTab universityId={id} />
+          <ScholarshipsManagementTab universityId={id} />
         </TabsContent>
 
         <TabsContent value="admission">

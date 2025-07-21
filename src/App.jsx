@@ -20,7 +20,6 @@ import Overview from './pages/admin/Dashboard/Overview'
 import UniversityManagement from './pages/admin/Universities/UniversityManagement'
 import UniversityDetailPage from './pages/admin/Universities/UniversityDetailPage'
 import UserManagement from './pages/admin/Users/UserManagement'
-import UniversityAdmin from './pages/university/UniversityAdmin'
 import UserProfile from './pages/user/UserProfile'
 import AIChat from './pages/AIChat'
 import Unauthorized from './pages/Unauthorized'
@@ -28,6 +27,8 @@ import Navbar from './components/common/Layout/Navbar'
 import Footer from './components/common/Layout/Footer'
 import ProtectedRoute from './routes/ProtectedRoute'
 import UniversityCreatePage from './pages/admin/Universities/UniversityCreatePage';
+import UniversityLayout from './pages/university/UniversityLayout';
+import UniversityAdmin from './pages/university/UniversityAdmin';
 
 import { Toaster } from './components/ui/sonner'
 
@@ -49,11 +50,14 @@ function App() {
               <Route path="users" element={<UserManagement />} />
             </Route>
 
-            <Route path="/university-admin" element={
+            <Route path="/university" element={
               <ProtectedRoute requiredRole="university">
-                <UniversityAdmin />
+                <UniversityLayout />
               </ProtectedRoute>
-            } />
+            }>
+              <Route index element={<UniversityAdmin />} />
+              <Route path="admin" element={<UniversityAdmin />} />
+            </Route>
 
             <Route path="/ai-chat" element={
               <main className="h-screen">

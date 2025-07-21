@@ -10,121 +10,44 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { Plus, Edit, Trash2, Newspaper, Calendar } from 'lucide-react'
-import admissionNewsService from '@/services/admissionNewsService'
+import { universityViewService } from '@/services';
 import {
   NewsTableSkeleton,
 } from '@/components/common/Loading/LoadingSkeleton'
 import { Skeleton } from '@/components/ui/skeleton';
-const AdmissionManagementTab = ({ universityId }) => {
-  const [news, setNews] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [editingNews, setEditingNews] = useState(null)
-  const [formErrors, setFormErrors] = useState({})
-  const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    publishDate: '',
-    year: new Date().getFullYear()
-  })
 
-  useEffect(() => {
-    if (universityId) {
-      fetchNews()
-    }
-  }, [universityId])
+const INITIAL_FORM_DATA = {
+  title: '',
+  content: '',
+  publishDate: '',
+  year: new Date().getFullYear()
+};
 
-  const fetchNewsData = async () => {
-    const data = await admissionNewsService.getAdmissionNewsByUniversity(universityId);
-    const sortedData = data.sort((a, b) => a.id - b.id);
-    setNews(sortedData);
-    return sortedData;
-  }
+const UniversityNewsTab = () => {
+  const [news, setNews] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingNews, setEditingNews] = useState(null);
+  const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+  const [formErrors, setFormErrors] = useState({});
 
-  const fetchNews = async () => {
-    setLoading(true);
-    setNews([]);
-    
-    try {
-      await fetchNewsData();
-    } catch (error) {
-      toast.error('Có lỗi xảy ra khi tải danh sách tin tức');
-      setNews([]);
-    } finally {
-      setTimeout(() => {
-        setLoading(false);
-      }, 100);
-    }
-  }
-
-  const resetForm = () => {
-    setEditingNews(null)
-    setFormData({
-      title: '',
-      content: '',
-      publishDate: '',
-      year: new Date().getFullYear()
-    })
-  }
-
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) {
-      toast.error('Vui lòng sửa các lỗi trong form');
-      return;
-    }
-    
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const newsData = {
-        title: formData.title,
-        content: formData.content,
-        publishDate: formData.publishDate
-          ? new Date(formData.publishDate).toISOString()
-          : null,
-        year: parseInt(formData.year),
-        universityId: parseInt(universityId)
-      }
-
-      if (editingNews) {
-        await admissionNewsService.updateAdmissionNews(editingNews.id, newsData);
-        toast.success('Cập nhật tin tức thành công!');
-      } else {
-        await admissionNewsService.createAdmissionNews(newsData);
-        toast.success('Thêm tin tức thành công!');
-      }
-
-      setIsDialogOpen(false);
-      resetForm();
-      
-      await fetchNewsData();
-      
+      const data = await universityViewService.getMyNews();
+      const sortedData = data.sort((a, b) => a.id - b.id);
+      setNews(sortedData)
     } catch (error) {
-      console.error('Error details:', error.response?.data);
-      if (error.response) {
-        const { status, data } = error.response;
-        if (status === 400 && data.errors) {
-          const messages = Object.values(data.errors).flat();
-          messages.forEach(msg => toast.error(msg));
-        } else if (data.message) {
-          toast.error(data.message);
-        } else {
-          toast.error(editingNews ? 'Lỗi khi cập nhật tin tức' : 'Lỗi khi tạo tin tức');
-        }
-      } else {
-        toast.error(editingNews ? 'Lỗi khi cập nhật tin tức' : 'Lỗi khi tạo tin tức');
-      }
+      toast.error('Có lỗi xảy ra khi tải danh sách tin tức')
+      setNews([])
     } finally {
       setLoading(false);
     }
-  }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const validateForm = () => {
     const errors = {};
@@ -141,18 +64,29 @@ const AdmissionManagementTab = ({ universityId }) => {
       errors.year = `Năm phải nằm trong khoảng từ 2015 đến ${currentYear + 1}.`;
     }
 
-    if (formData.publishDate) {
+    // Cải thiện validation cho publishDate
+    if (formData.publishDate && formData.publishDate.trim() !== '') {
       const datePattern = /^\d{4}-\d{2}-\d{2}$/;
       if (!datePattern.test(formData.publishDate)) {
-        errors.publishDate = 'Định dạng ngày phải là YYYY-MM-DD.';
+        errors.publishDate = 'Định dạng ngày phải là YYYY-MM-DD (ví dụ: 2024-12-25).';
       } else {
         const dateObj = new Date(formData.publishDate);
-        const yearFromDate = dateObj.getFullYear();
-
-        const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-        const day = dateObj.getDate().toString().padStart(2, '0');
-        if (`${yearFromDate}-${month}-${day}` !== formData.publishDate) {
-          errors.publishDate = 'Ngày không tồn tại trên lịch.';
+        
+        if (isNaN(dateObj.getTime())) {
+          errors.publishDate = 'Ngày không hợp lệ.';
+        } else {
+          const yearFromDate = dateObj.getFullYear();
+          const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+          const day = dateObj.getDate().toString().padStart(2, '0');
+          const reconstructedDate = `${yearFromDate}-${month}-${day}`;
+          
+          if (reconstructedDate !== formData.publishDate) {
+            errors.publishDate = 'Ngày không tồn tại trên lịch.';
+          } else {
+            if (yearFromDate < 2000 || yearFromDate > currentYear + 1) {
+              errors.publishDate = `Năm trong ngày phải từ 2000 đến ${currentYear + 1}.`;
+            }
+          }
         }
       }
     }
@@ -160,6 +94,90 @@ const AdmissionManagementTab = ({ universityId }) => {
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   }
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  }
+
+  const resetForm = () => {
+    setEditingNews(null)
+    setFormData({
+      title: '',
+      content: '',
+      publishDate: '',
+      year: new Date().getFullYear()
+    })
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    
+    // Đảm bảo validation được gọi và ngăn submit nếu có lỗi
+    if (!validateForm()) {
+      toast.error('Vui lòng sửa các lỗi trong form');
+      return;
+    }
+
+    setLoading(true)
+    try {
+      // Cải thiện xử lý publishDate
+      let processedPublishDate;
+      if (formData.publishDate && formData.publishDate.trim() !== '') {
+        const dateObj = new Date(formData.publishDate);
+        if (isNaN(dateObj.getTime())) {
+          toast.error('Ngày xuất bản không hợp lệ');
+          setLoading(false);
+          return;
+        }
+        processedPublishDate = dateObj.toISOString();
+      } else {
+        processedPublishDate = new Date().toISOString();
+      }
+
+      const newsData = {
+        title: formData.title,
+        content: formData.content,
+        publishDate: processedPublishDate,
+        year: formData.year ? parseInt(formData.year) : new Date().getFullYear()
+      }
+
+      if (editingNews) {
+        // Thêm Id vào newsData khi update để khớp với backend requirement
+        newsData.Id = editingNews.id;
+        await universityViewService.updateMyAdmissionNews(editingNews.id, newsData)
+        toast.success('Cập nhật tin tức thành công!');
+      } else {
+        await universityViewService.createMyAdmissionNews(newsData);
+        toast.success('Thêm tin tức thành công!');
+      }
+
+      setIsDialogOpen(false)
+      resetForm()
+      fetchData()
+    } catch (error) {
+      console.error('Error details:', error.response?.data); // Debug log
+      if (error.response) {
+        const { status, data } = error.response;
+        if (status === 400 && data.errors) {
+          const messages = Object.values(data.errors).flat();
+          messages.forEach(msg => toast.error(msg));
+        } else if (data.message) {
+          toast.error(data.message);
+        } else if (data.title) {
+          toast.error(data.title);
+        } else {
+          toast.error(editingNews ? 'Lỗi khi cập nhật tin tức' : 'Lỗi khi tạo tin tức');
+        }
+      } else {
+        toast.error(editingNews ? 'Lỗi khi cập nhật tin tức' : 'Lỗi khi tạo tin tức');
+      }
+    } finally {
+      setLoading(false)
+    }
+  };
 
   const handleEdit = (newsItem) => {
     setEditingNews(newsItem)
@@ -184,21 +202,20 @@ const AdmissionManagementTab = ({ universityId }) => {
   }
 
   const handleDelete = async (newsId) => {
-    setLoading(true);
     try {
-      await admissionNewsService.deleteAdmissionNews(newsId);
-      toast.success('Xóa tin tức thành công!');
-      
-      await fetchNewsData();
-      
+      setLoading(true)
+      await universityViewService.deleteMyAdmissionNews(newsId)
+      toast.success('Xóa tin tức thành công!')
+      fetchData() // Sửa từ fetchNews() thành fetchData()
     } catch (error) {
+      console.error('Delete error:', error.response?.data); // Debug log
       if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
         toast.error('Có lỗi xảy ra khi xóa tin tức');
       }
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
@@ -359,4 +376,4 @@ const AdmissionManagementTab = ({ universityId }) => {
   )
 }
 
-export default AdmissionManagementTab
+export default UniversityNewsTab; 
