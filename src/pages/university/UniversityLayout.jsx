@@ -8,11 +8,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import {
   Building2,
-  Settings,
   LogOut,
   Bell,
   Home,
-  User
 } from 'lucide-react';
 
 const UniversityLayout = () => {
@@ -104,16 +102,13 @@ const UniversityLayout = () => {
       </div>
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white border-b border-gray-200 px-6 py-7">
+        <header className="container bg-white border-b border-gray-200 py-7 px-10">
           <div className="flex items-center justify-end">
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  3
-                </span>
+              <Button variant="ghost" size="sm" className="relative" onClick={handleGoToMainSite}>
+                <Home className="h-5 w-5" />
+                <span>Trang chủ</span>
               </Button>
-
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -146,7 +141,7 @@ const UniversityLayout = () => {
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto">
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>

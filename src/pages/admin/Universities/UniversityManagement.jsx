@@ -156,7 +156,7 @@ const UniversityManagement = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-2xl font-bold">Quản lý Trường Đại học</h2>
+          <h2 className="text-3xl font-bold">Quản lý Trường Đại học</h2>
           {error && (
             <p className="text-red-600 text-sm mt-1">{error}</p>
           )}
@@ -297,11 +297,12 @@ const UniversityManagement = () => {
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-                          <AlertDialogDescription>Bạn có chắc chắn muốn xóa trường đại học này? Hành động này không thể hoàn tác.</AlertDialogDescription>
+                          <AlertDialogDescription>Bạn có chắc chắn muốn xóa trường đại học <span className="font-bold">{university.name}?</span> Hành động này không thể hoàn tác.</AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel onClick={() => setDeleteId(null)}>Hủy</AlertDialogCancel>
                           <AlertDialogAction
+                            className="bg-red-500 hover:bg-red-600"
                             onClick={async () => {
                               await handleDelete(deleteId);
                               setDeleteId(null);

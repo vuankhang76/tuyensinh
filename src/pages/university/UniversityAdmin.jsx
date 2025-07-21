@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Save,
   Edit,
@@ -31,6 +32,8 @@ import { universityViewService } from '@/services';
 
 const UniversityAdmin = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -50,6 +53,19 @@ const UniversityAdmin = () => {
       setFormErrors({});
     }
   }, [university]);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const tab = searchParams.get('tab');
+    const validTabs = ['info', 'majors', 'programs', 'news', 'scholarships', 'admission'];
+    
+    if (tab && validTabs.includes(tab)) {
+      setCurrentTab(tab);
+    } else {
+      setCurrentTab('info');
+      navigate('/university/admin?tab=info', { replace: true });
+    }
+  }, [location.search, navigate]);
 
   const fetchUniversityData = async () => {
     try {
@@ -205,6 +221,11 @@ const UniversityAdmin = () => {
     setLogoFile(null);
   };
 
+  const handleTabChange = (newTab) => {
+    setCurrentTab(newTab);
+    navigate(`/university/admin?tab=${newTab}`, { replace: true });
+  };
+
   if (loading && !university) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -232,7 +253,7 @@ const UniversityAdmin = () => {
         </div>
       </div>
 
-      <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
+      <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList className="w-full flex items-center justify-start overflow-x-auto">
           <TabsTrigger value="info" className="flex items-center space-x-2 whitespace-nowrap">
             <Building2 className="h-4 w-4" />
