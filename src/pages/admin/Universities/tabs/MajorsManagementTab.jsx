@@ -147,6 +147,7 @@ const MajorsManagementTab = ({ universityId }) => {
         console.log('✅ Step 1 Complete - Major created:', newMajor);
 
         // BƯỚC 2: Tạo AdmissionScore riêng biệt (chỉ nếu có điểm)
+        let scoreCreated = false;
         if (formData.score && parseFloat(formData.score) > 0) {
           console.log('📋 Original form data for score:', {
             score: formData.score,
@@ -170,50 +171,25 @@ const MajorsManagementTab = ({ universityId }) => {
           }
 
           console.log('🎯 Step 2 - Creating AdmissionScore:', scorePayload);
+          
           try {
             const newScore = await admissionScoreService.createAdmissionScore(scorePayload);
-            console.log('✅ Step 2 Complete - Score created:', newScore);
+            console.log('✅ Step 2 Complete - Score created/updated:', newScore);
+            scoreCreated = true;
           } catch (error) {
-            console.log('⚠️ Score creation failed, trying with AdmissionMethodId...', error.response?.data || error.message);
-            
-            // Try with an AdmissionMethod if available
-            try {
-              const methods = await admissionMethodService.getAdmissionMethodsByUniversity(universityId);
-              if (methods && methods.length > 0) {
-                const methodPayload = {
-                  ...scorePayload,
-                  AdmissionMethodId: methods[0].id
-                };
-                console.log('🔄 Retrying with AdmissionMethodId:', methodPayload);
-                const newScore = await admissionScoreService.createAdmissionScore(methodPayload);
-                console.log('✅ Step 2 Complete (with method) - Score created:', newScore);
-              } else {
-                throw new Error('No admission methods available');
-              }
-            } catch (retryError) {
-              console.log('⚠️ Retry with method failed, trying minimal payload...');
-              
-              // Final attempt with absolute minimal payload
-              try {
-                const minimalPayload = {
-                  MajorId: newMajor.id,
-                  Year: 2023, // Use completely different year
-                  Score: parseFloat(formData.score)
-                };
-                console.log('🔄 Final attempt with minimal payload:', minimalPayload);
-                const newScore = await admissionScoreService.createAdmissionScore(minimalPayload);
-                console.log('✅ Step 2 Complete (minimal) - Score created:', newScore);
-              } catch (finalError) {
-                console.log('⚠️ All attempts failed:', finalError.response?.data || finalError.message);
-                if (error.response?.data?.message) {
-                  toast.warning(`Ngành học đã tạo thành công! Lưu ý: ${error.response.data.message}`);
-                }
-              }
-            }
+            console.log('⚠️ Score creation failed:', error.response?.data || error.message);
+            // Chỉ log lỗi, không thử lại
           }
         }
 
-        toast.success('Thêm ngành học thành công!');
+        // Hiển thị thông báo thành công dựa trên kết quả
+        if (scoreCreated) {
+          toast.success('Thêm ngành học và điểm chuẩn thành công!');
+        } else if (formData.score && parseFloat(formData.score) > 0) {
+          toast.success('Thêm ngành học thành công! Vui lòng thêm điểm chuẩn thủ công.');
+        } else {
+          toast.success('Thêm ngành học thành công!');
+        }
       }
       setIsDialogOpen(false);
       fetchAndCombineData();

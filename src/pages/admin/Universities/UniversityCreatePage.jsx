@@ -22,15 +22,16 @@ const UniversityCreatePage = () => {
         }
         try {
             await universityService.createUniversity({
-                name: values.Name,
-                shortName: values.ShortName,
-                introduction: values.Introduction,
-                officialWebsite: values.OfficialWebsite,
-                admissionWebsite: values.AdmissionWebsite,
-                ranking: values.Ranking,
-                rankingCriteria: values.RankingCriteria,
-                locations: values.Location,
-                type: values.Type
+                Name: values.Name,
+                ShortName: values.ShortName,
+                Introduction: values.Introduction,
+                OfficialWebsite: values.OfficialWebsite,
+                AdmissionWebsite: values.AdmissionWebsite,
+                Ranking: values.Ranking,
+                RankingCriteria: values.RankingCriteria,
+                Locations: values.Location,
+                Type: values.Type,
+                Logo: values.Logo || null
             });
             toast.success('Đã thêm trường đại học mới');
             navigate('/admin/universities');
@@ -135,7 +136,7 @@ const UniversityCreatePage = () => {
 
                     <FormField
                         control={form.control}
-                        name="OfficialWebsite   "
+                        name="OfficialWebsite"
                         rules={{
                             required: 'Vui lòng nhập website chính thức',
                             pattern: {
@@ -198,6 +199,26 @@ const UniversityCreatePage = () => {
                                 <FormLabel>Tiêu chí xếp hạng</FormLabel>
                                 <FormControl>
                                     <Input placeholder="VD: QS World University Rankings" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="Logo"
+                        rules={{
+                            pattern: {
+                                value: /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/,
+                                message: 'Logo phải là URL hợp lệ'
+                            }
+                        }}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Logo URL (không bắt buộc)</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="https://example.com/logo.png" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
