@@ -250,14 +250,6 @@ const UniversityAdmin = () => {
             <BookOpen className="h-4 w-4" />
             <span>Chương trình</span>
           </TabsTrigger>
-          <TabsTrigger value="admission" className="flex items-center space-x-2 whitespace-nowrap">
-            <Users className="h-4 w-4" />
-            <span>Phương thức tuyển sinh</span>
-          </TabsTrigger>
-          <TabsTrigger value="scores" className="flex items-center space-x-2 whitespace-nowrap">
-            <BarChart3 className="h-4 w-4" />
-            <span>Điểm chuẩn</span>
-          </TabsTrigger>
           <TabsTrigger value="news" className="flex items-center space-x-2 whitespace-nowrap">
             <Newspaper className="h-4 w-4" />
             <span>Tin tức</span>
@@ -265,6 +257,10 @@ const UniversityAdmin = () => {
           <TabsTrigger value="scholarships" className="flex items-center space-x-2 whitespace-nowrap">
             <Award className="h-4 w-4" />
             <span>Học bổng</span>
+          </TabsTrigger>
+          <TabsTrigger value="admission" className="flex items-center space-x-2 whitespace-nowrap">
+            <Users className="h-4 w-4" />
+            <span>Phương thức tuyển sinh</span>
           </TabsTrigger>
         </TabsList>
 

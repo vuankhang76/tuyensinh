@@ -28,7 +28,7 @@ const MajorsManagementTab = ({ universityId }) => {
   const [majors, setMajors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [deleting, setDeleting] = useState(null); // Store the ID of the major being deleted
+  const [deleting, setDeleting] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMajor, setEditingMajor] = useState(null);
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
@@ -37,6 +37,7 @@ const MajorsManagementTab = ({ universityId }) => {
   const fetchAndCombineData = useCallback(async () => {
     if (!universityId) return;
     setLoading(true);
+    setMajors([]); // Clear old data immediately
     try {
       const [majorsData, scoresData] = await Promise.all([
         majorService.getMajorsByUniversity(universityId),
@@ -59,6 +60,7 @@ const MajorsManagementTab = ({ universityId }) => {
       setMajors(sortedData);
     } catch (error) {
       toast.error('Có lỗi xảy ra khi tải dữ liệu ngành học');
+      setMajors([]);
     } finally {
       setLoading(false);
     }
@@ -102,6 +104,7 @@ const MajorsManagementTab = ({ universityId }) => {
     }
 
     setSubmitting(true);
+    setLoading(true);
     try {
       if (editingMajor) {
         const majorPayload = {
@@ -209,11 +212,13 @@ const MajorsManagementTab = ({ universityId }) => {
       }
     } finally {
       setSubmitting(false);
+      setLoading(false);
     }
   };
 
   const handleDelete = async (majorId) => {
     setDeleting(majorId);
+    setLoading(true);
     try {
       await majorService.deleteMajor(majorId);
       toast.success('Xóa ngành học thành công!');
@@ -222,6 +227,7 @@ const MajorsManagementTab = ({ universityId }) => {
       toast.error('Có lỗi xảy ra khi xóa ngành học');
     } finally {
       setDeleting(null);
+      setLoading(false);
     }
   };
 

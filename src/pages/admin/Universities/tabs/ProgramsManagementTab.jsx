@@ -34,8 +34,9 @@ const ProgramsManagementTab = ({ universityId }) => {
   }, [universityId])
 
   const fetchPrograms = async () => {
+    setLoading(true);
+    setPrograms([]); // Clear old data immediately
     try {
-      setLoading(true)
       const data = await academicProgramService.getProgramsByUniversity(universityId)
       const sortedData = data.sort((a, b) => a.id - b.id);
       setPrograms(sortedData)
@@ -93,7 +94,7 @@ const ProgramsManagementTab = ({ universityId }) => {
 
       setIsDialogOpen(false)
       resetForm()
-      fetchPrograms()
+      await fetchPrograms();
     } catch (error) {
       if (error.response) {
         const { status, data } = error.response;
@@ -126,11 +127,11 @@ const ProgramsManagementTab = ({ universityId }) => {
   }
 
   const handleDelete = async (programId) => {
+    setLoading(true)
     try {
-      setLoading(true)
       await academicProgramService.deleteProgram(programId)
       toast.success('Xóa chương trình thành công!')
-      fetchPrograms()
+      await fetchPrograms();
     } catch (error) {
       toast.error('Có lỗi xảy ra khi xóa chương trình')
     } finally {
