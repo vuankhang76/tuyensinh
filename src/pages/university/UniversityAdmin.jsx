@@ -19,7 +19,9 @@ import {
   Users,
   FileText,
   BarChart3,
-  Upload
+  Upload,
+  X,
+  Image
 } from 'lucide-react';
 
 import UniversityMajorsTab from './tabs/UniversityMajorsTab';
@@ -28,6 +30,7 @@ import UniversityNewsTab from './tabs/UniversityNewsTab';
 import UniversityScholarshipsTab from './tabs/UniversityScholarshipsTab';
 import UniversityAdmissionTab from './tabs/UniversityAdmissionTab';
 import { universityViewService } from '@/services';
+import fileService from '@/services/fileService';
 
 const UniversityAdmin = () => {
   const { user } = useAuth();
@@ -39,6 +42,8 @@ const UniversityAdmin = () => {
   const [formErrors, setFormErrors] = useState({});
   const [currentTab, setCurrentTab] = useState('info');
   const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchUniversityData();
@@ -127,32 +132,39 @@ const UniversityAdmin = () => {
     }
   };
 
-  const handleLogoChange = (e) => {
-    const file = e.target.files[0];
+  const handleLogoChange = (event) => {
+    const file = event.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('File logo không được vượt quá 5MB');
-        return;
-      }
-      
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      // Kiểm tra định dạng file
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
       if (!allowedTypes.includes(file.type)) {
-        toast.error('Chỉ hỗ trợ file ảnh (JPEG, PNG, GIF, WebP)');
+        toast.error('Chỉ chấp nhận file ảnh (.jpg, .png, .gif, .webp)');
         return;
       }
-      
+
+      // Kiểm tra kích thước file (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File không được vượt quá 5MB');
+        return;
+      }
+
       setLogoFile(file);
       
-      // Preview the image
+      // Tạo preview
       const reader = new FileReader();
       reader.onload = (e) => {
-        setFormData(prev => ({
-          ...prev,
-          logo: e.target.result
-        }));
+        setLogoPreview(e.target.result);
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const removeLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    // Reset input file
+    const fileInput = document.getElementById('logo-upload');
+    if (fileInput) fileInput.value = '';
   };
 
   const handleSave = async () => {
@@ -163,6 +175,24 @@ const UniversityAdmin = () => {
 
     setSaving(true);
     try {
+      let logoUrl = formData.logo;
+
+      // Upload logo nếu có file mới
+      if (logoFile) {
+        setUploading(true);
+        try {
+          const uploadResult = await fileService.uploadLogo(logoFile);
+          logoUrl = uploadResult.url;
+          toast.success('Upload logo thành công');
+        } catch (error) {
+          toast.error('Lỗi khi upload logo: ' + (error.response?.data?.message || error.message));
+          setSaving(false);
+          setUploading(false);
+          return;
+        }
+        setUploading(false);
+      }
+
       const updateData = {
         id: formData.id,
         name: formData.name?.trim(),
@@ -174,20 +204,15 @@ const UniversityAdmin = () => {
         rankingCriteria: formData.rankingCriteria?.trim(),
         locations: formData.locations?.trim(),
         type: formData.type?.trim(),
-        logo: formData.logo
+        logo: logoUrl
       };
 
       await universityViewService.updateMyUniversity(updateData);
 
-      if (logoFile) {
-        const logoData = new FormData();
-        logoData.append('logo', logoFile);
-        await universityViewService.updateMyUniversityLogo({ logo: formData.logo });
-      }
-
       await fetchUniversityData();
       setEditing(false);
       setLogoFile(null);
+      setLogoPreview(null);
       toast.success("Đã cập nhật thông tin trường đại học thành công!");
     } catch (error) {
       console.error("Lỗi khi cập nhật:", error);
@@ -207,6 +232,10 @@ const UniversityAdmin = () => {
     setFormErrors({});
     setEditing(false);
     setLogoFile(null);
+    setLogoPreview(null);
+    // Reset input file
+    const fileInput = document.getElementById('logo-upload');
+    if (fileInput) fileInput.value = '';
   };
 
   if (loading && !university) {
@@ -275,9 +304,9 @@ const UniversityAdmin = () => {
                       <Button variant="outline" onClick={handleCancel} disabled={saving}>
                         Hủy
                       </Button>
-                      <Button onClick={handleSave} disabled={saving}>
+                      <Button onClick={handleSave} disabled={saving || uploading}>
                         <Save className="h-4 w-4 mr-2" />
-                        {saving ? 'Đang lưu...' : 'Lưu'}
+                        {uploading ? 'Đang upload...' : saving ? 'Đang lưu...' : 'Lưu'}
                       </Button>
                     </>
                   ) : (
@@ -383,6 +412,124 @@ const UniversityAdmin = () => {
                       formErrors.locations ? "border-red-500" : ""}
                   />
                   {formErrors.locations && <p className="text-red-500 text-sm mt-1">{formErrors.locations}</p>}
+                </div>
+
+                {/* Logo Upload Section */}
+                <div className="col-span-2 space-y-4">
+                  <Label>Logo</Label>
+                  
+                  {editing ? (
+                    <>
+                      {/* Option 1: Upload File */}
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                        <div className="text-center">
+                          {logoPreview ? (
+                            <div className="relative inline-block">
+                              <img 
+                                src={logoPreview} 
+                                alt="Logo preview" 
+                                className="max-w-32 max-h-32 object-contain mx-auto"
+                              />
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="absolute -top-2 -right-2 rounded-full w-6 h-6 p-0"
+                                onClick={removeLogo}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ) : formData.logo ? (
+                            <div className="relative inline-block">
+                              <img 
+                                src={formData.logo} 
+                                alt="Current logo" 
+                                className="max-w-32 max-h-32 object-contain mx-auto"
+                              />
+                              <div className="mt-2">
+                                <label htmlFor="logo-upload" className="cursor-pointer">
+                                  <Button type="button" variant="outline" asChild>
+                                    <span>
+                                      <Upload className="h-4 w-4 mr-2" />
+                                      Thay đổi logo
+                                    </span>
+                                  </Button>
+                                </label>
+                                <input
+                                  id="logo-upload"
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*"
+                                  onChange={handleLogoChange}
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="py-4">
+                              <Image className="mx-auto h-12 w-12 text-gray-400" />
+                              <div className="mt-2">
+                                <label htmlFor="logo-upload" className="cursor-pointer">
+                                  <Button type="button" variant="outline" asChild>
+                                    <span>
+                                      <Upload className="h-4 w-4 mr-2" />
+                                      Chọn ảnh
+                                    </span>
+                                  </Button>
+                                </label>
+                                <input
+                                  id="logo-upload"
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*"
+                                  onChange={handleLogoChange}
+                                />
+                              </div>
+                              <p className="text-sm text-gray-500 mt-2">
+                                PNG, JPG, GIF up to 5MB
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Option 2: URL Input */}
+                      <div className="text-center text-sm text-gray-500">hoặc</div>
+                      <div>
+                        <Label htmlFor="logo" className="mb-2">Hoặc nhập URL logo</Label>
+                        <Input
+                          id="logo"
+                          value={formData.logo || ''}
+                          onChange={(e) => handleInputChange('logo', e.target.value)}
+                          placeholder="https://example.com/logo.png"
+                          disabled={!!logoFile}
+                          className={formErrors.logo ? "border-red-500" : ""}
+                        />
+                        {formErrors.logo && <p className="text-red-500 text-sm mt-1">{formErrors.logo}</p>}
+                      </div>
+                    </>
+                  ) : (
+                    // Read-only mode
+                    <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                      {formData.logo ? (
+                        <img 
+                          src={formData.logo} 
+                          alt="University logo" 
+                          className="w-16 h-16 object-contain rounded"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                          <Building2 className="h-8 w-8 text-gray-400" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-sm text-gray-600">Logo hiện tại</p>
+                        <p className="text-xs text-gray-500">
+                          {formData.logo ? 'Có logo' : 'Chưa có logo'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="col-span-2">
                   <Label htmlFor="rankingCriteria" className="mb-2">Tiêu chí xếp hạng</Label>
