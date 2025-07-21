@@ -210,7 +210,7 @@ const Navbar = () => {
                         </DropdownMenuItem>
                       )}
                       {user?.role === 'university' && (
-                        <DropdownMenuItem onClick={() => navigate('/university-admin')}>
+                        <DropdownMenuItem onClick={() => navigate('/university')}>
                           <Building2 className="mr-2 h-4 w-4" />
                           <span>Quản lý trường</span>
                         </DropdownMenuItem>
@@ -278,7 +278,7 @@ const Navbar = () => {
                     )}
                     {user?.role === 'university' && (
                       <Link
-                        to="/university-admin"
+                        to="/university"
                         className="flex items-center space-x-3 px-4 py-3 text-muted-foreground hover:bg-gray-50 hover:text-green-600 transition-colors duration-200"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >

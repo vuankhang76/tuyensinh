@@ -9,135 +9,43 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { toast } from 'sonner'
 import { Plus, Edit, Trash2, GraduationCap } from 'lucide-react'
-import academicProgramService from '@/services/academicProgramService'
+import { universityViewService } from '@/services'
 import { TableSkeleton } from '@/components/common/Loading/LoadingSkeleton'
 import { Skeleton } from '@/components/ui/skeleton';
 
-const ProgramsManagementTab = ({ universityId }) => {
-  const [programs, setPrograms] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [editingProgram, setEditingProgram] = useState(null)
-  const [formErrors, setFormErrors] = useState({})
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    tuition: '',
-    tuitionUnit: '',
-    year: ''
-  })
+const INITIAL_FORM_DATA = {
+  name: '',
+  description: '',
+  tuition: '',
+  tuitionUnit: '',
+  year: ''
+};
 
-  useEffect(() => {
-    if (universityId) {
-      fetchPrograms()
-    }
-  }, [universityId])
+const UniversityProgramsTab = () => {
+  const [programs, setPrograms] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingProgram, setEditingProgram] = useState(null);
+  const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+  const [formErrors, setFormErrors] = useState({});
 
-  const fetchPrograms = async () => {
+  const fetchData = async () => {
     setLoading(true);
-    setPrograms([]); // Clear old data immediately
     try {
-      const data = await academicProgramService.getProgramsByUniversity(universityId)
+      const data = await universityViewService.getMyPrograms();
       const sortedData = data.sort((a, b) => a.id - b.id);
-      setPrograms(sortedData)
+      setPrograms(sortedData);
     } catch (error) {
       toast.error('Có lỗi xảy ra khi tải danh sách chương trình')
       setPrograms([])
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
-  const resetForm = () => {
-    setEditingProgram(null)
-    setFormData({
-      name: '',
-      description: '',
-      tuition: '',
-      tuitionUnit: '',
-      year: ''
-    })
-  }
-
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }))
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!validateForm()) {
-      toast.error('Vui lòng sửa các lỗi trong form');
-      return;
-    }
-
-    setLoading(true)
-    try {
-      const programData = {
-        name: formData.name,
-        description: formData.description,
-        tuition: formData.tuition ? parseFloat(formData.tuition) : 0,
-        tuitionUnit: formData.tuitionUnit,
-        year: formData.year ? parseInt(formData.year) : new Date().getFullYear(),
-        universityId: parseInt(universityId)
-      }
-
-      if (editingProgram) {
-        await academicProgramService.updateProgram(editingProgram.id, programData)
-        toast.success('Cập nhật chương trình thành công!')
-      } else {
-        await academicProgramService.createProgram(programData)
-        toast.success('Thêm chương trình thành công!')
-      }
-
-      setIsDialogOpen(false)
-      resetForm()
-      await fetchPrograms();
-    } catch (error) {
-      if (error.response) {
-        const { status, data } = error.response;
-        if (status === 400 && data.errors) {
-          const messages = Object.values(data.errors).flat();
-          messages.forEach(msg => toast.error(msg));
-        } else if (data.title) {
-          toast.error(data.title);
-        } else {
-          toast.error('Có lỗi xảy ra khi lưu thông tin');
-        }
-      } else {
-        toast.error(`Lỗi: ${error.message || 'Không xác định'}`);
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleEdit = (program) => {
-    setEditingProgram(program)
-    setFormData({
-      name: program.name || '',
-      description: program.description || '',
-      tuition: program.tuition?.toString() || '',
-      tuitionUnit: program.tuitionUnit || '',
-      year: program.year?.toString() || ''
-    })
-    setIsDialogOpen(true)
-  }
-
-  const handleDelete = async (programId) => {
-    setLoading(true)
-    try {
-      await academicProgramService.deleteProgram(programId)
-      toast.success('Xóa chương trình thành công!')
-      await fetchPrograms();
-    } catch (error) {
-      toast.error('Có lỗi xảy ra khi xóa chương trình')
-    } finally {
-      setLoading(false)
-    }
-  }
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const validateForm = () => {
     const errors = {};
@@ -181,6 +89,102 @@ const ProgramsManagementTab = ({ universityId }) => {
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
+  };
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!validateForm()) {
+      toast.error('Vui lòng sửa các lỗi trong form');
+      return;
+    }
+
+    setLoading(true)
+    try {
+      const programData = {
+        name: formData.name,
+        description: formData.description,
+        tuition: formData.tuition ? parseFloat(formData.tuition) : 0,
+        tuitionUnit: formData.tuitionUnit,
+        year: formData.year ? parseInt(formData.year) : new Date().getFullYear()
+      }
+
+      if (editingProgram) {
+        programData.id = editingProgram.id;
+        await universityViewService.updateMyProgram(editingProgram.id, programData)
+        toast.success('Cập nhật chương trình thành công!')
+      } else {
+        await universityViewService.createMyProgram(programData)
+        toast.success('Thêm chương trình thành công!')
+      }
+
+      setIsDialogOpen(false)
+      resetForm()
+      fetchData()
+    } catch (error) {
+      console.error('Error details:', error.response?.data); // Debug log
+      if (error.response) {
+        const { status, data } = error.response;
+        if (status === 400 && data.errors) {
+          const messages = Object.values(data.errors).flat();
+          messages.forEach(msg => toast.error(msg));
+        } else if (data.message) {
+          toast.error(data.message);
+        } else if (data.title) {
+          toast.error(data.title);
+        } else {
+          toast.error('Có lỗi xảy ra khi lưu chương trình');
+        }
+      } else {
+        toast.error('Có lỗi xảy ra khi lưu chương trình');
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const resetForm = () => {
+    setEditingProgram(null)
+    setFormData({
+      name: '',
+      description: '',
+      tuition: '',
+      tuitionUnit: '',
+      year: ''
+    })
+  }
+
+  const handleEdit = (program) => {
+    setEditingProgram(program)
+    setFormData({
+      name: program.name || '',
+      description: program.description || '',
+      tuition: program.tuition?.toString() || '',
+      tuitionUnit: program.tuitionUnit || '',
+      year: program.year?.toString() || ''
+    })
+    setIsDialogOpen(true)
+  }
+
+  const handleDelete = async (id) => {
+    try {
+      await universityViewService.deleteMyProgram(id);
+      toast.success('Xóa chương trình thành công!');
+      await fetchData();
+    } catch (error) {
+      console.error('Lỗi khi xóa chương trình:', error);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error('Có lỗi xảy ra khi xóa chương trình');
+      }
+    }
   };
 
   return (
@@ -324,4 +328,4 @@ const ProgramsManagementTab = ({ universityId }) => {
   )
 }
 
-export default ProgramsManagementTab
+export default UniversityProgramsTab; 

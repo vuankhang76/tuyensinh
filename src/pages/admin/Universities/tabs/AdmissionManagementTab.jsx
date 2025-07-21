@@ -10,9 +10,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Edit, Trash2, Users } from 'lucide-react';
 import { toast } from 'sonner';
-import { admissionMethodService } from '@/services';
 import { MethodCardSkeleton } from '@/components/common/Loading/LoadingSkeleton';
 import { Skeleton } from '@/components/ui/skeleton';
+import { admissionMethodService } from '@/services';
 const INITIAL_FORM_DATA = {
     name: '',
     description: '',
@@ -29,7 +29,6 @@ const AdmissionManagementTab = ({ universityId }) => {
     const [formErrors, setFormErrors] = useState({});
 
     const fetchMethods = useCallback(async () => {
-        if (!universityId) return;
         setLoading(true);
         try {
             const data = await admissionMethodService.getAdmissionMethodsByUniversity(universityId);
@@ -86,7 +85,7 @@ const AdmissionManagementTab = ({ universityId }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validateForm()) {
-            toast.error('Vui lòng kiểm tra lại thông tin đã nhập.');
+            toast.error('Vui lòng sửa các lỗi trong form');
             return;
         }
         setLoading(true);
@@ -108,7 +107,12 @@ const AdmissionManagementTab = ({ universityId }) => {
             setIsDialogOpen(false);
             fetchMethods();
         } catch (error) {
-            toast.error('Có lỗi xảy ra khi lưu thông tin.');
+            console.error('Lỗi khi lưu phương thức:', error);
+            if (error.response?.data?.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error('Có lỗi xảy ra khi lưu phương thức');
+            }
         } finally {
             setLoading(false);
         }
@@ -121,7 +125,11 @@ const AdmissionManagementTab = ({ universityId }) => {
             toast.success('Xóa phương thức thành công!');
             fetchMethods();
         } catch (error) {
-            toast.error('Có lỗi xảy ra khi xóa.');
+            if (error.response?.data?.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error('Có lỗi xảy ra khi xóa phương thức');
+            }
         } finally {
             setLoading(false);
         }
@@ -173,7 +181,7 @@ const AdmissionManagementTab = ({ universityId }) => {
                     </DialogContent>
                 </Dialog>
             </div>
-            
+
             <Card>
                 <CardHeader>
                     {loading ? (
@@ -181,18 +189,18 @@ const AdmissionManagementTab = ({ universityId }) => {
                             <Skeleton className="h-6 w-1/4" />
                         </div>
                     ) : (
-                    <CardTitle className="flex items-center">
-                        <Users className="h-5 w-5 mr-2" />
-                        Danh sách phương thức ({admissionMethods.length})
-                    </CardTitle>
+                        <CardTitle className="flex items-center">
+                            <Users className="h-5 w-5 mr-2" />
+                            Danh sách phương thức ({admissionMethods.length})
+                        </CardTitle>
                     )}
-                    </CardHeader>
+                </CardHeader>
                 <CardContent>
                     {loading ? (
                         <div className="space-y-4">
-                        <MethodCardSkeleton />
-                        <MethodCardSkeleton />
-                        <MethodCardSkeleton />
+                            <MethodCardSkeleton />
+                            <MethodCardSkeleton />
+                            <MethodCardSkeleton />
                         </div>
                     ) : admissionMethods.length === 0 ? (
                         <div className="text-center py-8 text-muted-foreground">Chưa có phương thức nào.</div>

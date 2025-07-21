@@ -10,7 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { Plus, Edit, Trash2, BookOpen } from 'lucide-react';
-import { majorService, admissionScoreService, admissionMethodService } from '@/services';
+import { universityViewService } from '@/services';
 import { TableSkeleton } from '@/components/common/Loading/LoadingSkeleton';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -24,212 +24,46 @@ const INITIAL_FORM_DATA = {
   subjectCombination: '',
 };
 
-const MajorsManagementTab = ({ universityId }) => {
+const UniversityMajorsTab = () => {
   const [majors, setMajors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [deleting, setDeleting] = useState(null);
+  const [deleting, setDeleting] = useState(null); // Store the ID of the major being deleted
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMajor, setEditingMajor] = useState(null);
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
   const [formErrors, setFormErrors] = useState({})
 
-  const fetchAndCombineData = useCallback(async () => {
-    if (!universityId) return;
+  const fetchData = useCallback(async () => {
     setLoading(true);
-    setMajors([]); // Clear old data immediately
     try {
-      const [majorsData, scoresData] = await Promise.all([
-        majorService.getMajorsByUniversity(universityId),
-        admissionScoreService.getScoresByUniversity(universityId)
+      const [majorsData, programsData] = await Promise.all([
+        universityViewService.getMyMajors(),
+        universityViewService.getMyAdmissionScores()
       ]);
 
-      const scoresMap = new Map(scoresData.map(score => [score.majorId, score]));
-
       const combinedData = majorsData.map(major => {
-        const scoreInfo = scoresMap.get(major.id) || {};
+        const scoreInfo = programsData.find(score => score.majorId === major.id);
         return {
           ...major,
-          scoreId: scoreInfo.id,
-          score: scoreInfo.score,
-          year: scoreInfo.year,
-          subjectCombination: scoreInfo.subjectCombination,
+          scoreId: scoreInfo?.id || null,  
+          score: scoreInfo?.score || null,
+          year: scoreInfo?.year || null,
+          subjectCombination: scoreInfo?.subjectCombination || null,
         };
       });
       const sortedData = combinedData.sort((a, b) => a.id - b.id);
       setMajors(sortedData);
     } catch (error) {
-      toast.error('Có lỗi xảy ra khi tải dữ liệu ngành học');
-      setMajors([]);
+      toast.error('Có lỗi xảy ra khi tải dữ liệu');
     } finally {
       setLoading(false);
     }
-  }, [universityId]);
+  }, []);
 
   useEffect(() => {
-    fetchAndCombineData();
-  }, [fetchAndCombineData]);
-
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleOpenNewDialog = () => {
-    setEditingMajor(null);
-    setFormData(INITIAL_FORM_DATA);
-    setFormErrors({});
-    setIsDialogOpen(true);
-  };
-
-  const handleEdit = (major) => {
-    setEditingMajor(major);
-    setFormData({
-      name: major.name || '',
-      code: major.code || '',
-      description: major.description || '',
-      scoreId: major.scoreId || null,
-      score: major.score || '',
-      year: major.year?.toString() || new Date().getFullYear().toString(),
-      subjectCombination: major.subjectCombination || '',
-    });
-    setFormErrors({});
-    setIsDialogOpen(true);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) {
-      toast.error('Vui lòng sửa các lỗi trong form');
-      return;
-    }
-
-    setSubmitting(true);
-    setLoading(true);
-    try {
-      if (editingMajor) {
-        const majorPayload = {
-          Name: formData.name.trim(),
-          Code: formData.code.trim().toUpperCase(),
-          Description: formData.description.trim(),
-          UniversityId: parseInt(universityId),
-        };
-
-        await majorService.updateMajor(editingMajor.id, majorPayload);
-        const hasScoreInfo = formData.score || formData.subjectCombination;
-        if (hasScoreInfo) {
-          const scorePayload = {
-            MajorId: editingMajor.id,
-            Year: parseInt(formData.year) || new Date().getFullYear(),
-            Score: parseFloat(formData.score) || 0,
-            SubjectCombination: formData.subjectCombination?.trim() || ""
-          };
-
-          if (formData.scoreId) {
-            await admissionScoreService.updateAdmissionScore(formData.scoreId, scorePayload);
-          } else {
-            await admissionScoreService.createAdmissionScore(scorePayload);
-          }
-        }
-        toast.success('Cập nhật ngành học thành công!');
-
-      } else {
-        const majorPayload = {
-          Name: formData.name.trim(),
-          Code: formData.code.trim().toUpperCase(), 
-          Description: formData.description.trim(),
-          UniversityId: parseInt(universityId),
-        };
-        const newMajor = await majorService.createMajor(majorPayload);
-
-        if (formData.score && parseFloat(formData.score) > 0) {
-          const currentYear = new Date().getFullYear();
-          const targetYear = parseInt(formData.year) || (currentYear - 1);
-          const scorePayload = {
-            MajorId: newMajor.id,
-            Year: targetYear,
-            Score: parseFloat(formData.score)
-          };
-          if (formData.subjectCombination && formData.subjectCombination.trim()) {
-            scorePayload.SubjectCombination = formData.subjectCombination.trim();
-          }
-          try {
-            const newScore = await admissionScoreService.createAdmissionScore(scorePayload);
-          } catch (error) {            
-            try {
-              const methods = await admissionMethodService.getAdmissionMethodsByUniversity(universityId);
-              if (methods && methods.length > 0) {
-                const methodPayload = {
-                  ...scorePayload,
-                  AdmissionMethodId: methods[0].id
-                };
-                await admissionScoreService.createAdmissionScore(methodPayload);
-              } else {
-                throw new Error('No admission methods available');
-              }
-            } catch (retryError) {              
-              try {
-                const minimalPayload = {
-                  MajorId: newMajor.id,
-                  Year: 2023,
-                  Score: parseFloat(formData.score)
-                };
-                await admissionScoreService.createAdmissionScore(minimalPayload);
-              } catch (finalError) {
-                if (error.response?.data?.message) {
-                  toast.warning(`Ngành học đã tạo thành công! Lưu ý: ${error.response.data.message}`);
-                }
-              }
-            }
-          }
-        }
-
-        toast.success('Thêm ngành học thành công!');
-      }
-      setIsDialogOpen(false);
-      await fetchAndCombineData(); // Refresh data after successful operation
-    } catch (error) {
-      if (error.response) {
-        const { status, data } = error.response;
-        if (status === 401) {
-          toast.error('Bạn cần đăng nhập để thực hiện thao tác này');
-        } else if (status === 403) {
-          toast.error('Chỉ admin mới có quyền thêm ngành học');
-        } else if (status === 400) {
-          if (data.errors) {
-            Object.entries(data.errors).forEach(([field, messages]) => {
-              messages.forEach(msg => toast.error(`${field}: ${msg}`));
-            });
-          } else {
-            toast.error(data.message || data.title || 'Dữ liệu không hợp lệ');
-          }
-        } else if (status === 500) {
-          toast.error(`Lỗi server: ${data.error || data.message || 'Không xác định'}`);
-        } else {
-          toast.error(data.message || data.title || 'Có lỗi xảy ra khi lưu thông tin');
-        }
-      } else {
-        toast.error(`Lỗi kết nối: ${error.message || 'Không xác định'}`);
-      }
-    } finally {
-      setSubmitting(false);
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (majorId) => {
-    setDeleting(majorId);
-    setLoading(true);
-    try {
-      await majorService.deleteMajor(majorId);
-      toast.success('Xóa ngành học thành công!');
-      await fetchAndCombineData(); // Refresh data after successful deletion
-    } catch (error) {
-      toast.error('Có lỗi xảy ra khi xóa ngành học');
-    } finally {
-      setDeleting(null);
-      setLoading(false);
-    }
-  };
+    fetchData();
+  }, [fetchData]);
 
   const validateForm = () => {
     const errors = {};
@@ -276,6 +110,181 @@ const MajorsManagementTab = ({ universityId }) => {
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
+  };
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleOpenNewDialog = () => {
+    setEditingMajor(null);
+    setFormData(INITIAL_FORM_DATA);
+    setFormErrors({});
+    setIsDialogOpen(true);
+  };
+
+  const handleEdit = (major) => {
+    setEditingMajor(major);
+    setFormData({
+      name: major.name || '',
+      code: major.code || '',
+      description: major.description || '',
+      scoreId: major.scoreId || null,
+      score: major.score || '',
+      year: major.year?.toString() || new Date().getFullYear().toString(),
+      subjectCombination: major.subjectCombination || '',
+    });
+    setFormErrors({});
+    setIsDialogOpen(true);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) {
+      toast.error('Vui lòng sửa các lỗi trong form');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      if (editingMajor) {
+        const majorPayload = {
+          id: editingMajor.id,
+          name: formData.name.trim(),
+          code: formData.code.trim().toUpperCase(),
+          description: formData.description.trim(),
+        };
+
+        await universityViewService.updateMyMajor(editingMajor.id, majorPayload);
+        
+        const hasScoreInfo = formData.score || formData.subjectCombination;
+        if (hasScoreInfo) {
+          const scorePayload = {
+            majorId: editingMajor.id,
+            year: parseInt(formData.year) || new Date().getFullYear(),
+            score: parseFloat(formData.score) || 0,
+            subjectCombination: formData.subjectCombination?.trim() || ""
+          };
+
+          if (formData.scoreId) {
+            await universityViewService.updateMyAdmissionScore(formData.scoreId, scorePayload);
+          } else {
+            await universityViewService.createMyAdmissionScore(scorePayload);
+          }
+        }
+        toast.success('Cập nhật ngành học thành công!');
+
+      } else {
+        const majorPayload = {
+          name: formData.name.trim(),
+          code: formData.code.trim().toUpperCase(),
+          description: formData.description.trim(),
+        };
+        const newMajor = await universityViewService.createMyMajor(majorPayload);
+
+        if (formData.score && parseFloat(formData.score) > 0) {
+          const currentYear = new Date().getFullYear();
+          const targetYear = parseInt(formData.year) || (currentYear - 1);
+          const scorePayload = {
+            majorId: newMajor.id,
+            year: targetYear,
+            score: parseFloat(formData.score)
+          };
+          if (formData.subjectCombination && formData.subjectCombination.trim()) {
+            scorePayload.subjectCombination = formData.subjectCombination.trim();
+          }
+          
+          try {
+            await universityViewService.createMyAdmissionScore(scorePayload);
+          } catch (error) {            
+            try {
+              const methods = await universityViewService.getMyAdmissionMethods();
+              if (methods && methods.length > 0) {
+                const methodPayload = {
+                  ...scorePayload,
+                  admissionMethodId: methods[0].id
+                };
+                await universityViewService.createMyAdmissionScore(methodPayload);
+              } else {
+                throw new Error('No admission methods available');
+              }
+            } catch (retryError) {              
+              try {
+                const minimalPayload = {
+                  majorId: newMajor.id,
+                  year: 2023,
+                  score: parseFloat(formData.score)
+                };
+                await universityViewService.createMyAdmissionScore(minimalPayload);
+              } catch (finalError) {
+                if (error.response?.data?.message) {
+                  toast.warning(`Ngành học đã tạo thành công! Lưu ý: ${error.response.data.message}`);
+                }
+              }
+            }
+          }
+        }
+
+        toast.success('Thêm ngành học thành công!');
+      }
+      
+      await fetchData();
+      handleCloseDialog();
+    } catch (error) {
+      if (error.response) {
+        const { status, data } = error.response;
+        if (status === 401) {
+          toast.error('Bạn cần đăng nhập để thực hiện thao tác này');
+        } else if (status === 403) {
+          toast.error('Chỉ trường đại học mới có quyền thêm ngành học');
+        } else if (status === 400) {
+          if (data.errors) {
+            Object.entries(data.errors).forEach(([field, messages]) => {
+              messages.forEach(msg => toast.error(`${field}: ${msg}`));
+            });
+          } else {
+            toast.error(data.message || data.title || 'Dữ liệu không hợp lệ');
+          }
+        } else if (status === 500) {
+          toast.error(`Lỗi server: ${data.error || data.message || 'Không xác định'}`);
+        } else {
+          toast.error(data.message || data.title || 'Có lỗi xảy ra khi lưu thông tin');
+        }
+      } else {
+        toast.error(`Lỗi kết nối: ${error.message || 'Không xác định'}`);
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    setDeleting(id);
+    try {
+      await universityViewService.deleteMyMajor(id);
+      toast.success('Xóa ngành học thành công!');
+      await fetchData();
+    } catch (error) {
+      console.error('Lỗi khi xóa ngành học:', error);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else if (error.response?.status === 401) {
+        toast.error('Bạn cần đăng nhập để thực hiện thao tác này');
+      } else if (error.response?.status === 403) {
+        toast.error('Bạn không có quyền thực hiện thao tác này');
+      } else {
+        toast.error('Có lỗi xảy ra khi xóa ngành học');
+      }
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setEditingMajor(null);
+    setFormData(INITIAL_FORM_DATA);
+    setFormErrors({});
   };
 
   return (
@@ -513,4 +522,4 @@ const MajorsManagementTab = ({ universityId }) => {
   );
 };
 
-export default MajorsManagementTab;
+export default UniversityMajorsTab; 

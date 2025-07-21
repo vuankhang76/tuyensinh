@@ -9,9 +9,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Plus, Edit, Trash2, Award } from 'lucide-react';
-import { scholarshipService } from '@/services';
 import { TableSkeleton } from '@/components/common/Loading/LoadingSkeleton';
 import { Skeleton } from '@/components/ui/skeleton';
+import { scholarshipService } from '@/services';
 
 const INITIAL_FORM_DATA = {
     name: '',
@@ -22,7 +22,7 @@ const INITIAL_FORM_DATA = {
     year: new Date().getFullYear().toString(),
 };
 
-const ScholarshipsTab = ({ universityId }) => {
+const ScholarshipsManagementTab = ({ universityId }) => {
     const [scholarships, setScholarships] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -33,12 +33,14 @@ const ScholarshipsTab = ({ universityId }) => {
     const fetchScholarships = useCallback(async () => {
         if (!universityId) return;
         setLoading(true);
+        setScholarships([]);
         try {
             const data = await scholarshipService.getScholarshipsByUniversity(universityId);
             const sortedData = data.sort((a, b) => a.id - b.id);
             setScholarships(sortedData);
         } catch (error) {
             toast.error('Có lỗi xảy ra khi tải danh sách học bổng');
+            setScholarships([]);
         } finally {
             setLoading(false);
         }
@@ -124,7 +126,7 @@ const ScholarshipsTab = ({ universityId }) => {
                 toast.success('Thêm học bổng thành công!');
             }
             setIsDialogOpen(false);
-            fetchScholarships();
+            await fetchScholarships();
         } catch (error) {
             toast.error(`Lỗi: ${error?.response?.data?.title || error.message || 'Không xác định'}`);
         } finally {
@@ -137,7 +139,7 @@ const ScholarshipsTab = ({ universityId }) => {
         try {
             await scholarshipService.deleteScholarship(scholarshipId);
             toast.success('Xóa học bổng thành công!');
-            fetchScholarships();
+            await fetchScholarships();
         } catch (error) {
             toast.error('Có lỗi xảy ra khi xóa học bổng.');
         } finally {
@@ -265,4 +267,4 @@ const ScholarshipsTab = ({ universityId }) => {
     );
 };
 
-export default ScholarshipsTab;
+export default ScholarshipsManagementTab;

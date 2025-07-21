@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   User, 
-  Settings, 
   LogOut, 
   Bell,
 } from 'lucide-react';
@@ -34,14 +33,6 @@ const AdminNavbar = () => {
     navigate('/admin/profile');
   };
 
-  const handleSettings = () => {
-    navigate('/admin/settings');
-  };
-
-  const handleGoToMainSite = () => {
-    navigate('/');
-  };
-
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-6">
       <div className="flex items-center justify-end">
@@ -52,7 +43,6 @@ const AdminNavbar = () => {
               3
             </span>
           </Button>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center w-10 h-10">
