@@ -13,7 +13,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import { loginWithCredentials, loginWithGoogle, resendVerificationEmail } from '../services/authService';
+import { loginWithCredentials, loginWithGoogle } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 
@@ -24,7 +24,6 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
   const { user, login } = useAuth();
 
   useEffect(() => {

@@ -20,18 +20,14 @@ const AuthActionHandler = () => {
             hasProcessed.current = true;
             if (mode === 'verifyEmail' && actionCode) {
                 let firebaseSuccess = false;
-                
                 try {
-                    
                     try {
                         await applyActionCode(auth, actionCode);
                         firebaseSuccess = true;
                     } catch (firebaseError) {
                         firebaseSuccess = false;
                     }
-                    
                     const result = await completeRegistration();
-                    
                     if (result.error) {
                         toast.error(result.error);
                         setMessage("Đã xảy ra lỗi khi hoàn tất đăng ký. Vui lòng thử lại.");
