@@ -80,7 +80,7 @@ const UniversityAdmissionTab = () => {
     setLoading(true);
     try {
       const methodData = {
-        methodId: editingMethod?.id,
+        Id: editingMethod?.id,
         name: formData.name,
         description: formData.description,
         criteria: formData.criteria,
@@ -234,7 +234,7 @@ const UniversityAdmissionTab = () => {
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-                              <AlertDialogDescription>Bạn có chắc chắn muốn xóa phương thức "{method.name}"?</AlertDialogDescription>
+                              <AlertDialogDescription>Bạn có chắc chắn muốn xóa phương thức <strong>"{method.name}"</strong>?</AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Hủy</AlertDialogCancel>

@@ -128,7 +128,6 @@ const UniversityProgramsTab = () => {
       resetForm()
       fetchData()
     } catch (error) {
-      console.error('Error details:', error.response?.data); // Debug log
       if (error.response) {
         const { status, data } = error.response;
         if (status === 400 && data.errors) {
@@ -306,7 +305,7 @@ const UniversityProgramsTab = () => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Bạn có chắc chắn muốn xóa chương trình "{program.name}" (Năm {program.year})? Hành động này không thể hoàn tác.
+                                Bạn có chắc chắn muốn xóa chương trình <strong>"{program.name}"</strong> (Năm {program.year})? Hành động này không thể hoàn tác.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

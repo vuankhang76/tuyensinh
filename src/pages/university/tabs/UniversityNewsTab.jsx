@@ -64,7 +64,6 @@ const UniversityNewsTab = () => {
       errors.year = `Năm phải nằm trong khoảng từ 2015 đến ${currentYear + 1}.`;
     }
 
-    // Cải thiện validation cho publishDate
     if (formData.publishDate && formData.publishDate.trim() !== '') {
       const datePattern = /^\d{4}-\d{2}-\d{2}$/;
       if (!datePattern.test(formData.publishDate)) {
@@ -354,7 +353,7 @@ const UniversityNewsTab = () => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Bạn có chắc chắn muốn xóa tin tức "{newsItem.title}"? Hành động này không thể hoàn tác.
+                                Bạn có chắc chắn muốn xóa tin tức <strong>"{newsItem.title}"</strong>? Hành động này không thể hoàn tác.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

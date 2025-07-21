@@ -302,7 +302,7 @@ const ProgramsManagementTab = ({ universityId }) => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Bạn có chắc chắn muốn xóa chương trình "{program.name}" (Năm {program.year})? Hành động này không thể hoàn tác.
+                                Bạn có chắc chắn muốn xóa chương trình <strong>"{program.name}"</strong> (Năm {program.year})? Hành động này không thể hoàn tác.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

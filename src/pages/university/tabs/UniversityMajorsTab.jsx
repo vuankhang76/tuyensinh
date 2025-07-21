@@ -28,7 +28,7 @@ const UniversityMajorsTab = () => {
   const [majors, setMajors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [deleting, setDeleting] = useState(null); // Store the ID of the major being deleted
+  const [deleting, setDeleting] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMajor, setEditingMajor] = useState(null);
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
@@ -149,10 +149,10 @@ const UniversityMajorsTab = () => {
     try {
       if (editingMajor) {
         const majorPayload = {
-          id: editingMajor.id,
-          name: formData.name.trim(),
-          code: formData.code.trim().toUpperCase(),
-          description: formData.description.trim(),
+          Id: editingMajor.id,
+          Name: formData.name.trim(),
+          Code: formData.code.trim().toUpperCase(),
+          Description: formData.description.trim(),
         };
 
         await universityViewService.updateMyMajor(editingMajor.id, majorPayload);
@@ -160,14 +160,18 @@ const UniversityMajorsTab = () => {
         const hasScoreInfo = formData.score || formData.subjectCombination;
         if (hasScoreInfo) {
           const scorePayload = {
-            majorId: editingMajor.id,
-            year: parseInt(formData.year) || new Date().getFullYear(),
-            score: parseFloat(formData.score) || 0,
-            subjectCombination: formData.subjectCombination?.trim() || ""
+            MajorId: editingMajor.id,
+            Year: parseInt(formData.year) || new Date().getFullYear(),
+            Score: parseFloat(formData.score) || 0,
+            SubjectCombination: formData.subjectCombination?.trim() || ""
           };
 
           if (formData.scoreId) {
-            await universityViewService.updateMyAdmissionScore(formData.scoreId, scorePayload);
+            const updateScorePayload = {
+              ...scorePayload,
+              Id: formData.scoreId
+            };
+            await universityViewService.updateMyAdmissionScore(formData.scoreId, updateScorePayload);
           } else {
             await universityViewService.createMyAdmissionScore(scorePayload);
           }
@@ -181,17 +185,17 @@ const UniversityMajorsTab = () => {
           description: formData.description.trim(),
         };
         const newMajor = await universityViewService.createMyMajor(majorPayload);
-
         if (formData.score && parseFloat(formData.score) > 0) {
           const currentYear = new Date().getFullYear();
           const targetYear = parseInt(formData.year) || (currentYear - 1);
           const scorePayload = {
-            majorId: newMajor.id,
-            year: targetYear,
-            score: parseFloat(formData.score)
+            MajorId: newMajor.id,
+            Year: targetYear,
+            Score: parseFloat(formData.score)
           };
+
           if (formData.subjectCombination && formData.subjectCombination.trim()) {
-            scorePayload.subjectCombination = formData.subjectCombination.trim();
+            scorePayload.SubjectCombination = formData.subjectCombination.trim();
           }
           
           try {
@@ -494,7 +498,7 @@ const UniversityMajorsTab = () => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Bạn có chắc chắn muốn xóa ngành "{major.name}"? Hành động này sẽ xóa cả các điểm chuẩn liên quan và không thể hoàn tác.
+                                Bạn có chắc chắn muốn xóa ngành <strong>"{major.name}"</strong>? Hành động này sẽ xóa cả các điểm chuẩn liên quan và không thể hoàn tác.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

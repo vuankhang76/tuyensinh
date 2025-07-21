@@ -234,7 +234,7 @@ const AdmissionManagementTab = ({ universityId }) => {
                                                     <AlertDialogContent>
                                                         <AlertDialogHeader>
                                                             <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-                                                            <AlertDialogDescription>Bạn có chắc chắn muốn xóa phương thức "{method.name}"?</AlertDialogDescription>
+                                                            <AlertDialogDescription>Bạn có chắc chắn muốn xóa phương thức <strong>"{method.name}"</strong>?</AlertDialogDescription>
                                                         </AlertDialogHeader>
                                                         <AlertDialogFooter>
                                                             <AlertDialogCancel>Hủy</AlertDialogCancel>

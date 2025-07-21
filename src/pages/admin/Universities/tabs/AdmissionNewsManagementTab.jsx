@@ -337,7 +337,7 @@ const AdmissionManagementTab = ({ universityId }) => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Bạn có chắc chắn muốn xóa tin tức "{newsItem.title}"? Hành động này không thể hoàn tác.
+                                Bạn có chắc chắn muốn xóa tin tức <strong>"{newsItem.title}"</strong>? Hành động này không thể hoàn tác.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
