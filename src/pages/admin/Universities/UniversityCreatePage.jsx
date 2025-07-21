@@ -21,14 +21,12 @@ const UniversityCreatePage = () => {
     const handleLogoChange = (event) => {
         const file = event.target.files[0];
         if (file) {
-            // Kiểm tra định dạng file
             const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
             if (!allowedTypes.includes(file.type)) {
                 toast.error('Chỉ chấp nhận file ảnh (.jpg, .png, .gif, .webp)');
                 return;
             }
 
-            // Kiểm tra kích thước file (5MB)
             if (file.size > 5 * 1024 * 1024) {
                 toast.error('File không được vượt quá 5MB');
                 return;
@@ -36,7 +34,6 @@ const UniversityCreatePage = () => {
 
             setLogoFile(file);
             
-            // Tạo preview
             const reader = new FileReader();
             reader.onload = (e) => {
                 setLogoPreview(e.target.result);
@@ -48,7 +45,6 @@ const UniversityCreatePage = () => {
     const removeLogo = () => {
         setLogoFile(null);
         setLogoPreview(null);
-        // Reset input file
         const fileInput = document.getElementById('logo-upload');
         if (fileInput) fileInput.value = '';
     };
@@ -62,8 +58,6 @@ const UniversityCreatePage = () => {
         }
         try {
             let logoUrl = values.Logo || null;
-
-            // Upload logo nếu có file
             if (logoFile) {
                 setUploading(true);
                 try {

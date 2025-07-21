@@ -107,7 +107,6 @@ const AdmissionManagementTab = ({ universityId }) => {
             setIsDialogOpen(false);
             fetchMethods();
         } catch (error) {
-            console.error('Lỗi khi lưu phương thức:', error);
             if (error.response?.data?.message) {
                 toast.error(error.response.data.message);
             } else {

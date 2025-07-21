@@ -224,7 +224,11 @@ const ScholarshipsManagementTab = ({ universityId }) => {
                     )}
                 </CardHeader>
                 <CardContent>
-                    {loading ? <TableSkeleton columns={[{ width: "5%" }, { width: "40%" }, { width: "20%" }, { width: "15%" }, { width: "20%" }]} rows={5} /> : (
+                    {loading ? (
+                        <TableSkeleton columns={[{ width: "5%" }, { width: "40%" }, { width: "20%" }, { width: "15%" }, { width: "20%" }]} rows={5} />
+                    ) : scholarships.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">Chưa có học bổng nào.</div>
+                    ) : (
                         <>
                             <Table>
                                 <TableHeader>
@@ -237,7 +241,7 @@ const ScholarshipsManagementTab = ({ universityId }) => {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {scholarships.length > 0 ? scholarships.map(scholarship => (
+                                    {scholarships.map(scholarship => (
                                         <TableRow key={scholarship.id}>
                                             <TableCell className="font-medium">{scholarship.id}</TableCell>
                                             <TableCell className="font-medium" title={scholarship.name}>{scholarship.name}</TableCell>
@@ -254,9 +258,7 @@ const ScholarshipsManagementTab = ({ universityId }) => {
                                                 </AlertDialog>
                                             </TableCell>
                                         </TableRow>
-                                    )) : (
-                                        <TableRow><TableCell colSpan={5} className="h-24 text-center">Không có học bổng nào.</TableCell></TableRow>
-                                    )}
+                                    ))}
                                 </TableBody>
                             </Table>
                         </>

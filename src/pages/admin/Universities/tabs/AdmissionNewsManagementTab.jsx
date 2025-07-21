@@ -107,7 +107,6 @@ const AdmissionManagementTab = ({ universityId }) => {
       await fetchNewsData();
       
     } catch (error) {
-      console.error('Error details:', error.response?.data);
       if (error.response) {
         const { status, data } = error.response;
         if (status === 400 && data.errors) {

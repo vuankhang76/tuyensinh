@@ -263,7 +263,7 @@ const ProgramsManagementTab = ({ universityId }) => {
               rows={5}
             />
           ) : programs.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">Không tìm thấy chương trình nào.</div>
+            <div className="text-center py-8 text-muted-foreground">Chưa có chương trình nào.</div>
           ) : (
             <Table>
               <TableHeader>

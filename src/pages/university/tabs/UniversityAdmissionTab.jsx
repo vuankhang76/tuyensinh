@@ -36,7 +36,6 @@ const UniversityAdmissionTab = () => {
       const sortedData = data.sort((a, b) => a.id - b.id);
       setAdmissionMethods(sortedData);
     } catch (error) {
-      console.error('Lỗi khi tải dữ liệu:', error);
       toast.error('Có lỗi xảy ra khi tải dữ liệu');
     } finally {
       setLoading(false);
@@ -97,7 +96,6 @@ const UniversityAdmissionTab = () => {
       setIsDialogOpen(false);
       await fetchData();
     } catch (error) {
-      console.error('Lỗi khi lưu phương thức:', error);
       if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
@@ -126,7 +124,6 @@ const UniversityAdmissionTab = () => {
       toast.success('Xóa phương thức thành công!');
       await fetchData();
     } catch (error) {
-      console.error('Lỗi khi xóa phương thức:', error);
       if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {

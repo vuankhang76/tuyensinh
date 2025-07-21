@@ -57,7 +57,6 @@ const UniversityAdmin = () => {
       const data = await universityViewService.getMyUniversity();
       setUniversity(data);
     } catch (error) {
-      console.error("Lỗi khi tải dữ liệu trường:", error);
       toast.error('Có lỗi xảy ra khi tải thông tin trường đại học');
     } finally {
       setLoading(false);
@@ -143,7 +142,6 @@ const UniversityAdmin = () => {
       
       setLogoFile(file);
       
-      // Preview the image
       const reader = new FileReader();
       reader.onload = (e) => {
         setFormData(prev => ({
@@ -189,9 +187,7 @@ const UniversityAdmin = () => {
       setEditing(false);
       setLogoFile(null);
       toast.success("Đã cập nhật thông tin trường đại học thành công!");
-    } catch (error) {
-      console.error("Lỗi khi cập nhật:", error);
-      
+    } catch (error) {      
       if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {

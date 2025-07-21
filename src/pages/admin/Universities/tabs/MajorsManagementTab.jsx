@@ -209,7 +209,6 @@ const MajorsManagementTab = ({ universityId }) => {
   const validateForm = () => {
     const errors = {};
 
-    // Major fields - BẮT BUỘC
     if (!formData.name?.trim()) {
       errors.name = 'Tên ngành học là bắt buộc.';
     }
@@ -226,7 +225,6 @@ const MajorsManagementTab = ({ universityId }) => {
       errors.description = 'Mô tả không được vượt quá 2000 ký tự.';
     }
 
-    // AdmissionScore fields - KHÔNG BẮT BUỘC nhưng validate nếu có
     if (formData.score && formData.score.toString().trim() !== '') {
       if (isNaN(formData.score)) {
         errors.score = 'Điểm chuẩn phải là một số.';
