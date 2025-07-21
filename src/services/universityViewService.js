@@ -314,6 +314,15 @@ export const universityViewService = {
     } catch (error) {
       throw error
     }
+  },
+
+  updateMyVerify: async () => {
+    try {
+      const response = await axios.post(`/UniversityView/verify-my-university`)
+      return response.data
+    } catch (error) {
+      throw error
+    }
   }
 }
 

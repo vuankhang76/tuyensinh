@@ -20,7 +20,9 @@ import {
   Users,
   FileText,
   BarChart3,
-  Upload
+  Upload,
+  Shield,
+  ShieldCheck
 } from 'lucide-react';
 
 import UniversityMajorsTab from './tabs/UniversityMajorsTab';
@@ -42,6 +44,7 @@ const UniversityAdmin = () => {
   const [formErrors, setFormErrors] = useState({});
   const [currentTab, setCurrentTab] = useState('info');
   const [logoFile, setLogoFile] = useState(null);
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     fetchUniversityData();
@@ -226,6 +229,31 @@ const UniversityAdmin = () => {
     navigate(`/university/admin?tab=${newTab}`, { replace: true });
   };
 
+  const handleVerifyUniversity = async () => {
+    setVerifying(true);
+    try {
+      const response = await universityViewService.updateMyVerify();
+      
+      if (response?.university) {
+        setUniversity(response.university);
+        setFormData(response.university);
+      } else {
+        setUniversity(prev => ({ ...prev, isVerified: true }));
+        setFormData(prev => ({ ...prev, isVerified: true }));
+      }
+      
+      toast.success("Trường đại học đã được xác thực thành công!");
+    } catch (error) {
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Có lỗi xảy ra khi xác thực trường đại học");
+      }
+    } finally {
+      setVerifying(false);
+    }
+  };
+
   if (loading && !university) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -282,31 +310,70 @@ const UniversityAdmin = () => {
         </TabsList>
 
         <TabsContent value="info" className="space-y-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900">Thông tin cơ bản</h3>
+              <p className="text-gray-600 mt-1">Quản lý thông tin chi tiết về trường đại học</p>
+            </div>
+            <div className="flex space-x-2">
+              {editing ? (
+                <>
+                  <Button variant="outline" onClick={handleCancel} disabled={saving}>
+                    Hủy
+                  </Button>
+                  <Button onClick={handleSave} disabled={saving}>
+                    <Save className="h-4 w-4 mr-2" />
+                    {saving ? 'Đang lưu...' : 'Lưu'}
+                  </Button>
+                </>
+              ) : (
+                <Button onClick={() => setEditing(true)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Chỉnh sửa
+                </Button>
+              )}
+            </div>
+          </div>
+
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Thông tin cơ bản</CardTitle>
-                <div className="flex space-x-2">
-                  {editing ? (
-                    <>
-                      <Button variant="outline" onClick={handleCancel} disabled={saving}>
-                        Hủy
-                      </Button>
-                      <Button onClick={handleSave} disabled={saving}>
-                        <Save className="h-4 w-4 mr-2" />
-                        {saving ? 'Đang lưu...' : 'Lưu'}
-                      </Button>
-                    </>
-                  ) : (
-                    <Button onClick={() => setEditing(true)}>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Chỉnh sửa
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
             <CardContent className="space-y-4">
+              {/* Trạng thái xác thực */}
+              <div className="border-b pb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Label className="text-base font-medium">Trạng thái xác thực:</Label>
+                    {university.isVerified ? (
+                      <div className="flex items-center gap-2 text-green-700 bg-green-100 px-3 py-1.5 rounded-full">
+                        <ShieldCheck className="h-4 w-4" />
+                        <span className="text-sm font-medium">Đã xác thực</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full">
+                        <Shield className="h-4 w-4" />
+                        <span className="text-sm font-medium">Chưa xác thực</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                                     {!university.isVerified && (
+                     <Button
+                       variant="outline"
+                       onClick={handleVerifyUniversity}
+                       disabled={verifying}
+                       className="flex items-center gap-2"
+                     >
+                       <ShieldCheck className="h-4 w-4" />
+                       {verifying ? 'Đang xác thực...' : 'Xác thực ngay'}
+                     </Button>
+                   )}
+                 </div>
+                 {!university.isVerified && (
+                   <p className="text-sm text-muted-foreground mt-2">
+                     Xác thực trường đại học giúp tăng độ tin cậy và hiển thị trạng thái "Đã xác thực" cho người dùng.
+                     Bấm "Xác thực ngay" để kích hoạt tính năng này.
+                   </p>
+                 )}
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="name" className="mb-2">Tên trường *</Label>
@@ -428,6 +495,7 @@ const UniversityAdmin = () => {
                 />
                 {formErrors.introduction && <p className="text-red-500 text-sm mt-1">{formErrors.introduction}</p>}
               </div>
+              
             </CardContent>
           </Card>
         </TabsContent>

@@ -7,7 +7,9 @@ import {
   MapPin,
   Trophy,
   Building2,
-  Globe
+  Globe,
+  Shield,
+  ShieldCheck
 } from 'lucide-react'
 
 const UniversityCard = ({ university }) => {
@@ -47,13 +49,22 @@ const UniversityCard = ({ university }) => {
                     <MapPin className="text-primary h-4 w-4 mr-1 text-muted-foreground" />
                     <span>{university.location || 'Chưa cập nhật'}</span>
                   </div>
-                    <div className="flex items-center">
-                      <Trophy className="text-yellow-500 h-4 w-4 mr-1" />
-                      <span>Xếp hạng: {university.ranking || 'Không có'}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Badge variant={(university.type)}>{university.type}</Badge>
-                    </div>
+                  <div className="flex items-center">
+                    <Badge variant="secondary">{university.type}</Badge>
+                  </div>
+                  <div className="flex items-center">
+                    {university.isVerified ? (
+                      <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-200">
+                        <ShieldCheck className="h-3 w-3 mr-1" />
+                        Đã xác thực
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="bg-gray-100 text-gray-600">
+                        <Shield className="h-3 w-3 mr-1" />
+                        Chưa xác thực
+                      </Badge>
+                    )}
+                  </div>
                 </div>
 
                   <div className="flex items-center flex-wrap ">
