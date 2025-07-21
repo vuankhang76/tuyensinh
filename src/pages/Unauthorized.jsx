@@ -36,14 +36,6 @@ const Unauthorized = () => {
             <Home className="h-4 w-4" />
             Về trang chủ
           </Button>
-          <Button 
-            variant="outline"
-            onClick={() => navigate('/login')}
-            className="flex items-center gap-2"
-          >
-            <LogIn className="h-4 w-4" />
-            Đăng nhập
-          </Button>
         </div>
       </div>
     </div>
