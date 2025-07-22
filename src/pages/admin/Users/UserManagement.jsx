@@ -278,10 +278,6 @@ const UserManagement = () => {
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Làm mới
           </Button>
-          <Button onClick={handleAdd} disabled={loading}>
-            <Plus className="h-4 w-4 mr-2" />
-            Thêm người dùng
-          </Button>
         </div>
       </div>
 
