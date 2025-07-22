@@ -373,6 +373,118 @@ const UniversityDetailPage = () => {
               <CardTitle>Thông tin cơ bản</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+            <div className="space-y-4">
+                <Label>Logo</Label>
+                {editing ? (
+                  <>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                      <div className="text-center">
+                        {logoPreview ? (
+                          <div className="relative inline-block">
+                            <img 
+                              src={logoPreview} 
+                              alt="Logo preview" 
+                              className="max-w-32 max-h-32 object-contain mx-auto"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="absolute -top-2 -right-2 rounded-full w-6 h-6 p-0"
+                              onClick={removeLogo}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ) : formData.logo ? (
+                          <div className="relative inline-block">
+                            <img 
+                              src={formData.logo} 
+                              alt="Current logo" 
+                              className="max-w-32 max-h-32 object-contain mx-auto"
+                            />
+                            <div className="mt-2">
+                              <label htmlFor="logo-upload" className="cursor-pointer">
+                                <Button type="button" variant="outline" asChild>
+                                  <span>
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    Thay đổi logo
+                                  </span>
+                                </Button>
+                              </label>
+                              <input
+                                id="logo-upload"
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={handleLogoChange}
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="py-4">
+                            <Image className="mx-auto h-12 w-12 text-gray-400" />
+                            <div className="mt-2">
+                              <label htmlFor="logo-upload" className="cursor-pointer">
+                                <Button type="button" variant="outline" asChild>
+                                  <span>
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    Chọn ảnh
+                                  </span>
+                                </Button>
+                              </label>
+                              <input
+                                id="logo-upload"
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={handleLogoChange}
+                              />
+                            </div>
+                            <p className="text-sm text-gray-500 mt-2">
+                              PNG, JPG, GIF up to 5MB
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="text-center text-sm text-gray-500">hoặc</div>
+                    <div>
+                      <Label htmlFor="logo" className="mb-2">Hoặc nhập URL logo</Label>
+                      <Input
+                        id="logo"
+                        value={formData.logo || ''}
+                        onChange={(e) => handleInputChange('logo', e.target.value)}
+                        placeholder="https://example.com/logo.png"
+                        disabled={!!logoFile}
+                        className={formErrors.logo ? "border-red-500" : ""}
+                      />
+                      {formErrors.logo && <p className="text-red-500 text-sm mt-1">{formErrors.logo}</p>}
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                    {formData.logo ? (
+                      <img 
+                        src={formData.logo} 
+                        alt="University logo" 
+                        className="w-16 h-16 object-contain rounded"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                        <Building2 className="h-8 w-8 text-gray-400" />
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm text-gray-600">Logo hiện tại</p>
+                      <p className="text-xs text-gray-500">
+                        {formData.logo ? 'Có logo' : 'Chưa có logo'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="name" className="mb-2">Tên trường *</Label>
@@ -481,124 +593,6 @@ const UniversityDetailPage = () => {
                   {formErrors.rankingCriteria && <p className="text-red-500 text-sm mt-1">{formErrors.rankingCriteria}</p>}
                 </div>
               </div>
-              {/* Logo Upload Section */}
-              <div className="space-y-4">
-                <Label>Logo</Label>
-                
-                {editing ? (
-                  <>
-                    {/* Option 1: Upload File */}
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                      <div className="text-center">
-                        {logoPreview ? (
-                          <div className="relative inline-block">
-                            <img 
-                              src={logoPreview} 
-                              alt="Logo preview" 
-                              className="max-w-32 max-h-32 object-contain mx-auto"
-                            />
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              className="absolute -top-2 -right-2 rounded-full w-6 h-6 p-0"
-                              onClick={removeLogo}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ) : formData.logo ? (
-                          <div className="relative inline-block">
-                            <img 
-                              src={formData.logo} 
-                              alt="Current logo" 
-                              className="max-w-32 max-h-32 object-contain mx-auto"
-                            />
-                            <div className="mt-2">
-                              <label htmlFor="logo-upload" className="cursor-pointer">
-                                <Button type="button" variant="outline" asChild>
-                                  <span>
-                                    <Upload className="h-4 w-4 mr-2" />
-                                    Thay đổi logo
-                                  </span>
-                                </Button>
-                              </label>
-                              <input
-                                id="logo-upload"
-                                type="file"
-                                className="hidden"
-                                accept="image/*"
-                                onChange={handleLogoChange}
-                              />
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="py-4">
-                            <Image className="mx-auto h-12 w-12 text-gray-400" />
-                            <div className="mt-2">
-                              <label htmlFor="logo-upload" className="cursor-pointer">
-                                <Button type="button" variant="outline" asChild>
-                                  <span>
-                                    <Upload className="h-4 w-4 mr-2" />
-                                    Chọn ảnh
-                                  </span>
-                                </Button>
-                              </label>
-                              <input
-                                id="logo-upload"
-                                type="file"
-                                className="hidden"
-                                accept="image/*"
-                                onChange={handleLogoChange}
-                              />
-                            </div>
-                            <p className="text-sm text-gray-500 mt-2">
-                              PNG, JPG, GIF up to 5MB
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Option 2: URL Input */}
-                    <div className="text-center text-sm text-gray-500">hoặc</div>
-                    <div>
-                      <Label htmlFor="logo" className="mb-2">Hoặc nhập URL logo</Label>
-                      <Input
-                        id="logo"
-                        value={formData.logo || ''}
-                        onChange={(e) => handleInputChange('logo', e.target.value)}
-                        placeholder="https://example.com/logo.png"
-                        disabled={!!logoFile}
-                        className={formErrors.logo ? "border-red-500" : ""}
-                      />
-                      {formErrors.logo && <p className="text-red-500 text-sm mt-1">{formErrors.logo}</p>}
-                    </div>
-                  </>
-                ) : (
-                  // Read-only mode
-                  <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                    {formData.logo ? (
-                      <img 
-                        src={formData.logo} 
-                        alt="University logo" 
-                        className="w-16 h-16 object-contain rounded"
-                      />
-                    ) : (
-                      <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
-                        <Building2 className="h-8 w-8 text-gray-400" />
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-sm text-gray-600">Logo hiện tại</p>
-                      <p className="text-xs text-gray-500">
-                        {formData.logo ? 'Có logo' : 'Chưa có logo'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
               <div>
                 <Label htmlFor="introduction" className="mb-2">Giới thiệu *</Label>
                 <Textarea

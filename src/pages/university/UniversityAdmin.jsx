@@ -66,7 +66,7 @@ const UniversityAdmin = () => {
     const searchParams = new URLSearchParams(location.search);
     const tab = searchParams.get('tab');
     const validTabs = ['info', 'majors', 'programs', 'news', 'scholarships', 'admission'];
-    
+
     if (tab && validTabs.includes(tab)) {
       setCurrentTab(tab);
     } else {
@@ -230,7 +230,7 @@ const UniversityAdmin = () => {
       setLogoFile(null);
       setLogoPreview(null);
       toast.success("Đã cập nhật thông tin trường đại học thành công!");
-    } catch (error) {      
+    } catch (error) {
       if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
@@ -261,7 +261,7 @@ const UniversityAdmin = () => {
     setVerifying(true);
     try {
       const response = await universityViewService.updateMyVerify();
-      
+
       if (response?.university) {
         setUniversity(response.university);
         setFormData(response.university);
@@ -269,7 +269,7 @@ const UniversityAdmin = () => {
         setUniversity(prev => ({ ...prev, isVerified: true }));
         setFormData(prev => ({ ...prev, isVerified: true }));
       }
-      
+
       toast.success("Trường đại học đã được xác thực thành công!");
     } catch (error) {
       if (error.response?.data?.message) {
@@ -363,32 +363,119 @@ const UniversityAdmin = () => {
             </div>
           </div>
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Thông tin cơ bản</CardTitle>
-                <div className="flex space-x-2">
+            <CardContent className="space-y-4">
+              <div className="border-b pb-4">
+                <div className="col-span-2 space-y-4 mb-4">
+                  <Label>Logo</Label>
                   {editing ? (
                     <>
-                      <Button variant="outline" onClick={handleCancel} disabled={saving}>
-                        Hủy
-                      </Button>
-                      <Button onClick={handleSave} disabled={saving || uploading}>
-                        <Save className="h-4 w-4 mr-2" />
-                        {uploading ? 'Đang upload...' : saving ? 'Đang lưu...' : 'Lưu'}
-                      </Button>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                        <div className="text-center">
+                          {logoPreview ? (
+                            <div className="relative inline-block">
+                              <img
+                                src={logoPreview}
+                                alt="Logo preview"
+                                className="max-w-32 max-h-32 object-contain mx-auto"
+                              />
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="absolute -top-2 -right-2 rounded-full w-6 h-6 p-0"
+                                onClick={removeLogo}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ) : formData.logo ? (
+                            <div className="relative inline-block">
+                              <img
+                                src={formData.logo}
+                                alt="Current logo"
+                                className="max-w-32 max-h-32 object-contain mx-auto"
+                              />
+                              <div className="mt-2">
+                                <label htmlFor="logo-upload" className="cursor-pointer">
+                                  <Button type="button" variant="outline" asChild>
+                                    <span>
+                                      <Upload className="h-4 w-4 mr-2" />
+                                      Thay đổi logo
+                                    </span>
+                                  </Button>
+                                </label>
+                                <input
+                                  id="logo-upload"
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*"
+                                  onChange={handleLogoChange}
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="py-4">
+                              <Image className="mx-auto h-12 w-12 text-gray-400" />
+                              <div className="mt-2">
+                                <label htmlFor="logo-upload" className="cursor-pointer">
+                                  <Button type="button" variant="outline" asChild>
+                                    <span>
+                                      <Upload className="h-4 w-4 mr-2" />
+                                      Chọn ảnh
+                                    </span>
+                                  </Button>
+                                </label>
+                                <input
+                                  id="logo-upload"
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*"
+                                  onChange={handleLogoChange}
+                                />
+                              </div>
+                              <p className="text-sm text-gray-500 mt-2">
+                                PNG, JPG, GIF up to 5MB
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-center text-sm text-gray-500">hoặc</div>
+                      <div>
+                        <Label htmlFor="logo" className="mb-2">Hoặc nhập URL logo</Label>
+                        <Input
+                          id="logo"
+                          value={formData.logo || ''}
+                          onChange={(e) => handleInputChange('logo', e.target.value)}
+                          placeholder="https://example.com/logo.png"
+                          disabled={!!logoFile}
+                          className={formErrors.logo ? "border-red-500" : ""}
+                        />
+                        {formErrors.logo && <p className="text-red-500 text-sm mt-1">{formErrors.logo}</p>}
+                      </div>
                     </>
                   ) : (
-                    <Button onClick={() => setEditing(true)}>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Chỉnh sửa
-                    </Button>
+                    <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                      {formData.logo ? (
+                        <img
+                          src={formData.logo}
+                          alt="University logo"
+                          className="w-16 h-16 object-contain rounded"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                          <Building2 className="h-8 w-8 text-gray-400" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-sm text-gray-600">Logo hiện tại</p>
+                        <p className="text-xs text-gray-500">
+                          {formData.logo ? 'Có logo' : 'Chưa có logo'}
+                        </p>
+                      </div>
+                    </div>
                   )}
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Trạng thái xác thực */}
-              <div className="border-b pb-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Label className="text-base font-medium">Trạng thái xác thực:</Label>
@@ -404,24 +491,24 @@ const UniversityAdmin = () => {
                       </div>
                     )}
                   </div>
-                    {!university.isVerified && (
-                     <Button
-                       variant="outline"
-                       onClick={handleVerifyUniversity}
-                       disabled={verifying}
-                       className="flex items-center gap-2"
-                     >
-                       <ShieldCheck className="h-4 w-4" />
-                       {verifying ? 'Đang xác thực...' : 'Xác thực ngay'}
-                     </Button>
-                   )}
-                 </div>
-                 {!university.isVerified && (
-                   <p className="text-sm text-muted-foreground mt-2">
-                     Xác thực trường đại học giúp tăng độ tin cậy và hiển thị trạng thái "Đã xác thực" cho người dùng.
-                     Bấm "Xác thực ngay" để kích hoạt tính năng này.
-                   </p>
-                 )}
+                  {!university.isVerified && (
+                    <Button
+                      variant="outline"
+                      onClick={handleVerifyUniversity}
+                      disabled={verifying}
+                      className="flex items-center gap-2"
+                    >
+                      <ShieldCheck className="h-4 w-4" />
+                      {verifying ? 'Đang xác thực...' : 'Xác thực ngay'}
+                    </Button>
+                  )}
+                </div>
+                {!university.isVerified && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Xác thực trường đại học giúp tăng độ tin cậy và hiển thị trạng thái "Đã xác thực" cho người dùng.
+                    Bấm "Xác thực ngay" để kích hoạt tính năng này.
+                  </p>
+                )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -516,124 +603,6 @@ const UniversityAdmin = () => {
                   />
                   {formErrors.locations && <p className="text-red-500 text-sm mt-1">{formErrors.locations}</p>}
                 </div>
-
-                {/* Logo Upload Section */}
-                <div className="col-span-2 space-y-4">
-                  <Label>Logo</Label>
-                  
-                  {editing ? (
-                    <>
-                      {/* Option 1: Upload File */}
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                        <div className="text-center">
-                          {logoPreview ? (
-                            <div className="relative inline-block">
-                              <img 
-                                src={logoPreview} 
-                                alt="Logo preview" 
-                                className="max-w-32 max-h-32 object-contain mx-auto"
-                              />
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="sm"
-                                className="absolute -top-2 -right-2 rounded-full w-6 h-6 p-0"
-                                onClick={removeLogo}
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          ) : formData.logo ? (
-                            <div className="relative inline-block">
-                              <img 
-                                src={formData.logo} 
-                                alt="Current logo" 
-                                className="max-w-32 max-h-32 object-contain mx-auto"
-                              />
-                              <div className="mt-2">
-                                <label htmlFor="logo-upload" className="cursor-pointer">
-                                  <Button type="button" variant="outline" asChild>
-                                    <span>
-                                      <Upload className="h-4 w-4 mr-2" />
-                                      Thay đổi logo
-                                    </span>
-                                  </Button>
-                                </label>
-                                <input
-                                  id="logo-upload"
-                                  type="file"
-                                  className="hidden"
-                                  accept="image/*"
-                                  onChange={handleLogoChange}
-                                />
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="py-4">
-                              <Image className="mx-auto h-12 w-12 text-gray-400" />
-                              <div className="mt-2">
-                                <label htmlFor="logo-upload" className="cursor-pointer">
-                                  <Button type="button" variant="outline" asChild>
-                                    <span>
-                                      <Upload className="h-4 w-4 mr-2" />
-                                      Chọn ảnh
-                                    </span>
-                                  </Button>
-                                </label>
-                                <input
-                                  id="logo-upload"
-                                  type="file"
-                                  className="hidden"
-                                  accept="image/*"
-                                  onChange={handleLogoChange}
-                                />
-                              </div>
-                              <p className="text-sm text-gray-500 mt-2">
-                                PNG, JPG, GIF up to 5MB
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Option 2: URL Input */}
-                      <div className="text-center text-sm text-gray-500">hoặc</div>
-                      <div>
-                        <Label htmlFor="logo" className="mb-2">Hoặc nhập URL logo</Label>
-                        <Input
-                          id="logo"
-                          value={formData.logo || ''}
-                          onChange={(e) => handleInputChange('logo', e.target.value)}
-                          placeholder="https://example.com/logo.png"
-                          disabled={!!logoFile}
-                          className={formErrors.logo ? "border-red-500" : ""}
-                        />
-                        {formErrors.logo && <p className="text-red-500 text-sm mt-1">{formErrors.logo}</p>}
-                      </div>
-                    </>
-                  ) : (
-                    // Read-only mode
-                    <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                      {formData.logo ? (
-                        <img 
-                          src={formData.logo} 
-                          alt="University logo" 
-                          className="w-16 h-16 object-contain rounded"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
-                          <Building2 className="h-8 w-8 text-gray-400" />
-                        </div>
-                      )}
-                      <div>
-                        <p className="text-sm text-gray-600">Logo hiện tại</p>
-                        <p className="text-xs text-gray-500">
-                          {formData.logo ? 'Có logo' : 'Chưa có logo'}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
                 <div className="col-span-2">
                   <Label htmlFor="rankingCriteria" className="mb-2">Tiêu chí xếp hạng</Label>
                   <Textarea
@@ -661,7 +630,7 @@ const UniversityAdmin = () => {
                 />
                 {formErrors.introduction && <p className="text-red-500 text-sm mt-1">{formErrors.introduction}</p>}
               </div>
-              
+
             </CardContent>
           </Card>
         </TabsContent>
