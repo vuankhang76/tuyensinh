@@ -247,7 +247,6 @@ const UniversityAdmin = () => {
     setEditing(false);
     setLogoFile(null);
     setLogoPreview(null);
-    // Reset input file
     const fileInput = document.getElementById('logo-upload');
     if (fileInput) fileInput.value = '';
   };
