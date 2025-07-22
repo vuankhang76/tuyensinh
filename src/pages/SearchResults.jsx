@@ -354,9 +354,6 @@ const SearchResults = React.memo(() => {
                   <DropdownMenuItem onClick={() => handleTypeChange('Tư thục')}>
                     Tư thục
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleTypeChange('Dân lập')}>
-                    Dân lập
-                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               {(query || region || type) && (

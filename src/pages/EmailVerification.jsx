@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Mail, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
@@ -11,9 +11,7 @@ const RESEND_COOLDOWN_SECONDS = 60;
 const EmailVerification = () => {
     const navigate = useNavigate();
     const location = useLocation();
-
     const [email, setEmail] = useState('');
-
     const [cooldown, setCooldown] = useState(0);
 
     useEffect(() => {

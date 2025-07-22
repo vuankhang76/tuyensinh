@@ -4,7 +4,6 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import Loading from '@/components/common/Loading/LoadingSkeleton'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -16,7 +15,6 @@ import {
   MapPin,
   X,
   ChevronDown,
-  School,
   Search
 } from 'lucide-react'
 import UniversityCard from '../components/Homepage/UniversityCard'
@@ -60,17 +58,14 @@ const AllUniversities = React.memo(() => {
         const transformedData = data.map(uni => ({
           id: uni.id,
           name: uni.name,
-          code: uni.shortName || uni.name.split(' ').map(w => w[0]).join(''),
+          code: uni.shortName,
           logo: uni.logo,
-          location: Array.isArray(uni.locations) ? uni.locations[0] : uni.locations || 'Chưa cập nhật',
-          type: uni.type || 'Chưa phân loại',
+          location: uni.locations,
+          type: uni.type,
           majors: [],
-          tuition: 'Liên hệ nhà trường',
-          ranking: uni.ranking || 0,
-          featured: uni.ranking <= 10,
-          description: uni.introduction || 'Chưa có mô tả',
-          quota: 0,
-          students: 0,
+          ranking: uni.ranking,
+          featured: uni.ranking,
+          description: uni.introduction,
           website: uni.officialWebsite,
           admissionWebsite: uni.admissionWebsite
         }))
@@ -81,14 +76,8 @@ const AllUniversities = React.memo(() => {
           case 'name':
             filtered.sort((a, b) => a.name.localeCompare(b.name))
             break
-          case 'score':
-            filtered.sort((a, b) => b.minScore - a.minScore)
-            break
           case 'ranking':
             filtered.sort((a, b) => a.ranking - b.ranking)
-            break
-          case 'tuition':
-            filtered.sort((a, b) => a.name.localeCompare(b.name))
             break
           default:
             filtered.sort((a, b) => {
@@ -290,11 +279,6 @@ const AllUniversities = React.memo(() => {
                   onKeyPress={handleKeyPress}
                   type="text"
                 />
-                {isSearching && searchInput.trim() && (
-                  <div className="absolute right-12 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
-                    Đang tìm...
-                  </div>
-                )}
                 <Button
                   onClick={handleSearch}
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
@@ -339,9 +323,6 @@ const AllUniversities = React.memo(() => {
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleTypeChange('Tư thục')}>
                       Tư thục
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleTypeChange('Dân lập')}>
-                      Dân lập
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
