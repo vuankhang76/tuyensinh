@@ -126,19 +126,11 @@
       if (!currentUser) {
         return { user: null, error: 'Không tìm thấy thông tin xác thực' };
       }
-      const response = await apiClient.put('/Auth/verify-email', {
-        firebaseUid: currentUser.uid,
-        email: currentUser.email
+        const idToken = await currentUser.getIdToken(true);
+        await apiClient.put('/Auth/verify-email', {
+        idToken: idToken 
       });
-
-      const data = response.data;
-      
-      localStorage.setItem('accessToken', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      localStorage.setItem('authMethod', 'credentials');
-      
-      return { user: data.user, error: null };
-    } catch (error) {      
+    } catch (error) {     
       if (error.response) {
         return { user: null, error: error.response.data.message || 'Hoàn tất xác thực thất bại' };
       }

@@ -225,9 +225,9 @@ const AIChat = () => {
 
   const quickQuestions = [
     "Trường nào có ngành CNTT tốt nhất?",
-    "Điểm chuẩn các trường y khoa",
-    "Học phí trường tư thục bao nhiều?",
-    "Học bổng cho sinh viên giỏi"
+    "Thông tin của trường đại học FPT",
+    "Học bổng của trường đại học FPT",
+    "Điểm chuẩn của trường đại học FPT"
   ];
 
   const formatTimestamp = (timestamp) => {

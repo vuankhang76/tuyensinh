@@ -43,9 +43,6 @@ const Overview = () => {
 
       setStats(newStats);
 
-      const failedRequests = [universitiesData, usersData, majorsData, newsData]
-        .filter(result => result.status === 'rejected');
-
     } catch (error) {
       setError('Không thể tải dữ liệu thống kê. Vui lòng thử lại sau.');
     } finally {
@@ -121,6 +118,7 @@ const Overview = () => {
         </button>
       </div>
 
+      {/* Thống kê tổng quan */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat, index) => {
           const IconComponent = stat.icon;
@@ -149,50 +147,8 @@ const Overview = () => {
           );
         })}
       </div>
-      
-      <div className="mt-8">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Hoạt động gần đây</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-sm text-muted-foreground">
-                {loading ? (
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                    <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
-                    <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
-                  </div>
-                ) : (
-                  "Chưa có dữ liệu hoạt động để hiển thị."
-                )}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Thống kê truy cập</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-sm text-muted-foreground">
-                {loading ? (
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                    <div className="h-4 bg-gray-200 rounded animate-pulse w-2/3"></div>
-                    <div className="h-4 bg-gray-200 rounded animate-pulse w-1/3"></div>
-                  </div>
-                ) : (
-                  "Biểu đồ thống kê sẽ được hiển thị ở đây."
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
     </div>
   );
 };
 
-export default Overview; 
+export default Overview;

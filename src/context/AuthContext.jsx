@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
     }
     return result;
   }, []);
-
+  
   const memoizedValue = useMemo(() => ({
     user,
     loading,

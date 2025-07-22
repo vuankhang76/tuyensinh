@@ -85,7 +85,7 @@ const NewsSection = () => {
               Tin tức tuyển sinh mới nhất được cập nhật
             </p>
           </div>
-          <Link to="/news">
+          <Link to="/tin-tuc">
             <Button variant="outline">
               Xem tất cả tin tức
             </Button>

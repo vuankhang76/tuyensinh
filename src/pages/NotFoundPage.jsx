@@ -53,7 +53,7 @@ export default function NotFoundPageNoCard() {
             </Link>
             </Button>
             <Button asChild variant="outline">
-            <Link to="/universities">
+            <Link to="/danh-sach-truong-dai-hoc">
                 <School className="mr-2 h-4 w-4" />
                 Danh sách trường
             </Link>

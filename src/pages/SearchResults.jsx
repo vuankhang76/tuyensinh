@@ -72,19 +72,17 @@ const SearchResults = React.memo(() => {
         const transformedData = data.map(uni => ({
           id: uni.id,
           name: uni.name,
-          code: uni.shortName || uni.name.split(' ').map(w => w[0]).join(''),
+          code: uni.shortName,
           logo: uni.logo,
-          location: Array.isArray(uni.locations) ? uni.locations[0] : uni.locations || 'Chưa cập nhật',
-          type: uni.type || 'Chưa phân loại',
+          location: Array.isArray(uni.locations) ? uni.locations[0] : uni.locations,
+          type: uni.type,
           majors: [],
-          tuition: 'Liên hệ nhà trường',
-          ranking: uni.ranking || 0,
-          featured: uni.ranking <= 10,
-          description: uni.introduction || 'Chưa có mô tả',
-          quota: 0,
+          ranking: uni.ranking,
+          description: uni.introduction,
           students: 0,
           website: uni.officialWebsite,
-          admissionWebsite: uni.admissionWebsite
+          admissionWebsite: uni.admissionWebsite,
+          isVerified: uni.isVerified
         }))
 
         let filtered = [...transformedData]
