@@ -147,7 +147,6 @@ const UniversityCreatePage = () => {
                                         <SelectContent>
                                             <SelectItem value="Công lập">Công lập</SelectItem>
                                             <SelectItem value="Tư thục">Tư thục</SelectItem>
-                                            <SelectItem value="Dân lập">Dân lập</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />

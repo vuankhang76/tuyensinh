@@ -224,10 +224,10 @@ const AIChat = () => {
   };
 
   const quickQuestions = [
-    "Trường nào có ngành CNTT tốt nhất?",
-    "Thông tin của trường đại học FPT",
-    "Học bổng của trường đại học FPT",
-    "Điểm chuẩn của trường đại học FPT"
+    "Đại học HUFLIT có bao nhiêu ngành?",
+    "Thông tin của trường đại học FPT?",
+    "Học bổng của trường đại học FPT?",
+    "Điểm chuẩn của trường đại học FPT?"
   ];
 
   const formatTimestamp = (timestamp) => {

@@ -345,7 +345,6 @@ const UniversityDetailPage = () => {
                     <SelectContent>
                       <SelectItem value="Công lập">Công lập</SelectItem>
                       <SelectItem value="Tư thục">Tư thục</SelectItem>
-                      <SelectItem value="Dân lập">Dân lập</SelectItem>
                     </SelectContent>
                   </Select>
                   {formErrors.type && <p className="text-red-500 text-sm mt-1">{formErrors.type}</p>}
